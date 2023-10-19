@@ -1,3 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import DisciplineModel, ScrambleModel, ContestModel, SolveModel
+
+admin.site.register([DisciplineModel, ScrambleModel, ContestModel, SolveModel])
