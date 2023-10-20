@@ -6,6 +6,8 @@ from dj_rest_auth.registration.views import SocialLoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import RedirectView
 
+from scripts.fake_data import create_contest
+
 GOOGLE_REDIRECT_URL = 'http://127.0.0.1'
 
 

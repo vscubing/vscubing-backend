@@ -47,7 +47,20 @@ INSTALLED_APPS = [
     'apps.contests',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+    )
+}
+
+REST_AUTH = {
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'app-auth',
+    'JWT_AUTH_REFRESH_COOKIE': 'refresh-token',
+}
+
 ACCOUNT_EMAIL_VERIFICATION = "none"
+# ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 
 SITE_ID = 1
 
