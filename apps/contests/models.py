@@ -32,7 +32,7 @@ class SolveModel(models.Model):
     dnf = models.BooleanField()
     state = models.CharField(max_length=96)
     reconstruction = models.TextField(max_length=2048)
-    contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE)
+    contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='solve_set')
     scramble = models.ForeignKey(ScrambleModel, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE)
