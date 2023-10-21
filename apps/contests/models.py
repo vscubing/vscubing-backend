@@ -22,7 +22,7 @@ class ScrambleModel(models.Model):
     num = models.IntegerField(null=True)
     scramble = models.TextField(max_length=512)
     extra = models.BooleanField()
-    contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE)
+    contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='scramble_set')
     discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE)
 
     def __str__(self):
