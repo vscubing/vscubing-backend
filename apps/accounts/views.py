@@ -8,7 +8,7 @@ from django.views.generic import RedirectView
 
 from scripts.fake_data import create_contest
 
-GOOGLE_REDIRECT_URL = 'http://127.0.0.1'
+GOOGLE_REDIRECT_URL = 'http://127.0.0.1:3000'
 
 
 class GoogleLoginView(SocialLoginView):
