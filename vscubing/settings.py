@@ -1,6 +1,8 @@
+import json
 from pathlib import Path
 from os import getenv
 import os
+import json
 
 from dotenv import load_dotenv
 
@@ -19,7 +21,7 @@ SECRET_KEY = getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = getenv('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = json.loads(getenv('ALLOWED_HOSTS'))
 
 AUTH_USER_MODEL = 'accounts.User'
 

@@ -6,5 +6,5 @@ from .views import GoogleLoginView, UserRedirectView, AUserView
 urlpatterns = [
     path("~redirect/", view=UserRedirectView.as_view(), name="redirect"),
     path("google/login/", GoogleLoginView.as_view(), name="google_login"),
-    path('user_test/', AUserView.as_view(), name='user_test')
+    path('current_user/', AUserView.as_view(), name='current_user')
 ]

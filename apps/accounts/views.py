@@ -1,3 +1,5 @@
+from os import getenv
+
 from rest_framework.views import APIView, Response
 
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
@@ -8,7 +10,7 @@ from django.views.generic import RedirectView
 
 from scripts.fake_data import create_contest
 
-GOOGLE_REDIRECT_URL = 'http://127.0.0.1:3000'
+GOOGLE_REDIRECT_URL = getenv('GOOGLE_REDIRECT_URL')
 
 
 class GoogleLoginView(SocialLoginView):
@@ -30,4 +32,4 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 
 class AUserView(APIView):
     def get(self, request):
-        return Response(f'{request.user}')
+        return Response(f'{request.user.username}')
