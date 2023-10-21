@@ -1,4 +1,4 @@
 .idea
-*__pycach__
+**/__pycache__/
 .env
 venv
