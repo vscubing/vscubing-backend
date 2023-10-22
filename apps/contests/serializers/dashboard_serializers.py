@@ -18,5 +18,5 @@ class BestSolvesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolveModel
-        fields = ['reconstruction', 'time_ms', 'scramble', 'username', 'contest', 'discipline']
+        fields = ['id', 'reconstruction', 'time_ms', 'scramble', 'username', 'contest', 'discipline']
 

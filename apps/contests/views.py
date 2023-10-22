@@ -20,3 +20,8 @@ class DashboardPageView(APIView):
         contests_serializer = ContestSerializer(contests, many=True)
         best_solves_serializer = BestSolvesSerializer(solve_set, many=True)
         return Response({'contests': contests_serializer.data, 'best_solves': best_solves_serializer.data})
+
+
+class EndedContestPage(APIView):
+    def get(self, request):
+        pass
