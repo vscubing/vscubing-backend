@@ -1,7 +1,7 @@
 from os import getenv
 
 from rest_framework.views import APIView, Response
-
+from rest_framework.permissions import IsAuthenticated
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
@@ -31,5 +31,7 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 
 
 class AUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         return Response(f'{request.user.username}')
