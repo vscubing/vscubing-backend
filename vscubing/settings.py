@@ -1,8 +1,8 @@
-import json
 from pathlib import Path
 from os import getenv
 import os
 import json
+from datetime import timedelta
 
 from dotenv import load_dotenv
 
@@ -57,10 +57,16 @@ REST_FRAMEWORK = {
     )
 }
 
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
+
 REST_AUTH = {
     'USE_JWT': True,
-    'JWT_AUTH_COOKIE': 'app-auth',
-    'JWT_AUTH_REFRESH_COOKIE': 'refresh-token',
+    "JWT_AUTH_HTTPONLY": False,
+    # 'JWT_AUTH_COOKIE': 'app-auth',
+    # 'JWT_AUTH_REFRESH_COOKIE': 'refresh-token',
 }
 
 ACCOUNT_EMAIL_VERIFICATION = "none"
