@@ -62,15 +62,21 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
+REST_AUTH_SERIALIZERS = {
+    "REGISTER_SERIALIZER": "apps.accounts.serializers.RegisterSerializer",
+}
+
 REST_AUTH = {
     'USE_JWT': True,
     "JWT_AUTH_HTTPONLY": False,
+    # 'REGISTER_SERIALIZER': 'dj_rest_auth.registration.serializers.RegisterSerializer',
     # 'JWT_AUTH_COOKIE': 'app-auth',
     # 'JWT_AUTH_REFRESH_COOKIE': 'refresh-token',
 }
 
 ACCOUNT_EMAIL_VERIFICATION = "none"
-# ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_USERNAME_REQUIRED = False
+
 
 SITE_ID = 1
 

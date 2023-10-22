@@ -25,6 +25,14 @@ class DashboardPageView(APIView):
 class PastContestPage(APIView):
     def get(self, request, name, discipline):
         contest = ContestModel.objects.get(name=name)
-        solves = contest.solve_set.filter(state='submitted', discipline__name=discipline).order_by('user_id', 'time_ms')
-        serializer = contest_serializers.ContestSubmittedSolvesSerializer(solves, many=True)
-        return Response(serializer.data)
+        if not contest.ongoing:
+            solves = contest.solve_set.filter(state='submitted', discipline__name=discipline).order_by('user_id', 'time_ms')
+            serializer = contest_serializers.ContestSubmittedSolvesSerializer(solves, many=True)
+            return Response(serializer.data)
+        elif contest.ongoing:
+            pass
+
+
+class SolveContest(APIView):
+    def get(self, request):
+        pass
