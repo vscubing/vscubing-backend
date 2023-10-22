@@ -22,6 +22,6 @@ class DashboardPageView(APIView):
         return Response({'contests': contests_serializer.data, 'best_solves': best_solves_serializer.data})
 
 
-class EndedContestPage(APIView):
+class PastContestPage(APIView):
     def get(self, request):
         pass
