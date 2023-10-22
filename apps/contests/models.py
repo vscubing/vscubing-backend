@@ -3,7 +3,7 @@ from apps.accounts.models import User
 
 
 class ContestModel(models.Model):
-    name = models.IntegerField()
+    name = models.IntegerField(unique=True)
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(null=True)
 
@@ -23,7 +23,7 @@ class ScrambleModel(models.Model):
     scramble = models.TextField(max_length=512)
     extra = models.BooleanField()
     contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='scramble_set')
-    discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE)
+    discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE, related_name='scramble_set')
 
     def __str__(self):
         return self.scramble
@@ -35,9 +35,11 @@ class SolveModel(models.Model):
     state = models.CharField(max_length=96)
     reconstruction = models.TextField(max_length=2048)
     contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='solve_set')
-    scramble = models.ForeignKey(ScrambleModel, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE)
+    scramble = models.ForeignKey(ScrambleModel, on_delete=models.CASCADE, related_name='solve_set')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='solve_set')
+    discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE, related_name='solve_set')
 
     def __str__(self):
-        return f"{self.time_ms} {self.user}"
+        return f"{self.time_ms}"
+
+
