@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
-from ..models import ContestModel, SolveModel, ScrambleModel, DisciplineModel
-from apps.accounts.models import User
+from ..models import ContestModel, SolveModel
 
 
 class ContestSerializer(serializers.ModelSerializer):

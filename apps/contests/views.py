@@ -3,7 +3,7 @@ import time
 from rest_framework.views import APIView, Response
 
 from .models import ContestModel, SolveModel, DisciplineModel
-from .serializers.dashboard_serializers import ContestSerializer, BestSolvesSerializer
+from .serializers import dashboard_serializers, contest_serializers
 
 
 class DashboardPageView(APIView):
@@ -17,11 +17,14 @@ class DashboardPageView(APIView):
             if solve:
                 solve_set.append(solve)
 
-        contests_serializer = ContestSerializer(contests, many=True)
-        best_solves_serializer = BestSolvesSerializer(solve_set, many=True)
+        contests_serializer = dashboard_serializers.ContestSerializer(contests, many=True)
+        best_solves_serializer = dashboard_serializers.BestSolvesSerializer(solve_set, many=True)
         return Response({'contests': contests_serializer.data, 'best_solves': best_solves_serializer.data})
 
 
 class PastContestPage(APIView):
-    def get(self, request):
-        pass
+    def get(self, request, name, discipline):
+        contest = ContestModel.objects.get(name=name)
+        solves = contest.solve_set.filter(state='submitted', discipline__name=discipline).order_by('user_id', 'time_ms')
+        serializer = contest_serializers.ContestSubmittedSolvesSerializer(solves, many=True)
+        return Response(serializer.data)

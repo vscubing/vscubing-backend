@@ -22,7 +22,7 @@ def create_contest():
 
 def create_contest_scrambles():
     previous_contest = ContestModel.objects.order_by('name').last()
-    discipline = DisciplineModel.objects.get(name='4by4')
+    discipline = DisciplineModel.objects.get(name='3by3')
     for num in range(1, 6):
         generated_scramble = generate_scramble()
         scramble = ScrambleModel(num=num, scramble=generated_scramble, extra=False, contest=previous_contest, discipline=discipline)
@@ -35,7 +35,7 @@ def create_contest_scrambles():
 
 def create_solves():
     users = User.objects.all()
-    discipline = DisciplineModel.objects.get(name='4by4')
+    discipline = DisciplineModel.objects.get(name='3by3')
 
     contest = ContestModel.objects.order_by('name').last()
     for user in users:
