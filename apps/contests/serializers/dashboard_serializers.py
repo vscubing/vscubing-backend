@@ -14,8 +14,9 @@ class BestSolvesSerializer(serializers.ModelSerializer):
     scramble = serializers.CharField(source='scramble.scramble')
     username = serializers.CharField(source='user.username')
     discipline = serializers.CharField(source='discipline.name')
+    contest_number = serializers.IntegerField(source='contest.contest_number')
 
     class Meta:
         model = SolveModel
-        fields = ['id', 'reconstruction', 'time_ms', 'scramble', 'username', 'contest', 'discipline']
+        fields = ['id', 'reconstruction', 'time_ms', 'scramble', 'username', 'contest_number', 'discipline']
 
