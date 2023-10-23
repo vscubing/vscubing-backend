@@ -1,6 +1,6 @@
 import time
 
-from rest_framework.views import APIView, Response
+from rest_framework.views import APIView, Response, status
 
 from apps.accounts.models import User
 from .models import ContestModel, SolveModel, DisciplineModel
@@ -27,7 +27,7 @@ class ContestPageView(APIView):
     def get(self, request, contest_number, discipline):
         contest = ContestModel.objects.get(contest_number=contest_number)
         if not contest.ongoing:
-            solves = contest.solve_set.filter(state='submitted', discipline__name=discipline).order_by('user_id', 'time_ms')
+            solves = contest.solve_set.filter(state='contest_submitted', discipline__name=discipline).order_by('user_id', 'time_ms')
             serializer = contest_serializers.ContestSubmittedSolvesSerializer(solves, many=True)
             return Response(serializer.data)
         elif contest.ongoing:
@@ -39,5 +39,16 @@ class ContestPageView(APIView):
 
 
 class SolveContestView(APIView):
+    def get(self, request, discipline):
+        # return all scrambles and solves for scrambles if they already made
+        print(request.query_params)
+        return Response(status=status.HTTP_200_OK)
+
+    def post(self, request):
+        print(request.query_params)
+
+
+class OngoingContestNumberView(APIView):
     def get(self, request):
-        pass
+        ongoing_contest = ContestModel.objects.filter(ongoing=True).last()
+        return Response(ongoing_contest.contest_number)
