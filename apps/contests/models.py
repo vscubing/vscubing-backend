@@ -3,13 +3,13 @@ from apps.accounts.models import User
 
 
 class ContestModel(models.Model):
-    contest_id = models.IntegerField(unique=True)
+    contest_number = models.IntegerField(unique=True)
     start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(null=True)
     ongoing = models.BooleanField(default=True)
 
     def __str__(self):
-        return str(self.name)
+        return str(self.contest_number)
 
 
 class DisciplineModel(models.Model):
