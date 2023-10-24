@@ -37,7 +37,8 @@ class ContestPermission(BasePermission):
                     APIException.status_code = 403
                     raise APIException
             else:
-                return False
+                APIException.status_code = 401
+                raise APIException
 
         elif not contest.ongoing:
             return True

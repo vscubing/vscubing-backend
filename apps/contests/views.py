@@ -1,7 +1,7 @@
 from rest_framework.views import APIView, Response, status
 
 from .models import ContestModel, SolveModel, DisciplineModel
-from .serializers import dashboard_serializers, contest_serializers, solve_contest_serializers
+from .serializers import dashboard_serializers, contest_serializers, solve_contest_serializers, solve_reconstruction_serializers
 from .permissions import ContestPermission, SolveContestPermission
 
 
@@ -32,6 +32,13 @@ class ContestView(APIView):
         return Response(serializer.data)
 
 
+class SolveReconstructionSerializer(APIView):
+    def get(self, request, id):
+        solve = SolveModel.objects.get(id=id)
+        serializer = solve_contest_serializers.SolveSerializer(solve)
+        return Response(serializer.data)
+
+
 class SolveContestView(APIView):
     permission_classes = [SolveContestPermission]
 
@@ -42,7 +49,7 @@ class SolveContestView(APIView):
         scrambles = contest.scramble_set.filter(discipline__name=discipline).filter(solve_set__user=request.user.id)
         print(scrambles)
 
-        serializer = solve_contest_serializers.GetSolveContestSerializer(scrambles, many=True)
+        serializer = solve_contest_serializers.ScrambleSerializer(scrambles, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
