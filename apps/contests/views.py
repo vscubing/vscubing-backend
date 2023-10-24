@@ -35,7 +35,7 @@ class ContestView(APIView):
 class SolveReconstructionSerializer(APIView):
     def get(self, request, id):
         solve = SolveModel.objects.get(id=id)
-        serializer = solve_contest_serializers.SolveSerializer(solve)
+        serializer = solve_reconstruction_serializers.SolveSerializer(solve)
         return Response(serializer.data)
 
 
