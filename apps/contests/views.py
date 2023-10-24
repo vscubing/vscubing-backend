@@ -1,13 +1,12 @@
-import time
-
 from rest_framework.views import APIView, Response, status
 
-from apps.accounts.models import User
 from .models import ContestModel, SolveModel, DisciplineModel
-from .serializers import dashboard_serializers, contest_serializers
+from .serializers import dashboard_serializers, contest_serializers, solve_contest_serializers
+from .permissions import ContestPermission, SolveContestPermission
 
 
-class DashboardPageView(APIView):
+class DashboardView(APIView):
+
     def get(self, request):
         contests = ContestModel.objects.all()
         disciplines = DisciplineModel.objects.all()
@@ -23,26 +22,28 @@ class DashboardPageView(APIView):
         return Response({'contests': contests_serializer.data, 'best_solves': best_solves_serializer.data})
 
 
-class ContestPageView(APIView):
+class ContestView(APIView):
+    permission_classes = [ContestPermission]
+
     def get(self, request, contest_number, discipline):
         contest = ContestModel.objects.get(contest_number=contest_number)
-        if not contest.ongoing:
-            solves = contest.solve_set.filter(state='contest_submitted', discipline__name=discipline).order_by('user_id', 'time_ms')
-            serializer = contest_serializers.ContestSubmittedSolvesSerializer(solves, many=True)
-            return Response(serializer.data)
-        elif contest.ongoing:
-            # need to check if state == "contest_submitted" to allow or not allow see ongoing contest
-            user = User.objects.get(id=request.user.id)
-            last_solve = user.solve_set.filter(discipline__name=discipline).order_by('id').last()
-            print(last_solve.state)
-            return Response(200)
+        solves = contest.solve_set.filter(state='contest_submitted', discipline__name=discipline).order_by('user_id', 'time_ms')
+        serializer = contest_serializers.ContestSubmittedSolvesSerializer(solves, many=True)
+        return Response(serializer.data)
 
 
 class SolveContestView(APIView):
-    def get(self, request, discipline):
+    permission_classes = [SolveContestPermission]
+
+    def get(self, request, contest_number, discipline):
         # return all scrambles and solves for scrambles if they already made
-        print(request.query_params)
-        return Response(status=status.HTTP_200_OK)
+
+        contest = ContestModel.objects.get(contest_number=contest_number)
+        scrambles = contest.scramble_set.filter(discipline__name=discipline).filter(solve_set__user=request.user.id)
+        print(scrambles)
+
+        serializer = solve_contest_serializers.GetSolveContestSerializer(scrambles, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         print(request.query_params)

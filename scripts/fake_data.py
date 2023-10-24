@@ -21,7 +21,7 @@ def create_contest():
 
 
 def create_contest_scrambles():
-    previous_contest = ContestModel.objects.order_by('name').last()
+    previous_contest = ContestModel.objects.order_by('contest_number').last()
     discipline = DisciplineModel.objects.get(name='3by3')
     for num in range(1, 6):
         generated_scramble = generate_scramble()
