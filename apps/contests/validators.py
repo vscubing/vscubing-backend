@@ -12,12 +12,18 @@ all cases
 '''
 
 
-class CurrentSolveValidator:
-    def __init__(self, scrambles, request):
+class SolveValidator:
+    def __init__(self, request, contest_number, discipline):
         self.request = request
-        self.scrambles = scrambles
+        self.contest_number = contest_number
+        self.discipline = discipline
+        self.scramble_id = request.query_params.get('scramble_id')
+        self.reconstruction = request.data.get('reconstruction')
+        self.time_ms = request.data.get('time_ms')
+        print(request)
 
     def find_current_scrambles(self):
+        self.scrambles = ContestModel.objects.get(contest_number=self.contest_number).scramble_set.all()
         previous_solve = None
         for scramble in self.scrambles:
             solve = scramble.solve_set.filter(user=self.request.user.id).first()
@@ -32,17 +38,6 @@ class CurrentSolveValidator:
             elif solve.state == SOLVE_PENDING_STATE:
                 return solve, scramble
             previous_solve = solve
-
-
-class SolveValidator:
-    def __init__(self, request, contest_number, discipline):
-        self.request = request
-        self.contest_number = contest_number
-        self.discipline = discipline
-        self.scramble_id = request.query_params.get('scramble_id')
-        self.reconstruction = request.data.get('reconstruction')
-        self.time_ms = request.data.get('time_ms')
-        print(request)
 
     def is_valid(self):
         pass

@@ -5,7 +5,7 @@ from apps.accounts.models import User
 from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel
 from .serializers import dashboard_serializers, contest_serializers, solve_contest_serializers, solve_reconstruction_serializers
 from .permissions import ContestPermission, SolveContestPermission
-from .validators import CurrentSolveValidator, SolveValidator
+from .validators import SolveValidator
 from config import SOLVE_SUBMITTED_STATE
 
 
@@ -42,8 +42,7 @@ class SolveContestView(APIView):
     def get(self, request, contest_number, discipline):
         submitted_solves = User.objects.get(id=request.user.id).solve_set.filter(contest__contest_number=contest_number,
                                                                discipline__name=discipline, state=SOLVE_SUBMITTED_STATE)
-        contest_scrambles = ContestModel.objects.get(contest_number=contest_number).scramble_set.all()
-        current_solve_validator = CurrentSolveValidator(scrambles=contest_scrambles, request=request)
+        current_solve_validator = SolveValidator(request=request, contest_number=contest_number, discipline=discipline)
         current_solve, current_scramble = current_solve_validator.find_current_scrambles()
 
         submitted_solves_serializer = solve_contest_serializers.SubmittedSolveSerializer(submitted_solves, many=True)
@@ -58,8 +57,6 @@ class SolveContestView(APIView):
                                             'solve': current_solve_serializer}})
 
     def post(self, request, contest_number, discipline):
-        # TODO make solve validation with checking scrambles sequence and if solve mach scramble
-
         solve_validator = SolveValidator(request, contest_number, discipline)
         solve_validator.create()
 
