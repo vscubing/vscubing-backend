@@ -1,3 +1,4 @@
 SOLVE_PENDING_STATE = 'pending'
 SOLVE_SUBMITTED_STATE = 'submitted'
 SOLVE_CONTEST_SUBMITTED_STATE = 'contest_submitted'
+SOLVE_CHANGED_TO_EXTRA_STATE = 'contest_submitted'

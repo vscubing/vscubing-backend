@@ -32,9 +32,10 @@ class ScrambleModel(models.Model):
 
 class SolveModel(models.Model):
     time_ms = models.IntegerField()
-    dnf = models.BooleanField()
-    changed_to_extra = models.BooleanField(blank=True, null=True, default=None)
-    state = models.CharField(max_length=96)
+    dnf = models.BooleanField(default=False)
+    extra_id = models.IntegerField(default=None, null=True, blank=True)
+    contest_submitted = models.BooleanField(default=False)
+    state = models.CharField(max_length=96, default='pending')
     reconstruction = models.TextField(max_length=2048)
     contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='solve_set')
     scramble = models.ForeignKey(ScrambleModel, on_delete=models.CASCADE, related_name='solve_set')

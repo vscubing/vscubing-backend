@@ -2,7 +2,7 @@ from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import APIException
 from django.core.exceptions import ObjectDoesNotExist
 
-from config import SOLVE_CONTEST_SUBMITTED_STATE
+from config import SOLVE_CONTEST_SUBMITTED_STATE, SOLVE_SUBMITTED_STATE
 from .models import ContestModel, DisciplineModel, SolveModel, ScrambleModel
 from apps.accounts.models import User
 from rest_framework.views import APIView, Response
@@ -27,12 +27,12 @@ class ContestPermission(BasePermission):
         if contest.ongoing:
             if bool(request.user and request.user.is_authenticated):
                 user = User.objects.get(id=request.user.id)
-                last_this_contest_solve = user.solve_set.filter(contest__contest_number=contest_number,
-                                                                state=SOLVE_CONTEST_SUBMITTED_STATE,
+                last_this_contest_user_solve = user.solve_set.filter(contest__contest_number=contest_number,
+                                                                contest_submitted=True,
                                                                 discipline__name=discipline).last()
-                if last_this_contest_solve:
+                if last_this_contest_user_solve:
                     return True
-                elif not last_this_contest_solve:
+                elif not last_this_contest_user_solve:
                     APIException.default_detail = "User didn't solve ongoing contest"
                     APIException.status_code = 403
                     raise APIException
@@ -46,7 +46,25 @@ class ContestPermission(BasePermission):
 
 class SolveContestPermission(BasePermission):
     def has_permission(self, request, view):
+        contest_number = view.kwargs.get('contest_number')
+        discipline = view.kwargs.get('discipline')
+        try:
+            contest = ContestModel.objects.get(contest_number=contest_number)
+        except ObjectDoesNotExist:
+            APIException.default_detail = "Contest does not exist"
+            APIException.status_code = 404
+            raise APIException
+
         if bool(request.user and request.user.is_authenticated):
-            return True
+            user = User.objects.get(id=request.user.id)
+            last_this_contest_user_solve = user.solve_set.filter(contest__contest_number=contest_number,
+                                                                 contest_submitted=True,
+                                                                 discipline__name=discipline).last()
+            if not last_this_contest_user_solve:
+                return True
+            elif last_this_contest_user_solve:
+                APIException.default_detail = "User solved contest already"
+                APIException.status_code = 403
+                raise APIException
         else:
             return False

@@ -1,8 +1,11 @@
 from rest_framework.views import APIView, Response, status
 
-from .models import ContestModel, SolveModel, DisciplineModel
+from apps.accounts.models import User
+from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel
 from .serializers import dashboard_serializers, contest_serializers, solve_contest_serializers, solve_reconstruction_serializers
 from .permissions import ContestPermission, SolveContestPermission
+from .validators import CurrentSolveValidator, SaveSolveValidator
+from config import SOLVE_SUBMITTED_STATE
 
 
 class DashboardView(APIView):
@@ -27,15 +30,8 @@ class ContestView(APIView):
 
     def get(self, request, contest_number, discipline):
         contest = ContestModel.objects.get(contest_number=contest_number)
-        solves = contest.solve_set.filter(state='contest_submitted', discipline__name=discipline).order_by('user_id', 'time_ms')
+        solves = contest.solve_set.filter(state=SOLVE_SUBMITTED_STATE, discipline__name=discipline).order_by('user_id', 'time_ms')
         serializer = contest_serializers.ContestSubmittedSolvesSerializer(solves, many=True)
-        return Response(serializer.data)
-
-
-class SolveReconstructionSerializer(APIView):
-    def get(self, request, id):
-        solve = SolveModel.objects.get(id=id)
-        serializer = solve_reconstruction_serializers.SolveSerializer(solve)
         return Response(serializer.data)
 
 
@@ -43,20 +39,40 @@ class SolveContestView(APIView):
     permission_classes = [SolveContestPermission]
 
     def get(self, request, contest_number, discipline):
-        # return all scrambles and solves for scrambles if they already made
+        submitted_solves = User.objects.get(id=request.user.id).solve_set.filter(contest__contest_number=contest_number,
+                                                               discipline__name=discipline, state=SOLVE_SUBMITTED_STATE)
+        contest_scrambles = ContestModel.objects.get(contest_number=contest_number).scramble_set.all()
+        current_solve_validator = CurrentSolveValidator(scrambles=contest_scrambles, request=request)
+        current_solve, current_scramble = current_solve_validator.find_current_scrambles()
 
-        contest = ContestModel.objects.get(contest_number=contest_number)
-        scrambles = contest.scramble_set.filter(discipline__name=discipline).filter(solve_set__user=request.user.id)
-        print(scrambles)
+        submitted_solves_serializer = solve_contest_serializers.SubmittedSolveSerializer(submitted_solves, many=True)
+        try:
+            current_solve_serializer = solve_contest_serializers.CurrentSolveSerializer(current_solve).data
+        except AttributeError:
+            current_solve_serializer = None
+        current_scramble_serializer = solve_contest_serializers.CurrentScrambleSerializer(current_scramble)
 
-        serializer = solve_contest_serializers.ScrambleSerializer(scrambles, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({'submitted_solves': submitted_solves_serializer.data,
+                         'current_solve': {'scramble': current_scramble_serializer.data,
+                                            'solve': current_solve_serializer}})
 
-    def post(self, request):
-        print(request.query_params)
+    def post(self, request, contest_number, discipline):
+        # TODO make solve validation with checking scrambles sequence and if solve mach scramble
+
+        solve_validator = SaveSolveValidator(request, contest_number, discipline)
+        solve_validator.create()
+
+        return Response(status=status.HTTP_200_OK)
 
 
 class OngoingContestNumberView(APIView):
     def get(self, request):
         ongoing_contest = ContestModel.objects.filter(ongoing=True).last()
         return Response(ongoing_contest.contest_number)
+
+
+class SolveReconstructionSerializer(APIView):
+    def get(self, request, id):
+        solve = SolveModel.objects.get(id=id)
+        serializer = solve_reconstruction_serializers.SolveSerializer(solve)
+        return Response(serializer.data)
