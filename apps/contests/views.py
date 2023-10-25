@@ -58,14 +58,19 @@ class SolveContestView(APIView):
 
     def post(self, request, contest_number, discipline):
         solve_validator = SolveValidator(request, contest_number, discipline)
-        solve_validator.create()
+        solve = solve_validator.create()
 
-        return Response(status=status.HTTP_200_OK)
+        return Response(solve.id, status=status.HTTP_200_OK)
 
     def put(self, request, contest_number, discipline):
         validator = SolveValidator(request, contest_number, discipline)
-        validator.create_is_valid()
-        return redirect('solve-contest', contest_number=contest_number, discipline=discipline)
+        validator.update()
+        contest_is_finished = validator.contest_is_finished()
+        if contest_is_finished:
+            validator.submit_contest()
+            return redirect('dashboard')
+        else:
+            return redirect('solve-contest', contest_number=contest_number, discipline=discipline)
 
 
 class OngoingContestNumberView(APIView):

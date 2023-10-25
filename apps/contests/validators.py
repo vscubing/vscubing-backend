@@ -1,3 +1,5 @@
+from django.shortcuts import redirect
+
 from config import SOLVE_PENDING_STATE, SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from .models import ScrambleModel, SolveModel, ContestModel, DisciplineModel
 from apps.accounts.models import User
@@ -35,8 +37,16 @@ class SolveValidator:
                 elif previous_solve.state == SOLVE_SUBMITTED_STATE:
                     return solve, scramble
                 elif previous_solve.state == SOLVE_CHANGED_TO_EXTRA_STATE:
-                    scramble = ScrambleModel.objects.get(id=previous_solve.extra_id)
-                    return solve, scramble
+                    extra_scramble = ScrambleModel.objects.get(id=previous_solve.extra_id)
+                    extra_solve = extra_scramble.solve_set.filter(user=self.request.user.id).first()
+                    if not extra_solve:
+                        return extra_solve, extra_scramble
+                    elif extra_solve.state == SOLVE_PENDING_STATE:
+                        return extra_solve, extra_scramble
+                    elif extra_solve.state == SOLVE_SUBMITTED_STATE:
+                        print(solve, scramble)
+                        return solve, scramble
+
             elif solve.state == SOLVE_PENDING_STATE:
                 return solve, scramble
             previous_solve = solve
@@ -44,10 +54,24 @@ class SolveValidator:
     def is_valid(self):
         pass
 
-    def count_submitted_user_solves(self):
+    def contest_is_finished(self):
         solves = (ContestModel.objects.get(contest_number=self.contest_number)
                   .solve_set.filter(user=self.request.user.id, state=SOLVE_SUBMITTED_STATE))
-        return len(solves)
+        if len(solves) == 5:
+            return True
+        else:
+            return False
+
+    def submit_contest(self):
+        solves = (ContestModel.objects.get(contest_number=self.contest_number)
+                  .solve_set.filter(user=self.request.user.id, state=SOLVE_SUBMITTED_STATE))
+        if len(solves) == 5:
+            for solve in solves:
+                solve.contest_submitted = True
+                solve.save()
+            return True
+        else:
+            return False
 
     def create(self):
         solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction,
@@ -56,9 +80,10 @@ class SolveValidator:
                            user=User.objects.get(id=self.request.user.id),
                            discipline=DisciplineModel.objects.get(name=self.discipline))
         solve.save()
-        
+        return solve
 
     def update(self):
+
         action = self.request.query_params.get('action')
         solve_id = self.request.data.get('solve_id')
         solve = SolveModel.objects.get(id=solve_id, user=self.request.user.id, state=SOLVE_PENDING_STATE)
@@ -76,5 +101,3 @@ class SolveValidator:
                     return True
                 else:
                     print(extra)
-            # solve.save()
-
