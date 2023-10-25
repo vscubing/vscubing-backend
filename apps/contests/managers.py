@@ -1,4 +1,5 @@
 from django.shortcuts import redirect
+from rest_framework.views import status
 
 from config import SOLVE_PENDING_STATE, SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from .models import ScrambleModel, SolveModel, ContestModel, DisciplineModel
@@ -16,20 +17,22 @@ all cases
 '''
 
 
-class SolveValidator:
+class SolveManager:
     def __init__(self, request, contest_number, discipline):
         self.request = request
         self.contest_number = contest_number
         self.discipline = discipline
         self.scramble_id = request.query_params.get('scramble_id')
+        if self.scramble_id:
+            self.scramble_id = int(self.scramble_id)
         self.reconstruction = request.data.get('reconstruction')
         self.time_ms = request.data.get('time_ms')
         print(request)
 
-    def find_current_scrambles(self):
-        self.scrambles = ContestModel.objects.get(contest_number=self.contest_number).scramble_set.all()
+    def current_scrambles_and_solve(self):
+        scrambles = ContestModel.objects.get(contest_number=self.contest_number).scramble_set.all()
         previous_solve = None
-        for scramble in self.scrambles:
+        for scramble in scrambles:
             solve = scramble.solve_set.filter(user=self.request.user.id).first()
             if not solve:
                 if not previous_solve:
@@ -55,18 +58,17 @@ class SolveValidator:
         pass
 
     def contest_is_finished(self):
-        solves = (ContestModel.objects.get(contest_number=self.contest_number)
+        self.user_submitted_solves = (ContestModel.objects.get(contest_number=self.contest_number)
                   .solve_set.filter(user=self.request.user.id, state=SOLVE_SUBMITTED_STATE))
-        if len(solves) == 5:
+        if len(self.user_submitted_solves) == 5:
             return True
         else:
             return False
 
     def submit_contest(self):
-        solves = (ContestModel.objects.get(contest_number=self.contest_number)
-                  .solve_set.filter(user=self.request.user.id, state=SOLVE_SUBMITTED_STATE))
-        if len(solves) == 5:
-            for solve in solves:
+        contest_is_finished = self.contest_is_finished()
+        if contest_is_finished:
+            for solve in self.user_submitted_solves:
                 solve.contest_submitted = True
                 solve.save()
             return True
@@ -74,30 +76,40 @@ class SolveValidator:
             return False
 
     def create(self):
-        solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction,
-                           scramble=ScrambleModel.objects.get(id=self.scramble_id),
-                           contest=ContestModel.objects.get(contest_number=self.contest_number),
-                           user=User.objects.get(id=self.request.user.id),
-                           discipline=DisciplineModel.objects.get(name=self.discipline))
-        solve.save()
-        return solve
+        current_solve, current_scramble = self.current_scrambles_and_solve()
+        if current_scramble.id == self.scramble_id:
+            scramble = ScrambleModel.objects.get(id=self.scramble_id)
+            contest = ContestModel.objects.get(contest_number=self.contest_number)
+            user = User.objects.get(id=self.request.user.id)
+            discipline = DisciplineModel.objects.get(name=self.discipline)
+            solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=scramble,
+                               contest=contest, user=user, discipline=discipline)
+            solve.save()
+            return solve.id
+        else:
+            return None
 
     def update(self):
 
         action = self.request.query_params.get('action')
         solve_id = self.request.data.get('solve_id')
-        solve = SolveModel.objects.get(id=solve_id, user=self.request.user.id, state=SOLVE_PENDING_STATE)
+        solve = SolveModel.objects.filter(id=solve_id, user=self.request.user.id, state=SOLVE_PENDING_STATE).first()
         if action == 'submit':
             solve.state = SOLVE_SUBMITTED_STATE
             solve.save()
+            return True
         elif action == 'change_to_extra':
             extras = ScrambleModel.objects.filter(contest__contest_number=self.contest_number, extra=True)
             for extra in extras:
-                if not extra.solve_set.filter(user=self.request.user.id).first():
+                extra_solves = extra.solve_set.filter(user=self.request.user.id).first()
+                if not extra_solves:
                     solve.state = SOLVE_CHANGED_TO_EXTRA_STATE
                     solve.extra_id = extra.id
-                    print('saving solve')
                     solve.save()
                     return True
                 else:
                     print(extra)
+            return False
+
+    def reconstruction_is_valid(self):
+        return None

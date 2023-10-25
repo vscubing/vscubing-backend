@@ -5,7 +5,7 @@ from apps.accounts.models import User
 from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel
 from .serializers import dashboard_serializers, contest_serializers, solve_contest_serializers, solve_reconstruction_serializers
 from .permissions import ContestPermission, SolveContestPermission
-from .validators import SolveValidator
+from .managers import SolveManager
 from config import SOLVE_SUBMITTED_STATE
 
 
@@ -42,8 +42,8 @@ class SolveContestView(APIView):
     def get(self, request, contest_number, discipline):
         submitted_solves = User.objects.get(id=request.user.id).solve_set.filter(contest__contest_number=contest_number,
                                                                discipline__name=discipline, state=SOLVE_SUBMITTED_STATE)
-        current_solve_validator = SolveValidator(request=request, contest_number=contest_number, discipline=discipline)
-        current_solve, current_scramble = current_solve_validator.find_current_scrambles()
+        current_solve_validator = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
+        current_solve, current_scramble = current_solve_validator.current_scrambles_and_solve()
 
         submitted_solves_serializer = solve_contest_serializers.SubmittedSolveSerializer(submitted_solves, many=True)
         try:
@@ -57,20 +57,25 @@ class SolveContestView(APIView):
                                             'solve': current_solve_serializer}})
 
     def post(self, request, contest_number, discipline):
-        solve_validator = SolveValidator(request, contest_number, discipline)
-        solve = solve_validator.create()
-
-        return Response(solve.id, status=status.HTTP_200_OK)
+        solve_validator = SolveManager(request, contest_number, discipline)
+        response = solve_validator.create()
+        if response:
+            return Response(response)
+        else:
+            return Response({"detail": "wrong scramble provided"}, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, contest_number, discipline):
-        validator = SolveValidator(request, contest_number, discipline)
-        validator.update()
-        contest_is_finished = validator.contest_is_finished()
-        if contest_is_finished:
-            validator.submit_contest()
-            return redirect('dashboard')
+        validator = SolveManager(request, contest_number, discipline)
+        solve_updated = validator.update()
+        if solve_updated:
+            contest_is_finished = validator.contest_is_finished()
+            if contest_is_finished:
+                validator.submit_contest()
+                return redirect('contest', contest_number=contest_number, discipline=discipline)
+            else:
+                return redirect('solve-contest', contest_number=contest_number, discipline=discipline)
         else:
-            return redirect('solve-contest', contest_number=contest_number, discipline=discipline)
+            return Response('this is a problem', status=status.HTTP_400_BAD_REQUEST)
 
 
 class OngoingContestNumberView(APIView):
