@@ -4,7 +4,7 @@ from apps.accounts.models import User
 from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel
 from .serializers import dashboard_serializers, contest_serializers, solve_contest_serializers, solve_reconstruction_serializers
 from .permissions import ContestPermission, SolveContestPermission
-from .validators import CurrentSolveValidator, SaveSolveValidator
+from .validators import CurrentSolveValidator, SolveValidator
 from config import SOLVE_SUBMITTED_STATE
 
 
@@ -59,9 +59,14 @@ class SolveContestView(APIView):
     def post(self, request, contest_number, discipline):
         # TODO make solve validation with checking scrambles sequence and if solve mach scramble
 
-        solve_validator = SaveSolveValidator(request, contest_number, discipline)
+        solve_validator = SolveValidator(request, contest_number, discipline)
         solve_validator.create()
 
+        return Response(status=status.HTTP_200_OK)
+
+    def put(self, request, contest_number, discipline):
+        validator = SolveValidator(request, contest_number, discipline)
+        validator.update()
         return Response(status=status.HTTP_200_OK)
 
 

@@ -20,8 +20,7 @@ class CurrentSolveValidator:
     def find_current_scrambles(self):
         previous_solve = None
         for scramble in self.scrambles:
-            solve = scramble.solve_set.get(user=self.request.user.id)
-            print(solve)
+            solve = scramble.solve_set.filter(user=self.request.user.id).first()
             if not solve:
                 if not previous_solve:
                     return solve, scramble
@@ -35,7 +34,7 @@ class CurrentSolveValidator:
             previous_solve = solve
 
 
-class SaveSolveValidator:
+class SolveValidator:
     def __init__(self, request, contest_number, discipline):
         self.request = request
         self.contest_number = contest_number
@@ -55,3 +54,15 @@ class SaveSolveValidator:
                            user=User.objects.get(id=self.request.user.id),
                            discipline=DisciplineModel.objects.get(name=self.discipline))
         solve.save()
+
+    def update(self):
+        action = self.request.query_params.get('action')
+        solve_id = self.request.data.get('solve_id')
+        solve = SolveModel.objects.get(id=solve_id, user=self.request.user.id, state=SOLVE_PENDING_STATE)
+        if action == 'submit':
+            solve.state = SOLVE_SUBMITTED_STATE
+            solve.save()
+        elif action == 'change_to_extra':
+            solve.state = SOLVE_CHANGED_TO_EXTRA_STATE
+            solve.save()
+
