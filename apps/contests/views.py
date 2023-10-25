@@ -64,7 +64,7 @@ class SolveContestView(APIView):
 
     def put(self, request, contest_number, discipline):
         validator = SolveValidator(request, contest_number, discipline)
-        validator.update()
+        validator.create_is_valid()
         return redirect('solve-contest', contest_number=contest_number, discipline=discipline)
 
 

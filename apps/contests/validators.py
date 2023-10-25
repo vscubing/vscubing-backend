@@ -2,6 +2,8 @@ from config import SOLVE_PENDING_STATE, SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_
 from .models import ScrambleModel, SolveModel, ContestModel, DisciplineModel
 from apps.accounts.models import User
 
+SOLVES_IN_CONTEST = 5
+
 '''
 all cases
 
@@ -42,6 +44,11 @@ class SolveValidator:
     def is_valid(self):
         pass
 
+    def count_submitted_user_solves(self):
+        solves = (ContestModel.objects.get(contest_number=self.contest_number)
+                  .solve_set.filter(user=self.request.user.id, state=SOLVE_SUBMITTED_STATE))
+        return len(solves)
+
     def create(self):
         solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction,
                            scramble=ScrambleModel.objects.get(id=self.scramble_id),
@@ -49,6 +56,7 @@ class SolveValidator:
                            user=User.objects.get(id=self.request.user.id),
                            discipline=DisciplineModel.objects.get(name=self.discipline))
         solve.save()
+        
 
     def update(self):
         action = self.request.query_params.get('action')
