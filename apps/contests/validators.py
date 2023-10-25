@@ -58,6 +58,15 @@ class SolveValidator:
             solve.state = SOLVE_SUBMITTED_STATE
             solve.save()
         elif action == 'change_to_extra':
-            solve.state = SOLVE_CHANGED_TO_EXTRA_STATE
-            solve.save()
+            extras = ScrambleModel.objects.filter(contest__contest_number=self.contest_number, extra=True)
+            for extra in extras:
+                if not extra.solve_set.filter(user=self.request.user.id).first():
+                    solve.state = SOLVE_CHANGED_TO_EXTRA_STATE
+                    solve.extra_id = extra.id
+                    print('saving solve')
+                    solve.save()
+                    return True
+                else:
+                    print(extra)
+            # solve.save()
 
