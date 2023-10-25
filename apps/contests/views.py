@@ -31,7 +31,8 @@ class ContestView(APIView):
 
     def get(self, request, contest_number, discipline):
         contest = ContestModel.objects.get(contest_number=contest_number)
-        solves = contest.solve_set.filter(state=SOLVE_SUBMITTED_STATE, discipline__name=discipline).order_by('user_id', 'time_ms')
+        solves = contest.solve_set.filter(contest_submitted=True, state=SOLVE_SUBMITTED_STATE,
+                                          discipline__name=discipline).order_by('user_id', 'id')
         serializer = contest_serializers.ContestSubmittedSolvesSerializer(solves, many=True)
         return Response(serializer.data)
 

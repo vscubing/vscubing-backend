@@ -67,8 +67,10 @@ class SolveManager:
 
     def submit_contest(self):
         contest_is_finished = self.contest_is_finished()
+        solves = (ContestModel.objects.get(contest_number=self.contest_number)
+                  .solve_set.filter(user=self.request.user.id))
         if contest_is_finished:
-            for solve in self.user_submitted_solves:
+            for solve in solves:
                 solve.contest_submitted = True
                 solve.save()
             return True
