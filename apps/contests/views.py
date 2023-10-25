@@ -1,4 +1,5 @@
 from rest_framework.views import APIView, Response, status
+from django.shortcuts import redirect
 
 from apps.accounts.models import User
 from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel
@@ -67,7 +68,7 @@ class SolveContestView(APIView):
     def put(self, request, contest_number, discipline):
         validator = SolveValidator(request, contest_number, discipline)
         validator.update()
-        return Response(status=status.HTTP_200_OK)
+        return redirect('solve-contest', contest_number=contest_number, discipline=discipline)
 
 
 class OngoingContestNumberView(APIView):
