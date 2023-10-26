@@ -1,5 +1,6 @@
 from rest_framework.views import APIView, Response, status
 from django.shortcuts import redirect
+from django.db.transaction import atomic
 
 from apps.accounts.models import User
 from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel
@@ -7,6 +8,7 @@ from .serializers import dashboard_serializers, contest_serializers, solve_conte
 from .permissions import ContestPermission, SolveContestPermission
 from .managers import SolveManager
 from config import SOLVE_SUBMITTED_STATE
+from scripts.scramble import generate_scramble
 
 
 class DashboardView(APIView):
@@ -90,3 +92,28 @@ class SolveReconstructionSerializer(APIView):
         solve = SolveModel.objects.get(id=id)
         serializer = solve_reconstruction_serializers.SolveSerializer(solve)
         return Response(serializer.data)
+
+
+class NewContestView(APIView):
+    def post(self, request):
+        @atomic()
+        def create_contest():
+            previous_contest = ContestModel.objects.order_by('contest_number').last()
+            previous_contest.ongoing = False
+            previous_contest.save()
+            new_contest = ContestModel(contest_number=previous_contest.contest_number + 1)
+            new_contest.save()
+            discipline = DisciplineModel.objects.get(name='3by3')
+            for num in range(1, 6):
+                generated_scramble = generate_scramble()
+                scramble = ScrambleModel(num=num, scramble=generated_scramble, extra=False, contest=previous_contest,
+                                         discipline=discipline)
+                scramble.save()
+            for num in range(1, 3):
+                generated_scramble = generate_scramble()
+                scramble = ScrambleModel(num=num, scramble=generated_scramble, extra=True, contest=previous_contest,
+                                         discipline=discipline)
+                scramble.save()
+
+        create_contest()
+        return Response('new contest created')

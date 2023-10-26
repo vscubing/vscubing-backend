@@ -6,7 +6,7 @@ def generate_scramble():
     modifiers = ["", "'", "2"]
     scramble = []
     last_move = ""
-    for i in range(20):
+    for i in range(3):
         move = random.choice(moves)
         while move == last_move:
             move = random.choice(moves)
