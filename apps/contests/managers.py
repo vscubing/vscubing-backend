@@ -62,12 +62,11 @@ class SolveManager:
 
     def create_solve(self):
         current_solve, current_scramble = self.current_scrambles_and_solve()
-        if current_scramble.id == self.scramble_id and not current_solve:
-            scramble = ScrambleModel.objects.get(id=self.scramble_id)
+        if current_scramble.id and not current_solve:
             contest = ContestModel.objects.get(contest_number=self.contest_number)
             user = User.objects.get(id=self.request.user.id)
             discipline = DisciplineModel.objects.get(name=self.discipline)
-            solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=scramble,
+            solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
                                contest=contest, user=user, discipline=discipline)
             solve.save()
             return solve.id
