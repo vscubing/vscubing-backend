@@ -39,16 +39,17 @@ class SolveManager:
                 elif previous_solve.state == SOLVE_SUBMITTED_STATE:
                     return solve, scramble
                 elif previous_solve.state == SOLVE_CHANGED_TO_EXTRA_STATE:
-                    extra_scramble = ScrambleModel.objects.get(id=previous_solve.extra_id)
-                    extra_solve = extra_scramble.solve_set.filter(user=self.request.user.id).first()
-                    if not extra_solve:
-                        return extra_solve, extra_scramble
-                    elif extra_solve.state == SOLVE_PENDING_STATE:
-                        return extra_solve, extra_scramble
-                    elif extra_solve.state == SOLVE_SUBMITTED_STATE:
-                        print(solve, scramble)
-                        return solve, scramble
-
+                    extra_scrambles = ContestModel.objects.get(contest_number=self.contest_number).scramble_set.filter(extra=True)
+                    for extra_scramble in extra_scrambles:
+                        extra_solve = extra_scramble.solve_set.filter(user=self.request.user.id).first()
+                        if not extra_solve:
+                            return extra_solve, extra_scramble
+                        elif extra_solve.state == SOLVE_PENDING_STATE:
+                            return extra_solve, extra_scramble
+                        elif extra_solve.state == SOLVE_CHANGED_TO_EXTRA_STATE:
+                            pass
+                        elif extra_solve.state == SOLVE_SUBMITTED_STATE:
+                            return solve, scramble
             elif solve.state == SOLVE_PENDING_STATE:
                 return solve, scramble
             previous_solve = solve
@@ -62,7 +63,7 @@ class SolveManager:
 
     def create_solve(self):
         current_solve, current_scramble = self.current_scrambles_and_solve()
-        if current_scramble.id and not current_solve:
+        if current_scramble and not current_solve:
             contest = ContestModel.objects.get(contest_number=self.contest_number)
             user = User.objects.get(id=self.request.user.id)
             discipline = DisciplineModel.objects.get(name=self.discipline)
@@ -87,16 +88,23 @@ class SolveManager:
             return True
         elif action == 'change_to_extra':
             extras = ScrambleModel.objects.filter(contest__contest_number=self.contest_number, extra=True)
-            for extra in extras:
-                extra_solves = extra.solve_set.filter(user=self.request.user.id).first()
-                if not extra_solves:
-                    solve.state = SOLVE_CHANGED_TO_EXTRA_STATE
-                    solve.extra_id = extra.id
-                    solve.save()
-                    return True
-                else:
-                    pass
-            return False
+            if extras:
+                print(extras)
+                for extra in extras:
+                    extra_solve = extra.solve_set.filter(user=self.request.user.id).first()
+                    if not extra_solve:
+                        solve.state = SOLVE_CHANGED_TO_EXTRA_STATE
+                        solve.extra_id = extra.id
+                        solve.save()
+                        return True
+                    else:
+                        print('pass')
+                        pass
+                APIException.default_detail = {'detail': 'all extras has been used'}
+                APIException.status_code = 404
+                raise APIException
+            else:
+                return False
 
     def submit_contest(self):
         contest_is_finished = self.contest_is_finished()
