@@ -39,17 +39,20 @@ class SolveManager:
                 elif previous_solve.state == SOLVE_SUBMITTED_STATE:
                     return solve, scramble
                 elif previous_solve.state == SOLVE_CHANGED_TO_EXTRA_STATE:
-                    extra_scrambles = ContestModel.objects.get(contest_number=self.contest_number).scramble_set.filter(extra=True)
-                    for extra_scramble in extra_scrambles:
+                    while True:
+                        extra_scramble = ScrambleModel.objects.get(id=previous_solve.extra_id)
                         extra_solve = extra_scramble.solve_set.filter(user=self.request.user.id).first()
                         if not extra_solve:
+                            print(extra_solve, extra_scramble)
                             return extra_solve, extra_scramble
                         elif extra_solve.state == SOLVE_PENDING_STATE:
                             return extra_solve, extra_scramble
-                        elif extra_solve.state == SOLVE_CHANGED_TO_EXTRA_STATE:
-                            pass
                         elif extra_solve.state == SOLVE_SUBMITTED_STATE:
+                            print(solve, scramble)
                             return solve, scramble
+                        elif extra_solve.state == SOLVE_CHANGED_TO_EXTRA_STATE:
+                            previous_solve = extra_solve
+
             elif solve.state == SOLVE_PENDING_STATE:
                 return solve, scramble
             previous_solve = solve
