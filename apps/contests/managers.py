@@ -95,7 +95,7 @@ class SolveManager:
                     solve.save()
                     return True
                 else:
-                    print(extra)
+                    pass
             return False
 
     def submit_contest(self):
