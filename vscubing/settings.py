@@ -19,7 +19,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = getenv('DEBUG')
+if getenv('DEBUG') == 0:
+    DEBUG = False
+elif getenv('DEBUG') == 1:
+    DEBUG = True
 
 ALLOWED_HOSTS = json.loads(getenv('ALLOWED_HOSTS'))
 

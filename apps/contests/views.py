@@ -1,3 +1,4 @@
+from rest_framework.exceptions import APIException
 from rest_framework.views import APIView, Response, status
 from django.shortcuts import redirect
 from django.db.transaction import atomic
@@ -61,7 +62,7 @@ class SolveContestView(APIView):
 
     def post(self, request, contest_number, discipline):
         solve_validator = SolveManager(request, contest_number, discipline)
-        response = solve_validator.create()
+        response = solve_validator.create_solve()
         if response:
             return Response(response)
         else:
@@ -69,7 +70,7 @@ class SolveContestView(APIView):
 
     def put(self, request, contest_number, discipline):
         validator = SolveManager(request, contest_number, discipline)
-        solve_updated = validator.update()
+        solve_updated = validator.update_solve()
         if solve_updated:
             contest_is_finished = validator.contest_is_finished()
             if contest_is_finished:
@@ -78,7 +79,8 @@ class SolveContestView(APIView):
             else:
                 return redirect('solve-contest', contest_number=contest_number, discipline=discipline)
         else:
-            return Response('this is a problem', status=status.HTTP_400_BAD_REQUEST)
+            APIException.status_code = 404
+            raise APIException
 
 
 class OngoingContestNumberView(APIView):

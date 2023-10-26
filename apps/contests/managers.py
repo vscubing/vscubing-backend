@@ -1,5 +1,4 @@
-from django.shortcuts import redirect
-from rest_framework.views import status
+from rest_framework.exceptions import APIException
 
 from config import SOLVE_PENDING_STATE, SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from .models import ScrambleModel, SolveModel, ContestModel, DisciplineModel
@@ -54,32 +53,16 @@ class SolveManager:
                 return solve, scramble
             previous_solve = solve
 
-    def is_valid(self):
-        pass
-
     def contest_is_finished(self):
-        self.user_submitted_solves = (ContestModel.objects.get(contest_number=self.contest_number)
-                  .solve_set.filter(user=self.request.user.id, state=SOLVE_SUBMITTED_STATE))
-        if len(self.user_submitted_solves) == 5:
+        user_submitted_solves = ContestModel.objects.get(contest_number=self.contest_number.solve_set.filter(user=self.request.user.id, state=SOLVE_SUBMITTED_STATE))
+        if len(user_submitted_solves) == 5:
             return True
         else:
             return False
 
-    def submit_contest(self):
-        contest_is_finished = self.contest_is_finished()
-        solves = (ContestModel.objects.get(contest_number=self.contest_number)
-                  .solve_set.filter(user=self.request.user.id))
-        if contest_is_finished:
-            for solve in solves:
-                solve.contest_submitted = True
-                solve.save()
-            return True
-        else:
-            return False
-
-    def create(self):
+    def create_solve(self):
         current_solve, current_scramble = self.current_scrambles_and_solve()
-        if current_scramble.id == self.scramble_id:
+        if current_scramble.id == self.scramble_id and not current_solve:
             scramble = ScrambleModel.objects.get(id=self.scramble_id)
             contest = ContestModel.objects.get(contest_number=self.contest_number)
             user = User.objects.get(id=self.request.user.id)
@@ -89,13 +72,15 @@ class SolveManager:
             solve.save()
             return solve.id
         else:
-            return None
+            # APIException.default_detail = ""
+            APIException.status_code = 404
+            raise APIException
 
-    def update(self):
+    def update_solve(self):
 
         action = self.request.query_params.get('action')
-        solve_id = self.request.data.get('solve_id')
-        solve = SolveModel.objects.filter(id=solve_id, user=self.request.user.id, state=SOLVE_PENDING_STATE).first()
+        solve = (ContestModel.objects.get(contest_number=self.contest_number).
+                 solve_set.filter(user=self.request.user.id, state=SOLVE_PENDING_STATE).first())
         if action == 'submit':
             solve.state = SOLVE_SUBMITTED_STATE
             solve.save()
@@ -111,6 +96,18 @@ class SolveManager:
                     return True
                 else:
                     print(extra)
+            return False
+
+    def submit_contest(self):
+        contest_is_finished = self.contest_is_finished()
+        solves = (ContestModel.objects.get(contest_number=self.contest_number)
+                  .solve_set.filter(user=self.request.user.id))
+        if contest_is_finished:
+            for solve in solves:
+                solve.contest_submitted = True
+                solve.save()
+            return True
+        else:
             return False
 
     def reconstruction_is_valid(self):
