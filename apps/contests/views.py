@@ -80,9 +80,10 @@ class SolveContestView(APIView):
             contest_is_finished = validator.contest_is_finished()
             if contest_is_finished:
                 validator.submit_contest()
-                return redirect('contest', contest_number=contest_number, discipline=discipline, method='GET')
+                return Response({'detail': 'contest submitted'}, status=status.HTTP_200_OK)
             else:
-                return redirect('solve-contest', contest_number=contest_number, discipline=discipline, method='GET')
+                request.method = 'GET'
+                return self.get(request, contest_number, discipline)
         else:
             APIException.default_detail = 'solve is not updated'
             APIException.status_code = 404
