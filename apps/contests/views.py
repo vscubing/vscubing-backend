@@ -1,3 +1,4 @@
+import time
 from rest_framework.exceptions import APIException
 from rest_framework.views import APIView, Response, status
 from django.shortcuts import redirect
@@ -62,15 +63,19 @@ class SolveContestView(APIView):
 
     def post(self, request, contest_number, discipline):
         solve_validator = SolveManager(request, contest_number, discipline)
-        response = solve_validator.create_solve()
-        if response:
-            return Response(response)
+        solve_id = solve_validator.create_solve()
+        if solve_id:
+            return Response({'solve_id': solve_id}, status=status.HTTP_200_OK)
         else:
-            return Response({"detail": "wrong scramble provided"}, status=status.HTTP_400_BAD_REQUEST)
+            APIException.default_detail = "wrong scramble provided"
+            APIException.status_code = 400
+            raise APIException
 
     def put(self, request, contest_number, discipline):
         validator = SolveManager(request, contest_number, discipline)
+        start_time = time.time()
         solve_updated = validator.update_solve()
+        print(time.time() - start_time)
         if solve_updated:
             contest_is_finished = validator.contest_is_finished()
             if contest_is_finished:
@@ -79,6 +84,7 @@ class SolveContestView(APIView):
             else:
                 return redirect('solve-contest', contest_number=contest_number, discipline=discipline)
         else:
+            APIException.default_detail = 'solve is not updated'
             APIException.status_code = 404
             raise APIException
 

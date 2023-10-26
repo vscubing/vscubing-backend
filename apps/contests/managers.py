@@ -54,7 +54,7 @@ class SolveManager:
             previous_solve = solve
 
     def contest_is_finished(self):
-        user_submitted_solves = ContestModel.objects.get(contest_number=self.contest_number.solve_set.filter(user=self.request.user.id, state=SOLVE_SUBMITTED_STATE))
+        user_submitted_solves = ContestModel.objects.get(contest_number=self.contest_number).solve_set.filter(user=self.request.user.id, state=SOLVE_SUBMITTED_STATE)
         if len(user_submitted_solves) == 5:
             return True
         else:
@@ -84,6 +84,7 @@ class SolveManager:
         if action == 'submit':
             solve.state = SOLVE_SUBMITTED_STATE
             solve.save()
+            print(solve)
             return True
         elif action == 'change_to_extra':
             extras = ScrambleModel.objects.filter(contest__contest_number=self.contest_number, extra=True)
