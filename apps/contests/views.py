@@ -53,9 +53,10 @@ class SolveContestView(APIView):
         current_solve, current_scramble = current_solve_validator.current_scrambles_and_solve()
         extra_solves = (ContestModel.objects.get(contest_number=contest_number)
                         .solve_set.filter(user=request.user.id, discipline__name=discipline, scramble__extra=True))
-        if len(extra_solves) >= 2:
+        if len(extra_solves) >= 1:
             can_change_to_extra = False
         else:
+            print(extra_solves)
             can_change_to_extra = True
 
         submitted_solves_serializer = solve_contest_serializers.SubmittedSolveSerializer(submitted_solves, many=True)
