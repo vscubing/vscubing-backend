@@ -3,6 +3,7 @@ from rest_framework.exceptions import APIException
 from config import SOLVE_PENDING_STATE, SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from .models import ScrambleModel, SolveModel, ContestModel, DisciplineModel
 from apps.accounts.models import User
+from scripts.cube import SolveValidator
 
 SOLVES_IN_CONTEST = 5
 
@@ -67,9 +68,15 @@ class SolveManager:
     def create_solve(self):
         current_solve, current_scramble = self.current_scrambles_and_solve()
         if current_scramble and not current_solve:
+            v = SolveValidator(scramble=current_scramble.scramble, reconstruction=self.reconstruction)
             contest = ContestModel.objects.get(contest_number=self.contest_number)
             user = User.objects.get(id=self.request.user.id)
             discipline = DisciplineModel.objects.get(name=self.discipline)
+            print(self.reconstruction)
+            if v.is_valid():
+                pass
+            else:
+                self.reconstruction = "dnf"
             solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
                                contest=contest, user=user, discipline=discipline)
             solve.save()
@@ -120,6 +127,3 @@ class SolveManager:
             return True
         else:
             return False
-
-    def reconstruction_is_valid(self):
-        return None

@@ -3,7 +3,6 @@ import time
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import APIException
 from rest_framework.views import APIView, Response, status
-from django.shortcuts import redirect
 from django.db.transaction import atomic
 
 from apps.accounts.models import User
@@ -11,8 +10,9 @@ from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel
 from .serializers import dashboard_serializers, contest_serializers, solve_contest_serializers, solve_reconstruction_serializers
 from .permissions import ContestPermission, SolveContestPermission
 from .managers import SolveManager
-from config import SOLVE_SUBMITTED_STATE
+from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from scripts.scramble import generate_scramble
+from scripts.cube import SolveValidator
 
 
 class DashboardView(APIView):
@@ -51,12 +51,12 @@ class SolveContestView(APIView):
                                                                discipline__name=discipline, state=SOLVE_SUBMITTED_STATE)
         current_solve_validator = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
         current_solve, current_scramble = current_solve_validator.current_scrambles_and_solve()
-        extra_solves = (ContestModel.objects.get(contest_number=contest_number)
-                        .solve_set.filter(user=request.user.id, discipline__name=discipline, scramble__extra=True))
-        if len(extra_solves) >= 1:
+        solves_changed_to_extra = (ContestModel.objects.get(contest_number=contest_number)
+                                        .solve_set.filter(user=request.user.id,
+                                        discipline__name=discipline, state=SOLVE_CHANGED_TO_EXTRA_STATE))
+        if len(solves_changed_to_extra) >= 2:
             can_change_to_extra = False
         else:
-            print(extra_solves)
             can_change_to_extra = True
 
         submitted_solves_serializer = solve_contest_serializers.SubmittedSolveSerializer(submitted_solves, many=True)
@@ -71,8 +71,8 @@ class SolveContestView(APIView):
                          'solve': current_solve_serializer, 'can_change_to_extra': can_change_to_extra}})
 
     def post(self, request, contest_number, discipline):
-        solve_validator = SolveManager(request, contest_number, discipline)
-        solve_id = solve_validator.create_solve()
+        solve_manager = SolveManager(request, contest_number, discipline)
+        solve_id = solve_manager.create_solve()
         if solve_id:
             return Response({'solve_id': solve_id}, status=status.HTTP_200_OK)
         else:

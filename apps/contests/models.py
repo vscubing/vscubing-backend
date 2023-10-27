@@ -36,7 +36,7 @@ class SolveModel(models.Model):
     extra_id = models.IntegerField(default=None, null=True, blank=True)
     contest_submitted = models.BooleanField(default=False)
     state = models.CharField(max_length=96, default='pending')
-    reconstruction = models.TextField(max_length=2048)
+    reconstruction = models.TextField(max_length=15048)
     contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='solve_set')
     scramble = models.ForeignKey(ScrambleModel, on_delete=models.CASCADE, related_name='solve_set')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='solve_set')

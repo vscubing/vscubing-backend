@@ -2,62 +2,95 @@ from rubik.cube import Cube
 import time
 import re
 
-start_time = time.time()
-c = Cube("OOOOOOOOOYYYWWWGGGBBBYYYWWWGGGBBBYYYWWWGGGBBBRRRRRRRRR")
 
-# scramble = "L2 D2 F2 D L2 B2 D' F2 U' R2 F2 U2 L B L2 U' F R2 F2 D' F2"
-#
-# result = ""
-# for move in scramble.split():
-#     if len(move) == 1:
-#         result += move + " "
-#     elif move[1] == "2":
-#         result += move[0] + " " + move[0] + " "
-#     elif move[1] == "'":
-#         result += move[0] + "i" + " "
-#     else:
-#         print("Invalid move: " + move)
+class SolveValidator:
+    def __init__(self, scramble, reconstruction):
+        self.start_time = time.time()
+        self.cube = Cube("WWWWWWWWWOOOGGGRRRBBBOOOGGGRRRBBBOOOGGGRRRBBBYYYYYYYYY")
+        print(self.cube)
+
+        self.scramble = scramble
+        self.reconstruction = reconstruction
+
+        self.notation_translator = {
+            "L": "L",
+            "L'": "Li",
+            "R": "R",
+            "R'": "Ri",
+            "U": "U",
+            "U'": "Ui",
+            "D": "D",
+            "D'": "Di",
+            "F": "F",
+            "F'": "Fi",
+            "B": "B",
+            "B'": "Bi",
+            "M": "M",
+            "M'": "Mi",
+            "E": "E",
+            "E'": "Ei",
+            "S": "S",
+            "S'": "Si",
+            "x": "X",
+            "x'": "Xi",
+            "y": "Y",
+            "y'": "Yi",
+            "z": "Z",
+            "z'": "Zi",
+            "Lw": "L M",
+            "Lw'": "Li Mi",
+            "Rw": "R Mi",
+            "Rw'": "Ri M",
+            "Uw": "U Ei",
+            "Uw'": "Ui E",
+            "Dw": "D E",
+            "Dw'": "Di Ei",
+            "Fw": "F S",
+            "Fw'": "Fi Si",
+            "Bw": "B Si",
+            "Bw'": "Bi S",
+
+        }
+
+    def is_valid(self):
+        self._scramble_cube()
+        self._solve_cube()
+        print(self.cube.is_solved())
+        print(time.time() - self.start_time)
+        return self.cube.is_solved()
+
+    def _scramble_cube(self):
+        pattern = r"/\*\d*\*/"
+        self.scramble = re.sub(pattern, "", self.scramble).split()
+        result = ""
+        for move in self.scramble:
+            if len(move) == 1:
+                result += move[0] + " "
+            elif move[1] == "2":
+                result += move[0] + " " + move[0] + " "
+            elif move[1] == "'":
+                result += move + " "
+
+        self.scramble = result.split()
+        for move in self.scramble:
+            move = self.notation_translator[move]
+            getattr(self.cube, move)()
+
+    def _solve_cube(self):
+        pattern = r"/\*\d*\*/"
+        self.reconstruction = re.sub(pattern, "", self.reconstruction).split()
+        move_sequence = ""
+        for move in self.reconstruction:
+            move = self.notation_translator[move]
+            move_sequence += move + " "
+        print(move_sequence)
+        self.cube.sequence(move_sequence)
 
 
-# solve = "y/*0*/ y/*0*/ x'/*0*/ x'/*0*/ y'/*0*/ y/*0*/ y'/*0*/ y'/*0*/ y'/*0*/ y/*0*/ y'/*0*/ y/*0*/ y/*0*/ y'/*0*/ y/*0*/ y'/*0*/ y'/*0*/ y/*0*/ y'/*0*/ U'/*0*/ F/*203*/ y/*588*/ D/*596*/ y/*1184*/ y'/*1464*/ U/*1807*/ R/*2028*/ U'/*2195*/ R'/*2495*/ y/*2655*/ Rw/*3735*/ Rw/*3935*/ R'/*4511*/ R'/*4671*/ U'/*4868*/ U'/*5048*/ Rw/*5512*/ Rw/*5655*/ R/*6167*/ R/*6328*/ y/*7032*/ U'/*7240*/ R/*7366*/ U/*7732*/ R'/*7866*/ U'/*7990*/ U'/*8207*/ R/*8544*/ U'/*8650*/ U'/*8839*/ R'/*9031*/ U'/*9195*/ F/*9343*/ U'/*9604*/ F'/*9864*/ U'/*10160*/ U'/*10520*/ U'/*10912*/ F/*11203*/ U/*11416*/ R/*11700*/ U'/*11814*/ R'/*11960*/ F'/*12123*/ R/*12250*/ U'/*12391*/ R'/*12482*/ y/*12687*/ U'/*13059*/ R/*13571*/ U'/*13666*/ R'/*13786*/ y/*14024*/ U/*14268*/ L'/*14431*/ U/*14771*/ L/*14879*/ U/*15820*/ R'/*16388*/ U'/*16534*/ U/*16992*/ R/*17163*/ U'/*17348*/ U'/*17560*/ F/*17780*/ U/*18055*/ U'/*18676*/ R/*18863*/ U/*19007*/ R'/*19095*/ U'/*19236*/ F'/*19439*/ U/*20340*/ R/*20515*/ U'/*20651*/ U'/*20828*/ R'/*20967*/ R'/*21171*/ U'/*21343*/ R/*21447*/ R/*21663*/ U'/*21795*/ R'/*21996*/ R'/*22220*/ U'/*22383*/ U'/*22591*/ R/*22748*/ U/*23451*/ x/*24320*/ R'/*25096*/ U/*25568*/ R'/*25783*/ D/*25904*/ R/*26084*/ R'/*26479*/ D/*26659*/ R/*26767*/ U'/*26984*/ R'/*27032*/ D/*27528*/ D/*27700*/ R/*27887*/ U/*28244*/ R'/*28326*/ D/*28530*/ D/*28847*/ R/*29019*/ U'/*29138*/ R'/*29246*/ D/*29431*/ D/*29640*/ R/*29819*/ R/*30008*/"
-# pattern_one = r"/\*\d*\*/"
-# pattern_two = r"2&#45;"
-#
-# solve = re.sub(pattern_one, "", solve).upper()
-# solve = re.sub(pattern_two, "", solve)
-# print(solve)
-#
-# characters = {}
-#
-#
-# print(time.time() - start_time)
+if __name__ == '__main__':
 
-{
-    "L": "L",
-    "L'": "Li",
-    "R": "R",
-    "R'": "Ri",
-    "U": "U",
-    "U'": "Ui",
-    "D": "D",
-    "D'": "Di",
-    "F": "F",
-    "F'": "Fi",
-    "B": "B",
-    "B'": "Bi",
-    "Rw": "M",
-    "Rw''": "Mi",
-    "Uw": "E",
-    "Uw'": "Ei",
-    "":  "S",
-    "": "Si",
-    "":  "X",
-    "": "Xi",
-    "":  "Y",
-    "": "Yi",
-    "":  "Z",
-    "": "Zi"
-}
+    scramble = "U R L'"
+    reconstruction = "Rw/*0*/ R'/*980*/ D/*2048*/ D'/*2723*/ B'/*3143*/"
 
-c.E()
-print(c)
+    v = SolveValidator(scramble=scramble, reconstruction=reconstruction)
+    print(v.is_valid())
