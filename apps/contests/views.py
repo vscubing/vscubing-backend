@@ -49,6 +49,12 @@ class SolveContestView(APIView):
                                                                discipline__name=discipline, state=SOLVE_SUBMITTED_STATE)
         current_solve_validator = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
         current_solve, current_scramble = current_solve_validator.current_scrambles_and_solve()
+        extra_solves = (ContestModel.objects.get(contest_number=contest_number)
+                        .solve_set.filter(user=request.user.id, discipline__name=discipline))
+        if len(extra_solves) > 2:
+            can_change_to_extra = False
+        else:
+            can_change_to_extra = True
 
         submitted_solves_serializer = solve_contest_serializers.SubmittedSolveSerializer(submitted_solves, many=True)
         try:
@@ -59,7 +65,7 @@ class SolveContestView(APIView):
 
         return Response({'submitted_solves': submitted_solves_serializer.data,
                          'current_solve': {'scramble': current_scramble_serializer.data,
-                                            'solve': current_solve_serializer}})
+                         'solve': current_solve_serializer, 'can_change_to_extra': can_change_to_extra}})
 
     def post(self, request, contest_number, discipline):
         solve_validator = SolveManager(request, contest_number, discipline)
