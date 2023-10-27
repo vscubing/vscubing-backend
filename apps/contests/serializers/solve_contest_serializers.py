@@ -10,7 +10,7 @@ class ScrambleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ScrambleModel
-        fields = ['scramble', 'extra', 'id']
+        fields = ['scramble', 'extra', 'id', 'position']
 
 
 class SubmittedSolveSerializer(serializers.ModelSerializer):
@@ -18,7 +18,7 @@ class SubmittedSolveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolveModel
-        fields = ['id', 'time_ms', 'dnf', 'scramble']
+        fields = ['id', 'time_ms', 'dnf', 'scramble',]
 
 
 class CurrentSolveSerializer(serializers.ModelSerializer):
@@ -38,4 +38,4 @@ class RegularSolveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolveModel
-        fields = ['reconstruction', "time_ms", ]
+        fields = ['reconstruction', "time_ms",]

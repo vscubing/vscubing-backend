@@ -52,8 +52,8 @@ class SolveContestView(APIView):
         current_solve_validator = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
         current_solve, current_scramble = current_solve_validator.current_scrambles_and_solve()
         extra_solves = (ContestModel.objects.get(contest_number=contest_number)
-                        .solve_set.filter(user=request.user.id, discipline__name=discipline))
-        if len(extra_solves) > 2:
+                        .solve_set.filter(user=request.user.id, discipline__name=discipline, scramble__extra=True))
+        if len(extra_solves) >= 2:
             can_change_to_extra = False
         else:
             can_change_to_extra = True
