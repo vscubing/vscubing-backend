@@ -112,15 +112,8 @@ class SolveReconstructionSerializer(APIView):
         except ObjectDoesNotExist:
             APIException.status_code = 404
             raise APIException
-        if solve.contest_submitted:
-            serializer = solve_reconstruction_serializers.SolveSerializer(solve)
-            return Response(serializer.data)
-        elif solve.user.id == request.user.id:
-            serializer = solve_reconstruction_serializers.SolveSerializer(solve)
-            return Response(serializer.data)
-        else:
-            APIException.status_code = 403
-            raise APIException
+        serializer = solve_reconstruction_serializers.SolveSerializer(solve)
+        return Response(serializer.data)
 
 
 class NewContestView(APIView):
