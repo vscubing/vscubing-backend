@@ -74,11 +74,14 @@ class SolveManager:
             discipline = DisciplineModel.objects.get(name=self.discipline)
             print(self.reconstruction)
             if v.is_valid():
-                pass
+                solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
+                                   contest=contest, user=user, discipline=discipline)
             else:
-                self.reconstruction = "dnf"
-            solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
-                               contest=contest, user=user, discipline=discipline)
+                APIException.status_code = 422
+                raise APIException
+                solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
+                                   contest=contest, user=user, discipline=discipline, dnf=True)
+
             solve.save()
             return solve.id
         else:
