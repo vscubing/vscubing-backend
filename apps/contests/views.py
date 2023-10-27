@@ -1,4 +1,6 @@
 import time
+
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import APIException
 from rest_framework.views import APIView, Response, status
 from django.shortcuts import redirect
@@ -104,9 +106,20 @@ class OngoingContestNumberView(APIView):
 
 class SolveReconstructionSerializer(APIView):
     def get(self, request, id):
-        solve = SolveModel.objects.get(id=id)
-        serializer = solve_reconstruction_serializers.SolveSerializer(solve)
-        return Response(serializer.data)
+        try:
+            solve = SolveModel.objects.get(id=id)
+        except ObjectDoesNotExist:
+            APIException.status_code = 404
+            raise APIException
+        if solve.contest_submitted:
+            serializer = solve_reconstruction_serializers.SolveSerializer(solve)
+            return Response(serializer.data)
+        elif solve.user.id == request.user.id:
+            serializer = solve_reconstruction_serializers.SolveSerializer(solve)
+            return Response(serializer.data)
+        else:
+            APIException.status_code = 403
+            raise APIException
 
 
 class NewContestView(APIView):
