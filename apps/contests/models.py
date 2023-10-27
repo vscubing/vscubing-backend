@@ -20,7 +20,7 @@ class DisciplineModel(models.Model):
 
 
 class ScrambleModel(models.Model):
-    num = models.IntegerField(null=True)
+    position = models.CharField(max_length=10, default=None, null=True, blank=True)
     scramble = models.TextField(max_length=512)
     extra = models.BooleanField()
     contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='scramble_set')

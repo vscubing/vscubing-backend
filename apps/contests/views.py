@@ -119,14 +119,15 @@ class NewContestView(APIView):
             new_contest = ContestModel(contest_number=previous_contest.contest_number + 1)
             new_contest.save()
             discipline = DisciplineModel.objects.get(name='3by3')
-            for num in range(1, 6):
+            for scramble_position in range(1, 6):
                 generated_scramble = generate_scramble()
-                scramble = ScrambleModel(num=num, scramble=generated_scramble, extra=False, contest=new_contest,
+                scramble = ScrambleModel(position=scramble_position, scramble=generated_scramble, extra=False, contest=new_contest,
                                          discipline=discipline)
                 scramble.save()
-            for num in range(1, 3):
+            for scramble_position in range(1, 3):
+                scramble_position = f"E{scramble_position}"
                 generated_scramble = generate_scramble()
-                scramble = ScrambleModel(num=num, scramble=generated_scramble, extra=True, contest=new_contest,
+                scramble = ScrambleModel(position=scramble_position, scramble=generated_scramble, extra=True, contest=new_contest,
                                          discipline=discipline)
                 scramble.save()
 

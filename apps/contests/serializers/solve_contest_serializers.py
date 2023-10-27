@@ -30,7 +30,7 @@ class CurrentSolveSerializer(serializers.ModelSerializer):
 class CurrentScrambleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScrambleModel
-        fields = ['id', 'scramble', 'extra']
+        fields = ['id', 'scramble', 'extra', 'position']
 
 
 class RegularSolveSerializer(serializers.ModelSerializer):
