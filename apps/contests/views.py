@@ -51,10 +51,10 @@ class SolveContestView(APIView):
                             .round_session_set.filter
                             (contest__contest_number=contest_number,
                             discipline__name=discipline).first().solve_set.
-                            filter(state=SOLVE_SUBMITTED_STATE))
+                            filter(state=SOLVE_SUBMITTED_STATE).values('id', 'scramble'))
 
-        current_solve_validator = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
-        current_solve, current_scramble = current_solve_validator.current_scrambles_and_solve()
+        current_solve_manager = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
+        current_solve, current_scramble = current_solve_manager.current_scrambles_and_solve()
         try:
             solves_changed_to_extra = (ContestModel.objects.get(contest_number=contest_number).round_session_set.
                                    get(discipline__name=discipline, user=request.user.id).solve_set.filter(user=request.user.id,

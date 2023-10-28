@@ -18,7 +18,7 @@ class ContestSerializer(serializers.Serializer):
 
 
 class ScrambleSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(required=False)
     position = serializers.CharField(max_length=10, required=False)
     scramble = serializers.CharField(max_length=512, required=False)
     extra = serializers.BooleanField(required=False)
@@ -34,7 +34,7 @@ class RoundSessionSerializer(serializers.Serializer):
 
 
 class SolveSerializer(serializers.Serializer):
-    scramble = ScrambleSerializer(required=False)
+    scramble = ScrambleSerializer(instance='scramble')
 
     id = serializers.IntegerField()
     time_ms = serializers.IntegerField(required=False)
@@ -45,5 +45,4 @@ class SolveSerializer(serializers.Serializer):
 
     contest = serializers.IntegerField(source='contest__contest_number', required=False)
     discipline = serializers.CharField(source='discipline__name', required=False)
-    scramble = serializers.CharField(source='scramble__scramble', required=False)
     round = serializers.IntegerField(source='round__id', required=False)
