@@ -6,13 +6,14 @@ from rest_framework.views import APIView, Response, status
 from django.db.transaction import atomic
 
 from apps.accounts.models import User
-from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel
-from .serializers import dashboard_serializers, contest_serializers, solve_contest_serializers, solve_reconstruction_serializers
+from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel, RoundSessionModel
+from .serializer_files import dashboard_serializers, contest_serializers, solve_reconstruction_serializers
 from .permissions import ContestPermission, SolveContestPermission
 from .managers import SolveManager
 from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from scripts.scramble import generate_scramble
 from scripts.cube import SolveValidator
+from .serializers import SolveSerializer, ScrambleSerializer, RoundSessionSerializer
 
 
 class DashboardView(APIView):
@@ -37,9 +38,8 @@ class ContestView(APIView):
 
     def get(self, request, contest_number, discipline):
         contest = ContestModel.objects.get(contest_number=contest_number)
-        solves = contest.round_set.filter(submitted=True, state=SOLVE_SUBMITTED_STATE,
-                                          discipline__name=discipline).order_by('user_id', 'id')
-        serializer = contest_serializers.ContestSubmittedSolvesSerializer(solves, many=True)
+        round_sessions = contest.round_session_set.filter(submitted=True, discipline__name=discipline).order_by('avg_ms')
+        serializer = RoundSessionSerializer(round_sessions, many=True)
         return Response(serializer.data)
 
 
@@ -47,24 +47,32 @@ class SolveContestView(APIView):
     permission_classes = [SolveContestPermission]
 
     def get(self, request, contest_number, discipline):
-        submitted_solves = User.objects.get(id=request.user.id).solve_set.filter(contest__contest_number=contest_number,
-                                                               discipline__name=discipline, state=SOLVE_SUBMITTED_STATE)
+        submitted_solves = (User.objects.get(id=request.user.id)
+                            .round_session_set.filter
+                            (contest__contest_number=contest_number,
+                            discipline__name=discipline).first().solve_set.
+                            filter(state=SOLVE_SUBMITTED_STATE))
+
         current_solve_validator = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
         current_solve, current_scramble = current_solve_validator.current_scrambles_and_solve()
-        solves_changed_to_extra = (ContestModel.objects.get(contest_number=contest_number)
-                                        .solve_set.filter(user=request.user.id,
-                                        discipline__name=discipline, state=SOLVE_CHANGED_TO_EXTRA_STATE))
+        try:
+            solves_changed_to_extra = (ContestModel.objects.get(contest_number=contest_number).round_session_set.
+                                   get(discipline__name=discipline, user=request.user.id).solve_set.filter(user=request.user.id,
+                                   discipline__name=discipline, state=SOLVE_CHANGED_TO_EXTRA_STATE))
+        except ObjectDoesNotExist:
+            solves_changed_to_extra = []
+
         if len(solves_changed_to_extra) >= 2:
             can_change_to_extra = False
         else:
             can_change_to_extra = True
 
-        submitted_solves_serializer = solve_contest_serializers.SubmittedSolveSerializer(submitted_solves, many=True)
+        submitted_solves_serializer = SolveSerializer(submitted_solves, many=True)
         try:
-            current_solve_serializer = solve_contest_serializers.CurrentSolveSerializer(current_solve).data
+            current_solve_serializer = SolveSerializer(current_solve).data
         except AttributeError:
             current_solve_serializer = None
-        current_scramble_serializer = solve_contest_serializers.ScrambleSerializer(current_scramble)
+        current_scramble_serializer = ScrambleSerializer(current_scramble)
 
         return Response({'submitted_solves': submitted_solves_serializer.data,
                          'current_solve': {'scramble': current_scramble_serializer.data,
@@ -88,7 +96,7 @@ class SolveContestView(APIView):
         if solve_updated:
             contest_is_finished = validator.contest_is_finished()
             if contest_is_finished:
-                validator.submit_contest()
+                validator.submit_session()
                 return Response({'detail': 'contest submitted'}, status=status.HTTP_200_OK)
             else:
                 request.method = 'GET'

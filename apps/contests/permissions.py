@@ -3,7 +3,7 @@ from rest_framework.exceptions import APIException
 from django.core.exceptions import ObjectDoesNotExist
 
 from config import SOLVE_CONTEST_SUBMITTED_STATE, SOLVE_SUBMITTED_STATE
-from .models import ContestModel, DisciplineModel, SolveModel, ScrambleModel
+from .models import ContestModel, DisciplineModel, SolveModel, ScrambleModel, RoundSessionModel
 from apps.accounts.models import User
 from rest_framework.views import APIView, Response
 
@@ -26,10 +26,11 @@ class ContestPermission(BasePermission):
             raise APIException
         if contest.ongoing:
             if bool(request.user and request.user.is_authenticated):
-
-                if True:
+                round_session = RoundSessionModel.objects.filter(contest__contest_number=contest_number,
+                                                                 discipline__name=discipline, submitted=True)
+                if round_session:
                     return True
-                elif not last_this_contest_user_solve:
+                elif not round_session:
                     APIException.default_detail = "User didn't solve ongoing contest"
                     APIException.status_code = 403
                     raise APIException
@@ -54,12 +55,12 @@ class SolveContestPermission(BasePermission):
 
         if bool(request.user and request.user.is_authenticated):
             user = User.objects.get(id=request.user.id)
-            last_this_contest_user_solve = user.solve_set.filter(contest__contest_number=contest_number,
-                                                                 contest_submitted=True,
-                                                                 discipline__name=discipline).last()
-            if not last_this_contest_user_solve:
+            round_session = user.round_session_set.filter(contest__contest_number=contest_number,
+                                                                         submitted=True,
+                                                                         discipline__name=discipline).last()
+            if not round_session:
                 return True
-            elif last_this_contest_user_solve:
+            elif round_session:
                 APIException.default_detail = "User solved contest already"
                 APIException.status_code = 403
                 raise APIException

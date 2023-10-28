@@ -69,13 +69,13 @@ SIMPLE_JWT = {
 }
 
 REST_AUTH_SERIALIZERS = {
-    "REGISTER_SERIALIZER": "apps.accounts.serializers.RegisterSerializer",
+    "REGISTER_SERIALIZER": "apps.accounts.serializer_files.RegisterSerializer",
 }
 
 REST_AUTH = {
     'USE_JWT': True,
     "JWT_AUTH_HTTPONLY": False,
-    # 'REGISTER_SERIALIZER': 'dj_rest_auth.registration.serializers.RegisterSerializer',
+    # 'REGISTER_SERIALIZER': 'dj_rest_auth.registration.serializer_files.RegisterSerializer',
     # 'JWT_AUTH_COOKIE': 'app-auth',
     # 'JWT_AUTH_REFRESH_COOKIE': 'refresh-token',
 }
