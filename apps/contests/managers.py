@@ -1,3 +1,4 @@
+from django.db.transaction import atomic
 from rest_framework.exceptions import APIException
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -63,7 +64,7 @@ class SolveManager:
         user_submitted_solves = (RoundSessionModel.objects.get(contest__contest_number=self.contest_number,
                                                         discipline__name=self.discipline, user=self.request.user.id)
                                             .solve_set.filter(user=self.request.user.id, state=SOLVE_SUBMITTED_STATE))
-        if len(user_submitted_solves) == 5:
+        if len(user_submitted_solves) == SOLVES_IN_CONTEST:
             return True
         else:
             return False
@@ -134,10 +135,12 @@ class SolveManager:
             else:
                 return False
 
-    def submit_session(self):
+    @atomic()
+    def submit_round_session(self):
         contest_is_finished = self.contest_is_finished()
         round_session = (ContestModel.objects.get(contest_number=self.contest_number).round_session_set
                   .get(discipline__name=self.discipline, user=self.request.user.id))
+
         if contest_is_finished:
             round_session.submitted = True
             round_session.save()

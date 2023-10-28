@@ -32,6 +32,7 @@ class ScrambleModel(models.Model):
 
 class RoundSessionModel(models.Model):
     avg_ms = models.IntegerField(default=None, null=True, blank=True)
+    dnf = models.BooleanField(default=False)
     submitted = models.BooleanField(default=False)
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='round_session_set')

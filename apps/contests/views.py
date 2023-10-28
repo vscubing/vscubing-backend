@@ -13,7 +13,7 @@ from .managers import SolveManager
 from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from scripts.scramble import generate_scramble
 from scripts.cube import SolveValidator
-from .serializers import SolveSerializer, ScrambleSerializer, RoundSessionSerializer
+from .serializers import SolveSerializer, ScrambleSerializer, RoundSessionSerializer, ContestSerializer, DisciplineSerializer
 
 
 class DashboardView(APIView):
@@ -28,8 +28,8 @@ class DashboardView(APIView):
             if solve:
                 solve_set.append(solve)
 
-        contests_serializer = dashboard_serializers.ContestSerializer(contests, many=True)
-        best_solves_serializer = dashboard_serializers.BestSolvesSerializer(solve_set, many=True)
+        contests_serializer = ContestSerializer(contests, many=True)
+        best_solves_serializer = SolveSerializer(solve_set, many=True)
         return Response({'contests': contests_serializer.data, 'best_solves': best_solves_serializer.data})
 
 
@@ -51,7 +51,7 @@ class SolveContestView(APIView):
                             .round_session_set.filter
                             (contest__contest_number=contest_number,
                             discipline__name=discipline).first().solve_set.
-                            filter(state=SOLVE_SUBMITTED_STATE).values('id', 'scramble'))
+                            filter(state=SOLVE_SUBMITTED_STATE))
 
         current_solve_manager = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
         current_solve, current_scramble = current_solve_manager.current_scrambles_and_solve()
@@ -67,9 +67,9 @@ class SolveContestView(APIView):
         else:
             can_change_to_extra = True
 
-        submitted_solves_serializer = SolveSerializer(submitted_solves, many=True)
+        submitted_solves_serializer = SolveSerializer(submitted_solves, many=True, fields=('id', 'time_ms', 'dnf', 'scramble'))
         try:
-            current_solve_serializer = SolveSerializer(current_solve).data
+            current_solve_serializer = SolveSerializer(current_solve, fields=('id', 'time_ms', 'dnf')).data
         except AttributeError:
             current_solve_serializer = None
         current_scramble_serializer = ScrambleSerializer(current_scramble)
@@ -96,7 +96,7 @@ class SolveContestView(APIView):
         if solve_updated:
             contest_is_finished = validator.contest_is_finished()
             if contest_is_finished:
-                validator.submit_session()
+                validator.submit_round_session()
                 return Response({'detail': 'contest submitted'}, status=status.HTTP_200_OK)
             else:
                 request.method = 'GET'
