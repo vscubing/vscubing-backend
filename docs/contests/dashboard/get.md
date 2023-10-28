@@ -1,63 +1,45 @@
-# Show Accessible Accounts
+# Show Dashboard 
 
-Show all Accounts the active User can access and with what permission level.
-Includes their own Account if they have one.
-
-**URL** : `/api/accounts/`
+**URL** : `/api/contests/`
 
 **Method** : `GET`
 
-**Auth required** : YES
+**Auth required** : NO
 
-**Permissions required** : None
-
-**Data constraints** : `{}`
+**Permissions required** : NONE
 
 ## Success Responses
 
-**Condition** : User can not see any Accounts.
-
 **Code** : `200 OK`
 
-**Content** : `{[]}`
-
-### OR
-
-**Condition** : User can see one or more Accounts.
-
-**Code** : `200 OK`
-
-**Content** : In this example, the User can see three Accounts as AccountAdmin
-`AA`, Viewer `VV`, and Owner `OO` - in that order:
 
 ```json
-[
-    {
-        "account": {
-            "id": 123,
-            "name": "Lots of Admins Project",
-            "enterprise": false,
-            "url": "http://testserver/api/accounts/123/"
+{
+    "contests": [
+        {
+            "id": 1,
+            "contest_number": 1,
+            "start": "2023-10-27T12:59:03.062297Z",
+            "end": null,
+            "ongoing": false
         },
-        "permission": "AA"
-    },
-    {
-        "account": {
-            "id": 234,
-            "name": "Feel free to View this",
-            "enterprise": false,
-            "url": "http://testserver/api/accounts/234/"
-        },
-        "permission": "VV"
-    },
-    {
-        "account": {
-            "id": 345,
-            "name": "Mr Owner Project",
-            "enterprise": false,
-            "url": "http://testserver/api/accounts/345/"
-        },
-        "permission": "OO"
-    }
-]
+        {
+            "id": 2,
+            "contest_number": 2,
+            "start": "2023-10-27T13:30:54.087349Z",
+            "end": null,
+            "ongoing": false
+        }
+    ],
+    "best_solves": [
+        {
+            "id": 11,
+            "time_ms": 568,
+            "username": "antonsav123",
+            "contest_number": 1,
+            "discipline": "3by3"
+        }
+    ]
+}
+     
 ```
