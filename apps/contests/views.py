@@ -28,7 +28,7 @@ class DashboardView(APIView):
                 solve_set.append(solve)
 
         contests_serializer = ContestSerializer(contests, many=True)
-        best_solves_serializer = SolveSerializer(solve_set, many=True, fields=['scramble'])
+        best_solves_serializer = SolveSerializer(solve_set, many=True)  # fields=['id', 'time_ms', 'scramble__scramble', 'user__username', 'scramble__position']
         return Response({'contests': contests_serializer.data, 'best_solves': best_solves_serializer.data})
 
 
@@ -44,8 +44,8 @@ class ContestView(APIView):
                                                    state=SOLVE_SUBMITTED_STATE, discipline__name=discipline).
                                                    order_by('user_id', 'id'))
 
-        serializer = SolveSerializer(solves, many=True, fields=['id', 'username', 'time_ms',
-                                                                      'discipline', 'scramble_position', 'dnf'])
+        serializer = SolveSerializer(solves, many=True, fields=['id', 'user__username', 'time_ms',
+                                                                      'discipline__name', 'scramble__position', 'dnf'])
         return Response(serializer.data)
 
 
@@ -126,7 +126,7 @@ class SolveReconstructionSerializer(APIView):
         except ObjectDoesNotExist:
             APIException.status_code = 404
             raise APIException
-        serializer = SolveSerializer(solve, fields=['id', 'reconstruction', 'scramble_scramble'])
+        serializer = SolveSerializer(solve, fields=['id', 'reconstruction', 'scramble__scramble'])
         return Response(serializer.data)
 
 

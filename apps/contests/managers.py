@@ -72,7 +72,6 @@ class SolveManager:
     def create_solve(self):
         current_solve, current_scramble = self.current_scrambles_and_solve()
         if current_scramble and not current_solve:
-            # v = SolveValidator(scramble=current_scramble.scramble, reconstruction=self.reconstruction)
             contest = ContestModel.objects.get(contest_number=self.contest_number)
             user = User.objects.get(id=self.request.user.id)
             discipline = DisciplineModel.objects.get(name=self.discipline)
@@ -83,17 +82,13 @@ class SolveManager:
                 round_session = RoundSessionModel(contest=contest, discipline=discipline, user=user)
                 round_session.save()
 
-
-
-            solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
-                               user=user, discipline=discipline, round_session=round_session)
-
-            # if v.is_valid():
-            #     solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
-            #                        contest=contest, user=user, discipline=discipline)
-            # else:
-            #     solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
-            #                        contest=contest, user=user, discipline=discipline, dnf=True)
+            v = SolveValidator(scramble=current_scramble.scramble, reconstruction=self.reconstruction)
+            if v.is_valid():
+                solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
+                                   user=user, discipline=discipline, round_session=round_session)
+            else:
+                solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
+                                   user=user, discipline=discipline, round_session=round_session, dnf=True)
 
             solve.save()
             return solve.id

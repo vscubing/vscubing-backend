@@ -67,12 +67,16 @@ class SolveSerializer(DynamicFieldsModelSerializer):
     state = serializers.CharField(max_length=96, required=False)
     reconstruction = serializers.CharField(max_length=15048, required=False)
 
-    discipline = serializers.CharField(source='discipline.name')
-    round_session_id = serializers.IntegerField(source='round_session.id', required=False)
-    scramble_scramble = serializers.CharField(source='scramble.scramble')
+    discipline__name = serializers.CharField(source='discipline.name')
+    round_session__id = serializers.IntegerField(source='round_session.id', required=False)
+    scramble__scramble = serializers.CharField(source='scramble.scramble')
+    user__username = serializers.CharField(source='user.username')
+    scramble_position = serializers.CharField(source='scramble.position')
+
     scramble = ScrambleSerializer(required=False)
 
     class Meta:
         model = SolveModel
-        fields = ['id', 'time_ms', 'dnf', 'extra_id', 'state', 'reconstruction', 'discipline', 'round_session_id', 'scramble', 'scramble_scramble']
+        fields = ['id', 'time_ms', 'dnf', 'extra_id', 'state', 'reconstruction', 'discipline__name',
+                  'round_session__id', 'scramble', 'scramble__scramble', 'user__username', 'scramble_position']
 
