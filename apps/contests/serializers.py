@@ -69,9 +69,10 @@ class SolveSerializer(DynamicFieldsModelSerializer):
 
     discipline = serializers.CharField(source='discipline.name')
     round_session_id = serializers.IntegerField(source='round_session.id', required=False)
+    scramble_scramble = serializers.CharField(source='scramble.scramble')
     scramble = ScrambleSerializer(required=False)
 
     class Meta:
         model = SolveModel
-        fields = ['id', 'time_ms', 'dnf', 'extra_id', 'state', 'reconstruction', 'discipline', 'round_session_id', 'scramble']
+        fields = ['id', 'time_ms', 'dnf', 'extra_id', 'state', 'reconstruction', 'discipline', 'round_session_id', 'scramble', 'scramble_scramble']
 

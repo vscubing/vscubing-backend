@@ -7,7 +7,6 @@ from django.db.transaction import atomic
 
 from apps.accounts.models import User
 from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel, RoundSessionModel
-from .serializer_files import dashboard_serializers, contest_serializers, solve_reconstruction_serializers
 from .permissions import ContestPermission, SolveContestPermission
 from .managers import SolveManager
 from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
@@ -29,7 +28,7 @@ class DashboardView(APIView):
                 solve_set.append(solve)
 
         contests_serializer = ContestSerializer(contests, many=True)
-        best_solves_serializer = SolveSerializer(solve_set, many=True)
+        best_solves_serializer = SolveSerializer(solve_set, many=True, fields=['scramble'])
         return Response({'contests': contests_serializer.data, 'best_solves': best_solves_serializer.data})
 
 
@@ -38,8 +37,15 @@ class ContestView(APIView):
 
     def get(self, request, contest_number, discipline):
         contest = ContestModel.objects.get(contest_number=contest_number)
-        round_sessions = contest.round_session_set.filter(submitted=True, discipline__name=discipline).order_by('avg_ms')
-        serializer = RoundSessionSerializer(round_sessions, many=True)
+        solves = (contest.round_session_set.filter(contest__contest_number=contest_number,
+                                                   discipline__name=discipline, user=request.user.id,
+                                                   submitted=True).first().
+                                                   solve_set.filter(
+                                                   state=SOLVE_SUBMITTED_STATE, discipline__name=discipline).
+                                                   order_by('user_id', 'id'))
+
+        serializer = SolveSerializer(solves, many=True, fields=['id', 'username', 'time_ms',
+                                                                      'discipline', 'scramble_position', 'dnf'])
         return Response(serializer.data)
 
 
@@ -47,20 +53,20 @@ class SolveContestView(APIView):
     permission_classes = [SolveContestPermission]
 
     def get(self, request, contest_number, discipline):
-        submitted_solves = (User.objects.get(id=request.user.id)
-                            .round_session_set.filter
-                            (contest__contest_number=contest_number,
-                            discipline__name=discipline).first().solve_set.
-                            filter(state=SOLVE_SUBMITTED_STATE))
-
         current_solve_manager = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
         current_solve, current_scramble = current_solve_manager.current_scrambles_and_solve()
+
         try:
-            solves_changed_to_extra = (ContestModel.objects.get(contest_number=contest_number).round_session_set.
-                                   get(discipline__name=discipline, user=request.user.id).solve_set.filter(user=request.user.id,
-                                   discipline__name=discipline, state=SOLVE_CHANGED_TO_EXTRA_STATE))
+            round_session = (User.objects.get(id=request.user.id)
+                             .round_session_set.get
+                             (contest__contest_number=contest_number,
+                              discipline__name=discipline))
+            solves_changed_to_extra = round_session.solve_set.filter(user=request.user.id,
+                                       discipline__name=discipline, state=SOLVE_CHANGED_TO_EXTRA_STATE)
+            submitted_solves = round_session.solve_set.filter(state=SOLVE_SUBMITTED_STATE)
         except ObjectDoesNotExist:
             solves_changed_to_extra = []
+            submitted_solves = []
 
         if len(solves_changed_to_extra) >= 2:
             can_change_to_extra = False
@@ -120,7 +126,7 @@ class SolveReconstructionSerializer(APIView):
         except ObjectDoesNotExist:
             APIException.status_code = 404
             raise APIException
-        serializer = solve_reconstruction_serializers.SolveSerializer(solve)
+        serializer = SolveSerializer(solve, fields=['id', 'reconstruction', 'scramble_scramble'])
         return Response(serializer.data)
 
 
