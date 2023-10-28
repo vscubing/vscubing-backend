@@ -143,3 +143,6 @@ class NewContestView(APIView):
 
         create_contest()
         return Response('new contest created')
+
+
+
