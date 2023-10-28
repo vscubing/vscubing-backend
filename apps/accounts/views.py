@@ -28,10 +28,3 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 
     def get_redirect_url(self):
         return GOOGLE_REDIRECT_URL
-
-
-class AUserView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        return Response(f'{request.user.username}')
