@@ -37,7 +37,7 @@ class ContestView(APIView):
 
     def get(self, request, contest_number, discipline):
         contest = ContestModel.objects.get(contest_number=contest_number)
-        solves = contest.solve_set.filter(contest_submitted=True, state=SOLVE_SUBMITTED_STATE,
+        solves = contest.round_set.filter(submitted=True, state=SOLVE_SUBMITTED_STATE,
                                           discipline__name=discipline).order_by('user_id', 'id')
         serializer = contest_serializers.ContestSubmittedSolvesSerializer(solves, many=True)
         return Response(serializer.data)
@@ -64,7 +64,7 @@ class SolveContestView(APIView):
             current_solve_serializer = solve_contest_serializers.CurrentSolveSerializer(current_solve).data
         except AttributeError:
             current_solve_serializer = None
-        current_scramble_serializer = solve_contest_serializers.CurrentScrambleSerializer(current_scramble)
+        current_scramble_serializer = solve_contest_serializers.ScrambleSerializer(current_scramble)
 
         return Response({'submitted_solves': submitted_solves_serializer.data,
                          'current_solve': {'scramble': current_scramble_serializer.data,
@@ -121,21 +121,24 @@ class NewContestView(APIView):
         @atomic()
         def create_contest():
             previous_contest = ContestModel.objects.order_by('contest_number').last()
-            previous_contest.ongoing = False
-            previous_contest.save()
-            new_contest = ContestModel(contest_number=previous_contest.contest_number + 1)
+            if previous_contest:
+                previous_contest.ongoing = False
+                previous_contest.save()
+                new_contest = ContestModel(contest_number=previous_contest.contest_number + 1)
+            else:
+                new_contest = ContestModel(contest_number=1)
             new_contest.save()
             discipline = DisciplineModel.objects.get(name='3by3')
             for scramble_position in range(1, 6):
                 generated_scramble = generate_scramble()
-                scramble = ScrambleModel(position=scramble_position, scramble=generated_scramble, extra=False, contest=new_contest,
-                                         discipline=discipline)
+                scramble = ScrambleModel(position=scramble_position, scramble=generated_scramble,
+                                         extra=False, contest=new_contest, discipline=discipline)
                 scramble.save()
             for scramble_position in range(1, 3):
                 scramble_position = f"E{scramble_position}"
                 generated_scramble = generate_scramble()
-                scramble = ScrambleModel(position=scramble_position, scramble=generated_scramble, extra=True, contest=new_contest,
-                                         discipline=discipline)
+                scramble = ScrambleModel(position=scramble_position, scramble=generated_scramble,
+                                         extra=True, contest=new_contest, discipline=discipline)
                 scramble.save()
 
         create_contest()

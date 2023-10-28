@@ -26,11 +26,8 @@ class ContestPermission(BasePermission):
             raise APIException
         if contest.ongoing:
             if bool(request.user and request.user.is_authenticated):
-                user = User.objects.get(id=request.user.id)
-                last_this_contest_user_solve = user.solve_set.filter(contest__contest_number=contest_number,
-                                                                contest_submitted=True,
-                                                                discipline__name=discipline).last()
-                if last_this_contest_user_solve:
+
+                if True:
                     return True
                 elif not last_this_contest_user_solve:
                     APIException.default_detail = "User didn't solve ongoing contest"

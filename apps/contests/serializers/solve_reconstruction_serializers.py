@@ -9,7 +9,9 @@ class SolveSerializer(serializers.ModelSerializer):
     contest_number = serializers.IntegerField(source='contest.contest_number')
     username = serializers.CharField(source='user.username')
     scramble_position = serializers.CharField(source='scramble.position')
+    dnf = serializers.BooleanField()
 
     class Meta:
         model = SolveModel
-        fields = ['id', 'reconstruction', 'scramble', 'discipline', 'contest_number', 'username', 'scramble_position']
+        fields = ['id', 'reconstruction', 'scramble', 'discipline', 'contest_number',
+                  'username', 'scramble_position', 'dnf']
