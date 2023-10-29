@@ -25,40 +25,96 @@ class DynamicFieldsModelSerializer(serializers.ModelSerializer):
                 self.fields.pop(field_name)
 
 
-class DisciplineSerializer(serializers.Serializer):
+class UserSerializer(DynamicFieldsModelSerializer):
+    id = serializers.IntegerField()
+    username = serializers.CharField()
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+
+
+class RoundSessionSerializer(DynamicFieldsModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.get('fields')
+        discipline_fields = kwargs.pop('discipline_fields', None)
+        solve_set_fields = kwargs.pop('solve_set_fields', None)
+
+        super().__init__(*args, **kwargs)
+        if discipline_fields:
+            self.fields['discipline'] = DisciplineSerializer(fields=discipline_fields)
+        elif 'discipline' in fields:
+            self.fields['discipline'] = DisciplineSerializer(fields=['name'])
+        if solve_set_fields:
+            self.fields['solve_set'] = SolveSerializer(fields=solve_set_fields, many=True)
+
+    id = serializers.IntegerField()
+    submitted = serializers.BooleanField(required=False)
+
+    class Meta:
+        model = RoundSessionModel
+        fields = ['id', 'submitted', 'avg_ms']
+
+
+class DisciplineSerializer(DynamicFieldsModelSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField(required=False)
 
+    class Meta:
+        model = DisciplineModel
+        fields = ['id', 'name']
 
-class ContestSerializer(serializers.Serializer):
+
+class ContestSerializer(DynamicFieldsModelSerializer):
     id = serializers.IntegerField()
     contest_number = serializers.IntegerField(required=False)
     start = serializers.DateTimeField(required=False)
     end = serializers.DateTimeField(required=False)
     ongoing = serializers.BooleanField(required=False)
 
+    class Meta:
+        model = RoundSessionModel
+        fields = ['id', 'contest_number', 'start', 'end', 'ongoing']
 
-class ScrambleSerializer(serializers.Serializer):
+
+class ScrambleSerializer(DynamicFieldsModelSerializer):
+
     id = serializers.IntegerField(required=False)
     position = serializers.CharField(max_length=10, required=False)
     scramble = serializers.CharField(max_length=512, required=False)
     extra = serializers.BooleanField(required=False)
-    contest = serializers.IntegerField(source='contest__contest_number', required=False)
-    discipline = serializers.CharField(source='discipline__name', required=False)
-
-
-class RoundSessionSerializer(DynamicFieldsModelSerializer):
-    id = serializers.IntegerField()
-    submitted = serializers.BooleanField(required=False)
-    contest = serializers.IntegerField(source='contest__contest_number', required=False)
-    discipline = serializers.CharField(source='discipline__name', required=False)
 
     class Meta:
         model = RoundSessionModel
-        fields = ['id', 'submitted', 'contest', 'discipline']
+        fields = ['id', 'submitted', 'scramble', 'extra', 'position']
 
 
 class SolveSerializer(DynamicFieldsModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.get('fields', None)
+        scramble_fields = kwargs.pop('scramble_fields', None)
+        discipline_fields = kwargs.pop('discipline_fields', None)
+        round_session_fields = kwargs.pop('round_session_fields', None)
+        user_fields = kwargs.pop('user_fields', None)
+
+        super().__init__(*args, **kwargs)
+        if scramble_fields:
+            self.fields['scramble'] = ScrambleSerializer(fields=scramble_fields)
+        elif 'scramble' in fields:
+            self.fields['scramble'] = ScrambleSerializer(fields=['position'])
+        if discipline_fields:
+            self.fields['discipline'] = DisciplineSerializer(fields=discipline_fields)
+        elif 'discipline' in fields:
+            self.fields['discipline'] = DisciplineSerializer(fields=['name'])
+        if round_session_fields:
+            self.fields['round_session'] = RoundSessionSerializer(fields=round_session_fields)
+        elif 'round_session' in fields:
+            self.fields['round_session'] = RoundSessionSerializer(fields=['id'])
+        if user_fields:
+            self.fields['user'] = UserSerializer(fields=user_fields)
+        elif 'user' in fields:
+            self.fields['user'] = UserSerializer(fields=['username'])
 
     id = serializers.IntegerField()
     time_ms = serializers.IntegerField(required=False)
@@ -67,16 +123,8 @@ class SolveSerializer(DynamicFieldsModelSerializer):
     state = serializers.CharField(max_length=96, required=False)
     reconstruction = serializers.CharField(max_length=15048, required=False)
 
-    discipline__name = serializers.CharField(source='discipline.name')
-    round_session__id = serializers.IntegerField(source='round_session.id', required=False)
-    scramble__scramble = serializers.CharField(source='scramble.scramble')
-    user__username = serializers.CharField(source='user.username')
-    scramble_position = serializers.CharField(source='scramble.position')
-
-    scramble = ScrambleSerializer(required=False)
+    contest_number = serializers.IntegerField(source='round_session.contest.contest_number')
 
     class Meta:
         model = SolveModel
-        fields = ['id', 'time_ms', 'dnf', 'extra_id', 'state', 'reconstruction', 'discipline__name',
-                  'round_session__id', 'scramble', 'scramble__scramble', 'user__username', 'scramble_position']
-
+        fields = ['id', 'time_ms', 'dnf', 'extra_id', 'state', 'reconstruction', 'contest_number']

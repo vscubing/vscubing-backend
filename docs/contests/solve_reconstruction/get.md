@@ -17,13 +17,13 @@ Show all solve of this contest
 
 ```json
 {
-    "id": 68,
-    "reconstruction": "R/*0*/ U'/*206*/ L'/*334*/ R/*526*/ B'/*866*/ U'/*966*/ M'/*1869*/ U'/*2211*/ Rw'/*2347*/ M'/*2523*/ U'/*2787*/ Rw'/*2867*/ L'/*3335*/ M'/*3391*/ ..... R/*19671*/",
-    "scramble": "D B F",
-    "discipline": "3by3",
-    "contest_number": 2,
-    "username": "savytskyi.work",
-    "scramble_position": "1"
+    "id": 26,
+    "reconstruction": "y/*0*/ x'/*0*/ x'/*0*/ y/*0*/ y'/*0*/ R/*0*/ y/*167*/ R'/*588*/ R'/*752*/ R/*1088*/ R/*1264*/ y/*1363*/ U'/*1502*/ U/*2034*/ U/*2227*/ L'/*2374*/ L'/*2515*/",
+    "discipline__name": "3by3",
+    "scramble__scramble": "B2 D' B'",
+    "user__username": "savytskyi.work",
+    "scramble__position": "2",
+    "contest__contest_number": 3
 }
      
 ```

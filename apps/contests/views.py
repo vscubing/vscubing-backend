@@ -1,5 +1,6 @@
 import time
 
+from django.db import connection
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import APIException
 from rest_framework.views import APIView, Response, status
@@ -28,7 +29,11 @@ class DashboardView(APIView):
                 solve_set.append(solve)
 
         contests_serializer = ContestSerializer(contests, many=True)
-        best_solves_serializer = SolveSerializer(solve_set, many=True)  # fields=['id', 'time_ms', 'scramble__scramble', 'user__username', 'scramble__position']
+        best_solves_serializer = SolveSerializer(solve_set, many=True,
+                                                 fields=['id', 'time_ms', 'scramble', 'contest_number'],
+                                                 scramble_fields=['id'],
+                                                 discipline_fields=['name']
+                                                 )
         return Response({'contests': contests_serializer.data, 'best_solves': best_solves_serializer.data})
 
 
@@ -36,16 +41,10 @@ class ContestView(APIView):
     permission_classes = [ContestPermission]
 
     def get(self, request, contest_number, discipline):
-        contest = ContestModel.objects.get(contest_number=contest_number)
-        solves = (contest.round_session_set.filter(contest__contest_number=contest_number,
-                                                   discipline__name=discipline, user=request.user.id,
-                                                   submitted=True).first().
-                                                   solve_set.filter(
-                                                   state=SOLVE_SUBMITTED_STATE, discipline__name=discipline).
-                                                   order_by('user_id', 'id'))
-
-        serializer = SolveSerializer(solves, many=True, fields=['id', 'user__username', 'time_ms',
-                                                                      'discipline__name', 'scramble__position', 'dnf'])
+        round_session_set = (ContestModel.objects.get(contest_number=contest_number)
+                   .round_session_set.filter(discipline__name=discipline, submitted=True)).prefetch_related('solve_set')
+        serializer = RoundSessionSerializer(round_session_set, many=True, fields=['id', 'solve_set', 'discipline', 'avg_ms'],
+                                   solve_set_fields=['id', 'time_ms', 'scramble'])
         return Response(serializer.data)
 
 
@@ -67,21 +66,24 @@ class SolveContestView(APIView):
         except ObjectDoesNotExist:
             solves_changed_to_extra = []
             submitted_solves = []
-
         if len(solves_changed_to_extra) >= 2:
             can_change_to_extra = False
         else:
             can_change_to_extra = True
-
-        submitted_solves_serializer = SolveSerializer(submitted_solves, many=True, fields=('id', 'time_ms', 'dnf', 'scramble'))
+        submitted_solves_serializer = SolveSerializer(submitted_solves, many=True,
+                                                      fields=('id', 'time_ms', 'dnf', 'scramble'),
+                                                      scramble_fields=('id', 'scramble', 'extra', 'position')).data
         try:
-            current_solve_serializer = SolveSerializer(current_solve, fields=('id', 'time_ms', 'dnf')).data
+            if current_solve is not None:
+                current_solve_serializer = SolveSerializer(current_solve, fields=('id', 'time_ms', 'dnf')).data
+            else:
+                current_solve_serializer = None
         except AttributeError:
             current_solve_serializer = None
-        current_scramble_serializer = ScrambleSerializer(current_scramble)
+        current_scramble_serializer = ScrambleSerializer(current_scramble).data
 
-        return Response({'submitted_solves': submitted_solves_serializer.data,
-                         'current_solve': {'scramble': current_scramble_serializer.data,
+        return Response({'submitted_solves': submitted_solves_serializer,
+                         'current_solve': {'scramble': current_scramble_serializer,
                          'solve': current_solve_serializer, 'can_change_to_extra': can_change_to_extra}})
 
     def post(self, request, contest_number, discipline):
@@ -126,7 +128,7 @@ class SolveReconstructionSerializer(APIView):
         except ObjectDoesNotExist:
             APIException.status_code = 404
             raise APIException
-        serializer = SolveSerializer(solve, fields=['id', 'reconstruction', 'scramble__scramble'])
+        serializer = SolveSerializer(solve, fields=['id', 'reconstruction'])
         return Response(serializer.data)
 
 
@@ -159,4 +161,8 @@ class NewContestView(APIView):
         return Response('new contest created')
 
 
-
+class SolveView(APIView):
+    def get(self, request):
+        scramble = ScrambleModel.objects.all()
+        s = ScrambleSerializer(scramble, many=True, fields=['id', 'scramble'])
+        return Response(s.data)

@@ -52,16 +52,17 @@
     ],
     "current_solve": {
         "scramble": {
-            "id": 21,
-            "scramble": "U D B2",
-            "extra": true,
-            "position": "E2"
+            "id": 23,
+            "scramble": "B2 D' B'",
+            "extra": false,
+            "position": "2"
         },
         "solve": {
-            "id": 78,
-            "time_ms": 1293
+            "id": null,
+            "time_ms": null,
+            "dnf": false
         },
-        "can_change_to_extra": false
+        "can_change_to_extra": true
     }
 }
      
