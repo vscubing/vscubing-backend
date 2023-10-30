@@ -1,7 +1,9 @@
+from django.db.transaction import atomic
 from rest_framework.exceptions import APIException
+from django.core.exceptions import ObjectDoesNotExist
 
 from config import SOLVE_PENDING_STATE, SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
-from .models import ScrambleModel, SolveModel, ContestModel, DisciplineModel
+from .models import ScrambleModel, SolveModel, ContestModel, DisciplineModel, RoundSessionModel
 from apps.accounts.models import User
 from scripts.cube import SolveValidator
 
@@ -36,9 +38,9 @@ class SolveManager:
             solve = scramble.solve_set.filter(user=self.request.user.id).first()
             if not solve:
                 if not previous_solve:
-                    return solve, scramble
+                    return None, scramble
                 elif previous_solve.state == SOLVE_SUBMITTED_STATE:
-                    return solve, scramble
+                    return None, scramble
                 elif previous_solve.state == SOLVE_CHANGED_TO_EXTRA_STATE:
                     while True:
                         extra_scramble = ScrambleModel.objects.get(id=previous_solve.extra_id)
@@ -49,8 +51,8 @@ class SolveManager:
                         elif extra_solve.state == SOLVE_PENDING_STATE:
                             return extra_solve, extra_scramble
                         elif extra_solve.state == SOLVE_SUBMITTED_STATE:
-                            print(solve, scramble)
-                            return solve, scramble
+                            print(None, scramble)
+                            return None, scramble
                         elif extra_solve.state == SOLVE_CHANGED_TO_EXTRA_STATE:
                             previous_solve = extra_solve
 
@@ -59,8 +61,10 @@ class SolveManager:
             previous_solve = solve
 
     def contest_is_finished(self):
-        user_submitted_solves = ContestModel.objects.get(contest_number=self.contest_number).solve_set.filter(user=self.request.user.id, state=SOLVE_SUBMITTED_STATE)
-        if len(user_submitted_solves) == 5:
+        user_submitted_solves = (RoundSessionModel.objects.get(contest__contest_number=self.contest_number,
+                                                        discipline__name=self.discipline, user=self.request.user.id)
+                                            .solve_set.filter(user=self.request.user.id, state=SOLVE_SUBMITTED_STATE))
+        if len(user_submitted_solves) == SOLVES_IN_CONTEST:
             return True
         else:
             return False
@@ -68,19 +72,23 @@ class SolveManager:
     def create_solve(self):
         current_solve, current_scramble = self.current_scrambles_and_solve()
         if current_scramble and not current_solve:
-            v = SolveValidator(scramble=current_scramble.scramble, reconstruction=self.reconstruction)
             contest = ContestModel.objects.get(contest_number=self.contest_number)
             user = User.objects.get(id=self.request.user.id)
             discipline = DisciplineModel.objects.get(name=self.discipline)
-            print(self.reconstruction)
+            try:
+                round_session = RoundSessionModel.objects.get(user=self.request.user.id, discipline__name=self.discipline,
+                                                                contest__contest_number=self.contest_number)
+            except ObjectDoesNotExist:
+                round_session = RoundSessionModel(contest=contest, discipline=discipline, user=user)
+                round_session.save()
+
+            v = SolveValidator(scramble=current_scramble.scramble, reconstruction=self.reconstruction)
             if v.is_valid():
                 solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
-                                   contest=contest, user=user, discipline=discipline)
+                                   user=user, discipline=discipline, round_session=round_session)
             else:
-                APIException.status_code = 422
-                raise APIException
                 solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
-                                   contest=contest, user=user, discipline=discipline, dnf=True)
+                                   user=user, discipline=discipline, round_session=round_session, dnf=True)
 
             solve.save()
             return solve.id
@@ -92,8 +100,11 @@ class SolveManager:
     def update_solve(self):
 
         action = self.request.query_params.get('action')
-        solve = (ContestModel.objects.get(contest_number=self.contest_number).
-                 solve_set.filter(user=self.request.user.id, state=SOLVE_PENDING_STATE).first())
+
+        solve = (RoundSessionModel.objects.get(user=self.request.user.id, discipline__name=self.discipline
+                                        , contest__contest_number=self.contest_number).solve_set.filter
+                                        (user=self.request.user.id, state=SOLVE_PENDING_STATE).first())
+
         if action == 'submit':
             solve.state = SOLVE_SUBMITTED_STATE
             solve.save()
@@ -119,14 +130,22 @@ class SolveManager:
             else:
                 return False
 
-    def submit_contest(self):
+    @atomic()
+    def submit_round_session(self):
         contest_is_finished = self.contest_is_finished()
-        solves = (ContestModel.objects.get(contest_number=self.contest_number)
-                  .solve_set.filter(user=self.request.user.id))
+        round_session = (ContestModel.objects.get(contest_number=self.contest_number).round_session_set
+                  .get(discipline__name=self.discipline, user=self.request.user.id))
+
         if contest_is_finished:
-            for solve in solves:
-                solve.contest_submitted = True
-                solve.save()
+            round_session.submitted = True
+            round_session.save()
             return True
         else:
             return False
+
+    def create_round_session(self):
+        contest = ContestModel.objects.get(contest_number=self.contest_number)
+        discipline = DisciplineModel.objects.get(name=self.discipline)
+        user = User.objects.get(id=self.requests.user.id)
+        round_session = RoundSessionModel(contest=contest, discipline=discipline, user=user)
+        round_session.save()

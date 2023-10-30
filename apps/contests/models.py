@@ -20,7 +20,7 @@ class DisciplineModel(models.Model):
 
 
 class ScrambleModel(models.Model):
-    position = models.CharField(max_length=10, default=None, null=True, blank=True)
+    position = models.CharField(max_length=10)
     scramble = models.TextField(max_length=512)
     extra = models.BooleanField()
     contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='scramble_set')
@@ -30,17 +30,30 @@ class ScrambleModel(models.Model):
         return self.scramble
 
 
+class RoundSessionModel(models.Model):
+    avg_ms = models.IntegerField(default=None, null=True, blank=True)
+    dnf = models.BooleanField(default=False)
+    submitted = models.BooleanField(default=False)
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='round_session_set')
+    contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='round_session_set')
+    discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE, related_name='round_session_set')
+
+    def __int__(self):
+        return self.id
+
+
 class SolveModel(models.Model):
     time_ms = models.IntegerField()
     dnf = models.BooleanField(default=False)
     extra_id = models.IntegerField(default=None, null=True, blank=True)
-    contest_submitted = models.BooleanField(default=False)
     state = models.CharField(max_length=96, default='pending')
     reconstruction = models.TextField(max_length=15048)
-    contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='solve_set')
+
     scramble = models.ForeignKey(ScrambleModel, on_delete=models.CASCADE, related_name='solve_set')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='solve_set')
     discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE, related_name='solve_set')
+    round_session = models.ForeignKey(RoundSessionModel, on_delete=models.CASCADE, related_name='solve_set')
 
     def __str__(self):
         return f"{self.time_ms}"

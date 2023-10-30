@@ -30,6 +30,7 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
         return GOOGLE_REDIRECT_URL
 
 
+
 class AUserView(APIView):
     permission_classes = [IsAuthenticated]
 

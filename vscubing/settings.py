@@ -69,13 +69,13 @@ SIMPLE_JWT = {
 }
 
 REST_AUTH_SERIALIZERS = {
-    "REGISTER_SERIALIZER": "apps.accounts.serializers.RegisterSerializer",
+    "REGISTER_SERIALIZER": "apps.accounts.serializer_files.RegisterSerializer",
 }
 
 REST_AUTH = {
     'USE_JWT': True,
     "JWT_AUTH_HTTPONLY": False,
-    # 'REGISTER_SERIALIZER': 'dj_rest_auth.registration.serializers.RegisterSerializer',
+    # 'REGISTER_SERIALIZER': 'dj_rest_auth.registration.serializer_files.RegisterSerializer',
     # 'JWT_AUTH_COOKIE': 'app-auth',
     # 'JWT_AUTH_REFRESH_COOKIE': 'refresh-token',
 }
@@ -90,6 +90,28 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
 ]
+
+LOGGING = {
+    'version': 1,
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        }
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+        }
+    },
+    'loggers': {
+        'django.db.backends': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        }
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
