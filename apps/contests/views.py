@@ -128,7 +128,10 @@ class SolveReconstructionSerializer(APIView):
         except ObjectDoesNotExist:
             APIException.status_code = 404
             raise APIException
-        serializer = SolveSerializer(solve, fields=['id', 'reconstruction'])
+        serializer = SolveSerializer(solve, fields=['id', 'reconstruction', 'contest_number'],
+                                     scramble_fields=['scramble', 'position'],
+                                     discipline_fields=['name'],
+                                     user_fields=['username'])
         return Response(serializer.data)
 
 
