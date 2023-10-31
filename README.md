@@ -1,3 +1,5 @@
 # vscubing-backend
 
-You can find api documentation here: [API Docs](docs/README.md) 
+Api documentation here: [API Docs](docs/README.md) 
+
+Contribute to project: [contribute to vscubing](contribute_to_vscubing.md)
