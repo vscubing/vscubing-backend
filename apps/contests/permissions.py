@@ -27,7 +27,7 @@ class ContestPermission(BasePermission):
         if contest.ongoing:
             if bool(request.user and request.user.is_authenticated):
                 round_session = RoundSessionModel.objects.filter(contest__contest_number=contest_number,
-                                                                 discipline__name=discipline, submitted=True)
+                                                                 discipline__name=discipline, submitted=True, user=request.user.id)
                 if round_session:
                     return True
                 elif not round_session:

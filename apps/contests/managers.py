@@ -87,7 +87,7 @@ class SolveManager:
                 solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
                                    user=user, discipline=discipline, round_session=round_session)
             else:
-                solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
+                solve = SolveModel(reconstruction=self.reconstruction, scramble=current_scramble,
                                    user=user, discipline=discipline, round_session=round_session, dnf=True)
 
             solve.save()
@@ -138,6 +138,7 @@ class SolveManager:
 
         if contest_is_finished:
             round_session.submitted = True
+            round_session.avg_ms = 17000
             round_session.save()
             return True
         else:

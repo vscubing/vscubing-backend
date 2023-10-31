@@ -48,6 +48,9 @@
             },
             "discipline": {
                 "name": "3by3"
+            },
+            "user": {
+                "username": "antonsav123"
             }
         }
     ]

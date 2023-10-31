@@ -44,7 +44,7 @@ class RoundSessionModel(models.Model):
 
 
 class SolveModel(models.Model):
-    time_ms = models.IntegerField()
+    time_ms = models.IntegerField(null=True, blank=True)
     dnf = models.BooleanField(default=False)
     extra_id = models.IntegerField(default=None, null=True, blank=True)
     state = models.CharField(max_length=96, default='pending')

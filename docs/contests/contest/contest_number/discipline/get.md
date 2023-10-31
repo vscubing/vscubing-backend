@@ -17,51 +17,68 @@ Show all solve of this contest
 
 ```json
 [
-    {
-        "id": 5,
-        "avg_ms": null,
+        {
+        "id": 11,
+        "avg_ms": 17000,
         "discipline": {
             "name": "3by3"
         },
+        "user": {
+            "username": "antonsav2005"
+        },
         "solve_set": [
             {
-                "id": 19,
-                "time_ms": 1271,
+                "id": 45,
+                "time_ms": 5391,
+                "dnf": false,
                 "scramble": {
                     "position": "1"
                 }
             },
             {
-                "id": 20,
-                "time_ms": 784,
+                "id": 46,
+                "time_ms": 2203,
+                "dnf": false,
                 "scramble": {
                     "position": "2"
                 }
             },
             {
-                "id": 21,
-                "time_ms": 1404,
-                "scramble": {
-                    "position": "3"
-                }
-            },
-            {
-                "id": 22,
-                "time_ms": 2444,
-                "scramble": {
-                    "position": "4"
-                }
-            },
-            {
-                "id": 23,
-                "time_ms": 6276,
+                "id": 47,
+                "time_ms": 5924,
+                "dnf": false,
                 "scramble": {
                     "position": "E1"
                 }
             },
             {
-                "id": 24,
-                "time_ms": 5008,
+                "id": 48,
+                "time_ms": 6112,
+                "dnf": false,
+                "scramble": {
+                    "position": "3"
+                }
+            },
+            {
+                "id": 49,
+                "time_ms": 984,
+                "dnf": false,
+                "scramble": {
+                    "position": "4"
+                }
+            },
+            {
+                "id": 50,
+                "time_ms": 708,
+                "dnf": false,
+                "scramble": {
+                    "position": "E2"
+                }
+            },
+            {
+                "id": 51,
+                "time_ms": 2128,
+                "dnf": false,
                 "scramble": {
                     "position": "5"
                 }

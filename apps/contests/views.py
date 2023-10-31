@@ -32,7 +32,8 @@ class DashboardView(APIView):
         best_solves_serializer = SolveSerializer(solve_set, many=True,
                                                  fields=['id', 'time_ms', 'scramble', 'contest_number'],
                                                  scramble_fields=['id'],
-                                                 discipline_fields=['name']
+                                                 discipline_fields=['name'],
+                                                 user_fields=['username']
                                                  )
         return Response({'contests': contests_serializer.data, 'best_solves': best_solves_serializer.data})
 
@@ -41,10 +42,14 @@ class ContestView(APIView):
     permission_classes = [ContestPermission]
 
     def get(self, request, contest_number, discipline):
-        round_session_set = (ContestModel.objects.get(contest_number=contest_number)
-                   .round_session_set.filter(discipline__name=discipline, submitted=True)).prefetch_related('solve_set')
+        start_time = time.time()
+        round_session_set = RoundSessionModel.objects.filter(discipline__name=discipline, submitted=True,
+                                                             contest__contest_number=contest_number)
         serializer = RoundSessionSerializer(round_session_set, many=True, fields=['id', 'solve_set', 'discipline', 'avg_ms'],
-                                   solve_set_fields=['id', 'time_ms', 'scramble'])
+                                   solve_set_fields=['id', 'time_ms', 'dnf', 'scramble'],
+                                   user_fields=['username'])
+
+        print(time.time() - start_time)
         return Response(serializer.data)
 
 

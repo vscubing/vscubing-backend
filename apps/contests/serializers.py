@@ -39,12 +39,15 @@ class RoundSessionSerializer(DynamicFieldsModelSerializer):
         fields = kwargs.get('fields')
         discipline_fields = kwargs.pop('discipline_fields', None)
         solve_set_fields = kwargs.pop('solve_set_fields', None)
+        user_fields = kwargs.pop('user_fields', None)
 
         super().__init__(*args, **kwargs)
         if discipline_fields:
             self.fields['discipline'] = DisciplineSerializer(fields=discipline_fields)
         elif 'discipline' in fields:
             self.fields['discipline'] = DisciplineSerializer(fields=['name'])
+        if user_fields:
+            self.fields['user'] = UserSerializer(fields=user_fields)
         if solve_set_fields:
             self.fields['solve_set'] = SolveSerializer(fields=solve_set_fields, many=True)
 
