@@ -29,6 +29,7 @@ class SolveManager:
             self.scramble_id = int(self.scramble_id)
         self.reconstruction = request.data.get('reconstruction')
         self.time_ms = request.data.get('time_ms')
+        self.dnf = request.data.get('dnf')
         print(request)
 
     def current_scrambles_and_solve(self):
@@ -81,13 +82,16 @@ class SolveManager:
             except ObjectDoesNotExist:
                 round_session = RoundSessionModel(contest=contest, discipline=discipline, user=user)
                 round_session.save()
-
             v = SolveValidator(scramble=current_scramble.scramble, reconstruction=self.reconstruction)
-            if v.is_valid():
-                solve = SolveModel(contest=contest, time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
-                                   user=user, discipline=discipline, round_session=round_session)
+            print(self.dnf)
+            if self.dnf is True:
+                solve = SolveModel(contest=contest, scramble=current_scramble,
+                                   user=user, discipline=discipline, round_session=round_session, dnf=True)
+            elif v.is_valid():
+                solve = SolveModel(contest=contest, time_ms=self.time_ms, reconstruction=self.reconstruction,
+                                   scramble=current_scramble, user=user, discipline=discipline, round_session=round_session)
             else:
-                solve = SolveModel(contest=contest, reconstruction=self.reconstruction, scramble=current_scramble,
+                solve = SolveModel(contest=contest, scramble=current_scramble,
                                    user=user, discipline=discipline, round_session=round_session, dnf=True)
 
             solve.save()

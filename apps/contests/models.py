@@ -48,7 +48,7 @@ class SolveModel(models.Model):
     dnf = models.BooleanField(default=False)
     extra_id = models.IntegerField(default=None, null=True, blank=True)
     state = models.CharField(max_length=96, default='pending')
-    reconstruction = models.TextField(max_length=15048)
+    reconstruction = models.TextField(max_length=15048, null=True, blank=True)
 
     scramble = models.ForeignKey(ScrambleModel, on_delete=models.CASCADE, related_name='solve_set')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='solve_set')
