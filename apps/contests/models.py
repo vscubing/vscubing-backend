@@ -54,6 +54,7 @@ class SolveModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='solve_set')
     discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE, related_name='solve_set')
     round_session = models.ForeignKey(RoundSessionModel, on_delete=models.CASCADE, related_name='solve_set')
+    contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='solve_set')
 
     def __str__(self):
         return f"{self.time_ms}"

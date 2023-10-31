@@ -84,10 +84,10 @@ class SolveManager:
 
             v = SolveValidator(scramble=current_scramble.scramble, reconstruction=self.reconstruction)
             if v.is_valid():
-                solve = SolveModel(time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
+                solve = SolveModel(contest=contest, time_ms=self.time_ms, reconstruction=self.reconstruction, scramble=current_scramble,
                                    user=user, discipline=discipline, round_session=round_session)
             else:
-                solve = SolveModel(reconstruction=self.reconstruction, scramble=current_scramble,
+                solve = SolveModel(contest=contest, reconstruction=self.reconstruction, scramble=current_scramble,
                                    user=user, discipline=discipline, round_session=round_session, dnf=True)
 
             solve.save()

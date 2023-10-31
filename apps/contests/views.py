@@ -46,7 +46,7 @@ class ContestView(APIView):
         round_session_set = RoundSessionModel.objects.filter(discipline__name=discipline, submitted=True,
                                                              contest__contest_number=contest_number)
         serializer = RoundSessionSerializer(round_session_set, many=True, fields=['id', 'solve_set', 'discipline', 'avg_ms'],
-                                   solve_set_fields=['id', 'time_ms', 'dnf', 'scramble'],
+                                   solve_set_fields=['id', 'time_ms', 'dnf', 'state', 'scramble'],
                                    user_fields=['username'])
 
         print(time.time() - start_time)
