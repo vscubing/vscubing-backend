@@ -1,10 +1,11 @@
 from django.urls import path
 
 from .views import (DashboardView, ContestView, SolveContestView, OngoingContestNumberView,
-                    SolveReconstructionSerializer, NewContestView, SolveView)
+                    SolveReconstructionSerializer, NewContestView, SolveView, LeaderboardView)
 
 urlpatterns = [
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
+    path('leaderboard/<str:discipline>/', LeaderboardView.as_view(), name='leaderboard'),
     path('contest/<int:contest_number>/<str:discipline>/', ContestView.as_view(), name='contest'),
     path('solve_contest/<int:contest_number>/<str:discipline>/', SolveContestView.as_view(), name='solve-contest'),
     path('ongoing_contest_number/', OngoingContestNumberView.as_view(), name='solve-contest'),

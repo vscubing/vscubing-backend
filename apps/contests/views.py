@@ -2,6 +2,7 @@ import time
 
 from django.db import connection
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Subquery, OuterRef
 from rest_framework.exceptions import APIException
 from rest_framework.views import APIView, Response, status
 from django.db.transaction import atomic
@@ -36,6 +37,32 @@ class DashboardView(APIView):
                                                  user_fields=['username']
                                                  )
         return Response({'contests': contests_serializer.data, 'best_solves': best_solves_serializer.data})
+
+
+class LeaderboardView(APIView):
+    def get(self, request, discipline):
+        best_solves = SolveModel.objects.filter(
+            user_id=OuterRef('user_id'),
+            discipline__name=discipline,
+            state=SOLVE_SUBMITTED_STATE,
+            dnf=False,
+            round_session__submitted=True,
+
+        ).order_by('time_ms').values('id')[:1]
+
+        all_solves = SolveModel.objects.filter(
+            id__in=Subquery(best_solves)
+        )
+
+        print(all_solves)
+        serializer = SolveSerializer(all_solves, many=True,
+                                     fields=['id', 'time_ms'],
+                                     user_fields=['id', 'username'],
+                                     scramble_fields=['id', 'scramble'],
+                                     contest_fields=['contest_number'],
+                                     discipline_fields=['name']
+                                     )
+        return Response(serializer.data)
 
 
 class ContestView(APIView):

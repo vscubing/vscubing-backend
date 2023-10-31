@@ -1,6 +1,6 @@
 # Show 
 
-**URL** : `/api/contests/`
+**URL** : `/api/leaderboard/<str:discipline>/`
 
 **Method** : `GET`
 
@@ -14,6 +14,43 @@
 
 
 ```json
-
+[
+    {
+        "id": 50,
+        "time_ms": 708,
+        "scramble": {
+            "id": 35,
+            "scramble": "F2 B2 L"
+        },
+        "discipline": {
+            "name": "3by3"
+        },
+        "user": {
+            "id": 4,
+            "username": "antonsav2005"
+        },
+        "contest": {
+            "contest_number": 1
+        }
+    },
+    {
+        "id": 60,
+        "time_ms": 1280,
+        "scramble": {
+            "id": 32,
+            "scramble": "D F B'"
+        },
+        "discipline": {
+            "name": "3by3"
+        },
+        "user": {
+            "id": 2,
+            "username": "savytskyi.work"
+        },
+        "contest": {
+            "contest_number": 1
+        }
+    }
+]
      
 ```
