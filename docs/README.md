@@ -8,6 +8,7 @@ Endpoints for auth and user managing users
 
 * [Sign up or Login via google](accounts/google/login/post.md) : `POST /accounts/google/login/`
 * [Refresh token](accounts/token/refresh/post.md) : `POST /accounts/token/refresh/`
+* [Change username](accounts/change_username/put.md) : `PUT /accounts/change_username/`
 
 ### Contests related
 
