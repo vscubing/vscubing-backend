@@ -1,6 +1,6 @@
 # Show Dashboard 
 
-**URL** : `/api/contests/`
+**URL** : `/api/contests/dashboard/`
 
 **Method** : `GET`
 
@@ -43,6 +43,7 @@
             "id": 20,
             "time_ms": 784,
             "contest_number": 1,
+            "created": "2023-11-01T00:47:33.644764Z",
             "scramble": {
                 "id": 9
             },

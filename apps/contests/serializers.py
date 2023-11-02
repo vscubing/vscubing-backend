@@ -120,9 +120,10 @@ class SolveSerializer(DynamicFieldsModelSerializer):
     extra_id = serializers.IntegerField(required=False)
     state = serializers.CharField(max_length=96, required=False)
     reconstruction = serializers.CharField(max_length=15048, required=False)
+    created = serializers.DateTimeField(required=False)
 
     contest_number = serializers.IntegerField(source='round_session.contest.contest_number')
 
     class Meta:
         model = SolveModel
-        fields = ['id', 'time_ms', 'dnf', 'extra_id', 'state', 'reconstruction', 'contest_number']
+        fields = ['id', 'time_ms', 'dnf', 'extra_id', 'state', 'reconstruction', 'contest_number', 'created']

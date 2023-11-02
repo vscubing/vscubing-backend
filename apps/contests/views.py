@@ -31,7 +31,7 @@ class DashboardView(APIView):
 
         contests_serializer = ContestSerializer(contests, many=True)
         best_solves_serializer = SolveSerializer(solve_set, many=True,
-                                                 fields=['id', 'time_ms', 'scramble', 'contest_number'],
+                                                 fields=['id', 'time_ms', 'scramble', 'contest_number', 'created'],
                                                  scramble_fields=['id'],
                                                  discipline_fields=['name'],
                                                  user_fields=['username']
@@ -56,7 +56,7 @@ class LeaderboardView(APIView):
 
         print(all_solves)
         serializer = SolveSerializer(all_solves, many=True,
-                                     fields=['id', 'time_ms'],
+                                     fields=['id', 'time_ms', 'created'],
                                      user_fields=['id', 'username'],
                                      scramble_fields=['id', 'scramble'],
                                      contest_fields=['contest_number'],
@@ -73,7 +73,7 @@ class ContestView(APIView):
         round_session_set = RoundSessionModel.objects.filter(discipline__name=discipline, submitted=True,
                                                              contest__contest_number=contest_number)
         serializer = RoundSessionSerializer(round_session_set, many=True, fields=['id', 'solve_set', 'discipline', 'avg_ms'],
-                                   solve_set_fields=['id', 'time_ms', 'dnf', 'state', 'scramble'],
+                                   solve_set_fields=['id', 'time_ms', 'dnf', 'state', 'scramble', 'created'],
                                    user_fields=['username'])
 
         print(time.time() - start_time)
@@ -160,7 +160,7 @@ class SolveReconstructionSerializer(APIView):
         except ObjectDoesNotExist:
             APIException.status_code = 404
             raise APIException
-        serializer = SolveSerializer(solve, fields=['id', 'reconstruction', 'contest_number'],
+        serializer = SolveSerializer(solve, fields=['id', 'reconstruction', 'contest_number', 'created'],
                                      scramble_fields=['scramble', 'position'],
                                      discipline_fields=['name'],
                                      user_fields=['username'])
