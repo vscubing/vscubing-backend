@@ -8,6 +8,8 @@ from apps.accounts.models import User
 from rest_framework.views import APIView, Response
 
 
+USER_NOT_VERIFIED_ERROR_MESSAGE = 'user is not verified, try to change your username'
+
 class Vieew(APIView):
     def get(self, request):
         return Response(200)
@@ -26,13 +28,18 @@ class ContestPermission(BasePermission):
             raise APIException
         if contest.ongoing:
             if bool(request.user and request.user.is_authenticated):
-                round_session = RoundSessionModel.objects.filter(contest__contest_number=contest_number,
-                                                                 discipline__name=discipline, submitted=True, user=request.user.id)
-                if round_session:
-                    return True
-                elif not round_session:
-                    APIException.default_detail = "User didn't solve ongoing contest"
+                if request.user.is_verified:
+                    round_session = RoundSessionModel.objects.filter(contest__contest_number=contest_number,
+                                                                     discipline__name=discipline, submitted=True, user=request.user.id)
+                    if round_session:
+                        return True
+                    elif not round_session:
+                        APIException.default_detail = "User didn't solve ongoing contest"
+                        APIException.status_code = 403
+                        raise APIException
+                else:
                     APIException.status_code = 403
+                    APIException.default_detail = USER_NOT_VERIFIED_ERROR_MESSAGE
                     raise APIException
             else:
                 APIException.status_code = 401
@@ -54,15 +61,20 @@ class SolveContestPermission(BasePermission):
             raise APIException
 
         if bool(request.user and request.user.is_authenticated):
-            user = User.objects.get(id=request.user.id)
-            round_session = user.round_session_set.filter(contest__contest_number=contest_number,
-                                                                         submitted=True,
-                                                                         discipline__name=discipline).last()
-            if not round_session:
-                return True
-            elif round_session:
-                APIException.default_detail = "User solved contest already"
+            if request.user.is_verified:
+                user = User.objects.get(id=request.user.id)
+                round_session = user.round_session_set.filter(contest__contest_number=contest_number,
+                                                                             submitted=True,
+                                                                             discipline__name=discipline).last()
+                if not round_session:
+                    return True
+                elif round_session:
+                    APIException.default_detail = "User solved contest already"
+                    APIException.status_code = 403
+                    raise APIException
+            else:
                 APIException.status_code = 403
+                APIException.default_detail = USER_NOT_VERIFIED_ERROR_MESSAGE
                 raise APIException
         else:
             return False
