@@ -18,6 +18,7 @@
     {
         "id": 50,
         "time_ms": 708,
+        "created": "2023-11-01T00:47:33.644764Z",
         "scramble": {
             "id": 35,
             "scramble": "F2 B2 L"
@@ -36,6 +37,7 @@
     {
         "id": 60,
         "time_ms": 1280,
+        "created": "2023-11-01T00:47:33.644764Z",
         "scramble": {
             "id": 32,
             "scramble": "D F B'"

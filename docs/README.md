@@ -13,7 +13,7 @@ Endpoints for auth and user managing users
 
 Endpoints for all contests logic on the website
 
-* [Show results of contest](contests/contest/contest_number/discipline/get.md) : `GET /contests/contest/:contest_number/:discipline/`
+* [Show contest results](contests/contest/contest_number/discipline/get.md) : `GET /contests/contest/:contest_number/:discipline/`
 * [Show dashboard data](contests/dashboard/get.md) : `GET /api/contests/dashboard/`
 * [Show leaderboard data](contests/leaderboard/discipline/get.md) : `GET /api/contests/leaderboard/<str:discipline>/`
 * [Show ongoing contest](contests/ongoing_contest_number/get.md) : `GET /api/contests/ongoing_contest_number/`
