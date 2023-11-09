@@ -112,12 +112,10 @@ class SolveManager:
         if action == 'submit':
             solve.state = SOLVE_SUBMITTED_STATE
             solve.save()
-            print(solve)
             return True
         elif action == 'change_to_extra':
             extras = ScrambleModel.objects.filter(contest__contest_number=self.contest_number, extra=True)
             if extras:
-                print(extras)
                 for extra in extras:
                     extra_solve = extra.solve_set.filter(user=self.request.user.id).first()
                     if not extra_solve:
@@ -126,7 +124,6 @@ class SolveManager:
                         solve.save()
                         return True
                     else:
-                        print('pass')
                         pass
                 APIException.default_detail = {'detail': 'all extras has been used'}
                 APIException.status_code = 404
@@ -141,8 +138,50 @@ class SolveManager:
                   .get(discipline__name=self.discipline, user=self.request.user.id))
 
         if contest_is_finished:
+            sum_ms = 0
+            dnf_count = 0
+            lowest_solve = None
+            highest_solve = None
+            solve_set = round_session.solve_set.filter(state=SOLVE_SUBMITTED_STATE).order_by('id')
+            print(solve_set)
+            for solve in solve_set:
+                if solve.dnf:
+                    dnf_count += 1
+                    continue
+                elif not lowest_solve:
+                    lowest_solve = solve.time_ms
+                    continue
+                elif not highest_solve:
+                    highest_solve = solve.time_ms
+                    continue
+                if solve.time_ms > lowest_solve:
+                    if solve.time_ms < highest_solve:
+                        sum_ms += solve.time_ms
+                        print(f'{solve.time_ms} time of current solve')
+                    elif solve.time_ms > highest_solve:
+                        sum_ms += highest_solve
+                        print(f'{highest_solve} time of current solve')
+                        highest_solve = solve.time_ms
+                    elif solve.time_ms == highest_solve:
+                        sum_ms += solve.time_ms
+                        print(f'{solve.time_ms} time of current solve')
+                elif solve.time_ms < lowest_solve:
+                    sum_ms += lowest_solve
+                    print(f'{lowest_solve} time of current solve')
+                    lowest_solve = solve.time_ms
+                elif solve.time_ms == lowest_solve:
+                    print(f'{solve.time_ms} time of current solve')
+                    sum_ms += solve.time_ms
+
+            if dnf_count == 0:
+                round_session.avg_ms = sum_ms/3
+            elif dnf_count == 1:
+                sum_ms += highest_solve
+                round_session.avg_ms += sum_ms/3
+            elif dnf_count >= 2:
+                round_session.dnf = True
+
             round_session.submitted = True
-            round_session.avg_ms = 17000
             round_session.save()
             return True
         else:
