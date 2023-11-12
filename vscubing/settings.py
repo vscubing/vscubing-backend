@@ -89,6 +89,8 @@ SITE_ID = 1
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'http://vscubing.com',
+    'http://www.vscubing.com'
 ]
 
 # LOGGING = {
