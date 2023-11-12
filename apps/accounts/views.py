@@ -36,7 +36,7 @@ class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response(f'{request.user.username}')
+        return Response({'username': request.user.username, 'auth_completed': request.user.is_verified})
 
 
 class ChangeUsernameView(APIView):
