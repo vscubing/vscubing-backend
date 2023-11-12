@@ -25,7 +25,9 @@ class DashboardView(APIView):
 
         solve_set = []
         for discipline in disciplines:
-            solve = discipline.solve_set.order_by('time_ms').first()
+            solve = discipline.solve_set.order_by('time_ms').filter(state=SOLVE_SUBMITTED_STATE,
+                                                                    round_session__submitted=True,
+                                                                    dnf=False).first()
             if solve:
                 solve_set.append(solve)
 

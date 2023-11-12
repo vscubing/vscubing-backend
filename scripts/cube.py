@@ -83,7 +83,6 @@ class SolveValidator:
         for move in self.reconstruction:
             move = self.notation_translator[move]
             move_sequence += move + " "
-        print(move_sequence)
         self.cube.sequence(move_sequence)
 
 
@@ -95,4 +94,3 @@ if __name__ == '__main__':
     reconstruction = "D/*0*/ D/*232*/ R'/*773*/ R'/*1051*/ x'/*1744*/ x'/*2021*/ D'/*2936*/"
 
     v = SolveValidator(scramble=scramble, reconstruction=reconstruction)
-    print(v.is_valid())

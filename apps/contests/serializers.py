@@ -105,12 +105,20 @@ class SolveSerializer(DynamicFieldsModelSerializer):
         super().__init__(*args, **kwargs)
         if scramble_fields:
             self.fields['scramble'] = ScrambleSerializer(fields=scramble_fields)
+        elif 'scramble' in fields:
+            self.fields['scramble'] = ScrambleSerializer(fields=['position'])
         if discipline_fields:
             self.fields['discipline'] = DisciplineSerializer(fields=discipline_fields)
+        elif 'discipline' in fields:
+            self.fields['discipline'] = DisciplineSerializer(fields=['name'])
         if round_session_fields:
             self.fields['round_session'] = RoundSessionSerializer(fields=round_session_fields)
+        elif 'round_session' in fields:
+            self.fields['round_session'] = RoundSessionSerializer(fields=['id'])
         if user_fields:
             self.fields['user'] = UserSerializer(fields=user_fields)
+        elif 'user' in fields:
+            self.fields['user'] = UserSerializer(fields=['username'])
         if contest_fields:
             self.fields['contest'] = ContestSerializer(fields=contest_fields)
 
