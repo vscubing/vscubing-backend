@@ -1,7 +1,7 @@
 
 # vscubing api
 
-RESTful api for vscubing.com made with Django Rest Framework 
+RESTful api for vscubing.com powerd with Django Rest Framework
 
 
 ## Run Locally
@@ -45,8 +45,7 @@ Start the server
 
 
 ## api docs
-
-[API Docs](docs/README.md) 
+Check api documentation in [API Docs](docs/README.md) 
 ## Authors
 
 - [@HomaDev](https://github.com/HomaDev)
@@ -58,4 +57,18 @@ Contributions are always welcome!
 
 See [contributing.md](contributing.md) for ways to get started.
 
+
+
+## Environment Variables
+
+To run this project, you will need to add the following environment variables to your .env file
+
+
+`SECRET_KEY` = 'django-key'
+
+`DEBUG` = 1 # 1 == True, 0 == False
+
+`GOOGLE_REDIRECT_URL` = 'http://127.0.0.1:3000'
+
+`ALLOWED_HOSTS` = '["127.0.0.1", "127.0.0.1:8000", "0.0.0.0:8000", "192.168.1.7"]'
 

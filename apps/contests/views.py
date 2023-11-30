@@ -87,6 +87,19 @@ class SolveContestView(APIView):
 
     def get(self, request, contest_number, discipline):
         current_solve_manager = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
+        contest_is_finished = current_solve_manager.contest_is_finished()
+        print(contest_is_finished)
+        if current_solve_manager.contest_is_finished():
+            session_submitted = current_solve_manager.submit_round_session()
+            if session_submitted:
+                pass
+            elif not session_submitted:
+                APIException.default_detail = "Round Session can't be submitted"
+                APIException.status_code = 500
+                raise APIException
+        else:
+            pass
+
         current_solve, current_scramble = current_solve_manager.current_scrambles_and_solve()
 
         try:
