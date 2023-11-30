@@ -131,14 +131,14 @@ class SolveContestView(APIView):
             raise APIException
 
     def put(self, request, contest_number, discipline):
-        validator = SolveManager(request, contest_number, discipline)
+        manager = SolveManager(request, contest_number, discipline)
         start_time = time.time()
-        solve_updated = validator.update_solve()
+        solve_updated = manager.update_solve()
         print(time.time() - start_time)
         if solve_updated:
-            contest_is_finished = validator.contest_is_finished()
+            contest_is_finished = manager.contest_is_finished()
             if contest_is_finished:
-                validator.submit_round_session()
+                manager.submit_round_session()
                 return Response({'detail': 'contest submitted'}, status=status.HTTP_200_OK)
             else:
                 request.method = 'GET'
