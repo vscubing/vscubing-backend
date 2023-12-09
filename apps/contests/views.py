@@ -216,3 +216,10 @@ class SolveView(APIView):
         scramble = ScrambleModel.objects.all()
         s = ScrambleSerializer(scramble, many=True, fields=['id', 'scramble'])
         return Response(s.data)
+
+
+class TestView(APIView):
+    def get(self, request):
+        contest = ContestModel.objects.last()
+        print(contest)
+        return Response(True)
