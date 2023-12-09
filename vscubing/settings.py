@@ -3,6 +3,7 @@ from os import getenv
 import os
 import json
 from datetime import timedelta
+from celery.schedules import crontab
 
 from dotenv import load_dotenv
 
@@ -200,6 +201,8 @@ USE_I18N = True
 
 USE_TZ = True
 
+CELERY_BROKER_URL = getenv('CELERY_BROKER_URL')
+CELERY_RESULT_BACKEND = getenv('CELERY_RESULT_BACKEND')
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -211,4 +214,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CELERY_BEAT_SCHEDULE = {
+    'add': {
+        'task': 'apps.contests.tasks.add',
+        'schedule': timedelta(seconds=10)
+    },
+}

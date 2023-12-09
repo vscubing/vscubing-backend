@@ -87,6 +87,19 @@ class SolveContestView(APIView):
 
     def get(self, request, contest_number, discipline):
         current_solve_manager = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
+        contest_is_finished = current_solve_manager.contest_is_finished()
+        print(contest_is_finished)
+        if current_solve_manager.contest_is_finished():
+            session_submitted = current_solve_manager.submit_round_session()
+            if session_submitted:
+                pass
+            elif not session_submitted:
+                APIException.default_detail = "Round Session can't be submitted"
+                APIException.status_code = 500
+                raise APIException
+        else:
+            pass
+
         current_solve, current_scramble = current_solve_manager.current_scrambles_and_solve()
 
         try:
@@ -131,14 +144,14 @@ class SolveContestView(APIView):
             raise APIException
 
     def put(self, request, contest_number, discipline):
-        validator = SolveManager(request, contest_number, discipline)
+        manager = SolveManager(request, contest_number, discipline)
         start_time = time.time()
-        solve_updated = validator.update_solve()
+        solve_updated = manager.update_solve()
         print(time.time() - start_time)
         if solve_updated:
-            contest_is_finished = validator.contest_is_finished()
+            contest_is_finished = manager.contest_is_finished()
             if contest_is_finished:
-                validator.submit_round_session()
+                manager.submit_round_session()
                 return Response({'detail': 'contest submitted'}, status=status.HTTP_200_OK)
             else:
                 request.method = 'GET'
@@ -203,3 +216,10 @@ class SolveView(APIView):
         scramble = ScrambleModel.objects.all()
         s = ScrambleSerializer(scramble, many=True, fields=['id', 'scramble'])
         return Response(s.data)
+
+
+class TestView(APIView):
+    def get(self, request):
+        contest = ContestModel.objects.last()
+        print(contest)
+        return Response(True)

@@ -62,9 +62,12 @@ class SolveManager:
             previous_solve = solve
 
     def contest_is_finished(self):
-        user_submitted_solves = (RoundSessionModel.objects.get(contest__contest_number=self.contest_number,
+        try:
+            user_submitted_solves = (RoundSessionModel.objects.get(contest__contest_number=self.contest_number,
                                                         discipline__name=self.discipline, user=self.request.user.id)
                                             .solve_set.filter(user=self.request.user.id, state=SOLVE_SUBMITTED_STATE))
+        except ObjectDoesNotExist:
+            return False
         if len(user_submitted_solves) == SOLVES_IN_CONTEST:
             return True
         else:
@@ -136,54 +139,67 @@ class SolveManager:
         contest_is_finished = self.contest_is_finished()
         round_session = (ContestModel.objects.get(contest_number=self.contest_number).round_session_set
                   .get(discipline__name=self.discipline, user=self.request.user.id))
-
         if contest_is_finished:
+            solve_set = round_session.solve_set.filter(state=SOLVE_SUBMITTED_STATE, dnf=False).order_by('time_ms')
             sum_ms = 0
             dnf_count = 0
-            lowest_solve = None
-            highest_solve = None
-            solve_set = round_session.solve_set.filter(state=SOLVE_SUBMITTED_STATE).order_by('id')
-            print(solve_set)
-            for solve in solve_set:
-                if solve.dnf:
-                    dnf_count += 1
-                    continue
-                elif not lowest_solve:
-                    lowest_solve = solve.time_ms
-                    continue
-                elif not highest_solve:
-                    highest_solve = solve.time_ms
-                    continue
-                if solve.time_ms > lowest_solve:
-                    if solve.time_ms < highest_solve:
-                        sum_ms += solve.time_ms
-                        print(f'{solve.time_ms} time of current solve')
-                    elif solve.time_ms > highest_solve:
-                        sum_ms += highest_solve
-                        print(f'{highest_solve} time of current solve')
-                        highest_solve = solve.time_ms
-                    elif solve.time_ms == highest_solve:
-                        sum_ms += solve.time_ms
-                        print(f'{solve.time_ms} time of current solve')
-                elif solve.time_ms < lowest_solve:
-                    sum_ms += lowest_solve
-                    print(f'{lowest_solve} time of current solve')
-                    lowest_solve = solve.time_ms
-                elif solve.time_ms == lowest_solve:
-                    print(f'{solve.time_ms} time of current solve')
-                    sum_ms += solve.time_ms
-
-            if dnf_count == 0:
-                round_session.avg_ms = sum_ms/3
-            elif dnf_count == 1:
-                sum_ms += highest_solve
-                round_session.avg_ms += sum_ms/3
-            elif dnf_count >= 2:
+            lowest_solve = solve_set.first()
+            highest_solve = solve_set.last()
+            if len(solve_set) <= 3:
                 round_session.dnf = True
+                round_session.submitted = True
+                round_session.save()
+                return True
+            elif len(solve_set) > 3:
+                solve_set_modified = solve_set.exclude(pk__in=[lowest_solve.pk, highest_solve.pk])
+                for solve in solve_set_modified:
+                    sum_ms += solve.time_ms
+                if len(solve_set) == 4:
+                    sum_ms += highest_solve.time_ms
+                elif len(solve_set) == 5:
+                    print('solve set lin is 5')
+                    pass
+                print('solve set lin is ' + str(len(solve_set)))
+                round_session.avg_ms = sum_ms/3
+                round_session.submitted = True
+                round_session.save()
+                return True
 
-            round_session.submitted = True
-            round_session.save()
-            return True
+            # for solve in solve_set:
+            #     if solve.dnf:
+            #         dnf_count += 1
+            #         continue
+            #     elif not lowest_solve:
+            #         lowest_solve = solve.time_ms
+            #         continue
+            #     elif not highest_solve:
+            #         highest_solve = solve.time_ms
+            #         continue
+            #     if solve.time_ms > lowest_solve:
+            #         if solve.time_ms < highest_solve:
+            #             sum_ms += solve.time_ms
+            #         elif solve.time_ms > highest_solve:
+            #             sum_ms += highest_solve
+            #             highest_solve = solve.time_ms
+            #         elif solve.time_ms == highest_solve:
+            #             sum_ms += solve.time_ms
+            #     elif solve.time_ms < lowest_solve:
+            #         sum_ms += lowest_solve
+            #         lowest_solve = solve.time_ms
+            #     elif solve.time_ms == lowest_solve:
+            #         sum_ms += solve.time_ms
+            #
+            # if dnf_count == 0:
+            #     round_session.avg_ms = sum_ms/3
+            # elif dnf_count == 1:
+            #     sum_ms += highest_solve
+            #     round_session.avg_ms += sum_ms/3
+            # elif dnf_count >= 2:
+            #     round_session.dnf = True
+            #
+            # round_session.submitted = True
+            # round_session.save()
+            # return True
         else:
             return False
 
