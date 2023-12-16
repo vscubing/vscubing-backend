@@ -218,8 +218,13 @@ class SolveView(APIView):
         return Response(s.data)
 
 
-class TestView(APIView):
-    def get(self, request):
-        contest = ContestModel.objects.last()
-        print(contest)
-        return Response(True)
+class RoundSessionView(APIView):
+    def delete(self, request):
+        last_contest = ContestModel.objects.last()
+        round_session = RoundSessionModel.objects.filter(contest=last_contest, user=request.user.id)
+        if round_session:
+            round_session.delete()
+            return Response('resource deleted successfully', status=status.HTTP_202_ACCEPTED)
+        else:
+            APIException.status_code = 400
+            APIException.default_detail = 'dont exists'
