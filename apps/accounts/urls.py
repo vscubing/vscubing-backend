@@ -8,6 +8,6 @@ urlpatterns = [
     path("~redirect/", view=UserRedirectView.as_view(), name="redirect"),
     path("google/login/", GoogleLoginView.as_view(), name="google-login"),
     path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
-    path('current_user/', CurrentUserView.as_view(), name='current-user'),
-    path('change_username/', ChangeUsernameView.as_view(), name='change-username')
+    path('current-user/', CurrentUserView.as_view(), name='current-user'),
+    path('change-username/', ChangeUsernameView.as_view(), name='change-username')
 ]
