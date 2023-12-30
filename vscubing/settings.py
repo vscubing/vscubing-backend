@@ -4,6 +4,7 @@ import os
 import json
 from datetime import timedelta
 from celery.schedules import crontab
+from db_config import make_db
 
 from dotenv import load_dotenv
 
@@ -20,9 +21,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if getenv('DEBUG') == '0':
+if getenv('RUN_MODE') == 'prod':
     DEBUG = False
-elif getenv('DEBUG') == '1':
+elif getenv('RUN_MODE') == 'dev':
     DEBUG = True
 
 ALLOWED_HOSTS = json.loads(getenv('ALLOWED_HOSTS'))
@@ -59,9 +60,6 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
     ),
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAdminUser',
-    # ],
 }
 
 SIMPLE_JWT = {
@@ -163,12 +161,7 @@ WSGI_APPLICATION = 'vscubing.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+DATABASES = make_db(BASE_DIR)
 
 
 # Password validation
