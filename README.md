@@ -82,7 +82,7 @@ File direction /vscubing-backend/.env
 
 Contributions are always welcome!
 
-See [contributing.md](contributing.md) for ways to get started.
+See [contributing.md](docs/contributing.md) for ways to get started.
 
 
 
