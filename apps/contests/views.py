@@ -1,10 +1,12 @@
 import time
 
-from django.db import connection
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Subquery, OuterRef
 from rest_framework.exceptions import APIException
 from rest_framework.views import APIView, Response, status
+from rest_framework.viewsets import ViewSet
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAdminUser
 from django.db.transaction import atomic
 
 from apps.accounts.models import User
@@ -13,7 +15,6 @@ from .permissions import ContestPermission, SolveContestPermission
 from .managers import SolveManager
 from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from scripts.scramble import generate_scramble
-from scripts.cube import SolveValidator
 from .serializers import SolveSerializer, ScrambleSerializer, RoundSessionSerializer, ContestSerializer, DisciplineSerializer
 
 
@@ -67,7 +68,7 @@ class LeaderboardView(APIView):
         return Response(serializer.data)
 
 
-class ContestView(APIView):
+class ContestView(APIView):  #
     permission_classes = [ContestPermission]
 
     def get(self, request, contest_number, discipline):
@@ -82,7 +83,7 @@ class ContestView(APIView):
         return Response(serializer.data)
 
 
-class SolveContestView(APIView):
+class SolveContestView(APIView):  # view that manages solving contests
     permission_classes = [SolveContestPermission]
 
     def get(self, request, contest_number, discipline):
@@ -162,28 +163,52 @@ class SolveContestView(APIView):
             raise APIException
 
 
-class OngoingContestNumberView(APIView):
-    def get(self, request):
-        ongoing_contest = ContestModel.objects.filter(ongoing=True).last()
-        return Response(ongoing_contest.contest_number)
+class OngoingContestNumberView(APIView):  # returns ongoing contest number
+    pass
 
 
-class SolveReconstructionSerializer(APIView):
-    def get(self, request, id):
-        try:
-            solve = SolveModel.objects.get(id=id)
-        except ObjectDoesNotExist:
-            APIException.status_code = 404
-            raise APIException
-        serializer = SolveSerializer(solve, fields=['id', 'reconstruction', 'contest_number', 'created'],
-                                     scramble_fields=['scramble', 'position'],
-                                     discipline_fields=['name'],
-                                     user_fields=['username'])
+class SolveReconstructionSerializer(APIView):  # returns single solve reconstruction
+    pass
+
+
+class SolveView(APIView):  # returns list of solves with just scrambles
+    pass
+
+
+class NewContestView(APIView):  # dev method
+    pass
+
+
+class RoundSessionView(APIView):  # dev method
+    pass
+
+
+class DisciplineViewSet(ViewSet):
+    def list(self, request):
+        queryset = DisciplineModel.objects.all()
+        serializer = DisciplineSerializer(queryset, many=True)
         return Response(serializer.data)
 
 
-class NewContestView(APIView):
-    def post(self, request):
+class ContestViewSet(ViewSet):
+    def list(self, request):
+        queryset = ContestModel.objects.all()
+        serializer = ContestSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk):
+        queryset = ContestModel.objects.get(id=pk)
+        serializer = ContestSerializer(queryset)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def ongoing_contest(self, request):
+        queryset = ContestModel.objects.filter(ongoing=True).last()
+        serializer = ContestSerializer(queryset)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
+    def new_contest(self, request):
         @atomic()
         def create_contest():
             previous_contest = ContestModel.objects.order_by('contest_number').last()
@@ -211,15 +236,9 @@ class NewContestView(APIView):
         return Response('new contest created')
 
 
-class SolveView(APIView):
-    def get(self, request):
-        scramble = ScrambleModel.objects.all()
-        s = ScrambleSerializer(scramble, many=True, fields=['id', 'scramble'])
-        return Response(s.data)
-
-
-class RoundSessionView(APIView):
-    def delete(self, request):
+class RoundSessionViewSet(ViewSet):
+    @action(detail=False, methods=['delete'])
+    def delete_user_session(self, request):
         last_contest = ContestModel.objects.last()
         round_session = RoundSessionModel.objects.filter(contest=last_contest, user=request.user.id)
         if round_session:
@@ -228,3 +247,40 @@ class RoundSessionView(APIView):
         else:
             APIException.status_code = 400
             APIException.default_detail = 'dont exists'
+
+
+class ScrambleViewSet(ViewSet):
+    pass
+
+
+class SolveViewSet(ViewSet):
+    def list(self, request):
+        scramble = ScrambleModel.objects.all()
+        s = ScrambleSerializer(scramble, many=True, fields=['id', 'scramble'])
+        return Response(s.data)
+
+    def retrieve(self, reqeust, pk):
+        queryset = SolveModel.objects.get(id=pk)
+        serializer = SolveSerializer(queryset)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def create_solve(self):
+        pass
+
+    @action(detail=True, methods=['patch'])
+    def submit_solve(self):
+        pass
+
+    @action(detail=TypeError, methods=['get'])
+    def solve_reconstruction(self, request, pk):
+        try:
+            solve = SolveModel.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            APIException.status_code = 404
+            raise APIException
+        serializer = SolveSerializer(solve, fields=['id', 'reconstruction', 'contest_number', 'created'],
+                                     scramble_fields=['scramble', 'position'],
+                                     discipline_fields=['name'],
+                                     user_fields=['username'])
+        return Response(serializer.data)
