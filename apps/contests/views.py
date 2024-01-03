@@ -20,147 +20,19 @@ from .serializers import SolveSerializer, ScrambleSerializer, RoundSessionSerial
 
 class DashboardView(APIView):
 
-    def get(self, request):
-        contests = ContestModel.objects.all()
-        disciplines = DisciplineModel.objects.all()
-
-        solve_set = []
-        for discipline in disciplines:
-            solve = discipline.solve_set.order_by('time_ms').filter(state=SOLVE_SUBMITTED_STATE,
-                                                                    round_session__submitted=True,
-                                                                    dnf=False).first()
-            if solve:
-                solve_set.append(solve)
-
-        contests_serializer = ContestSerializer(contests, many=True)
-        best_solves_serializer = SolveSerializer(solve_set, many=True,
-                                                 fields=['id', 'time_ms', 'scramble', 'contest_number', 'created'],
-                                                 scramble_fields=['id'],
-                                                 discipline_fields=['name'],
-                                                 user_fields=['username']
-                                                 )
-        return Response({'contests': contests_serializer.data, 'best_solves': best_solves_serializer.data})
+    pass
 
 
 class LeaderboardView(APIView):
-    def get(self, request, discipline):
-        best_solves = SolveModel.objects.filter(
-            user_id=OuterRef('user_id'),
-            discipline__name=discipline,
-            state=SOLVE_SUBMITTED_STATE,
-            dnf=False,
-            round_session__submitted=True,
-
-        ).order_by('time_ms').values('id')[:1]
-
-        all_solves = SolveModel.objects.filter(
-            id__in=Subquery(best_solves)
-        )
-
-        print(all_solves)
-        serializer = SolveSerializer(all_solves, many=True,
-                                     fields=['id', 'time_ms', 'created'],
-                                     user_fields=['id', 'username'],
-                                     scramble_fields=['id', 'scramble'],
-                                     contest_fields=['contest_number'],
-                                     discipline_fields=['name']
-                                     )
-        return Response(serializer.data)
+    pass
 
 
 class ContestView(APIView):  #
-    permission_classes = [ContestPermission]
-
-    def get(self, request, contest_number, discipline):
-        start_time = time.time()
-        round_session_set = RoundSessionModel.objects.filter(discipline__name=discipline, submitted=True,
-                                                             contest__contest_number=contest_number)
-        serializer = RoundSessionSerializer(round_session_set, many=True, fields=['id', 'solve_set', 'discipline', 'avg_ms'],
-                                   solve_set_fields=['id', 'time_ms', 'dnf', 'state', 'scramble', 'created'],
-                                   user_fields=['username'])
-
-        print(time.time() - start_time)
-        return Response(serializer.data)
+    pass
 
 
 class SolveContestView(APIView):  # view that manages solving contests
-    permission_classes = [SolveContestPermission]
-
-    def get(self, request, contest_number, discipline):
-        current_solve_manager = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
-        contest_is_finished = current_solve_manager.contest_is_finished()
-        print(contest_is_finished)
-        if current_solve_manager.contest_is_finished():
-            session_submitted = current_solve_manager.submit_round_session()
-            if session_submitted:
-                pass
-            elif not session_submitted:
-                APIException.default_detail = "Round Session can't be submitted"
-                APIException.status_code = 500
-                raise APIException
-        else:
-            pass
-
-        current_solve, current_scramble = current_solve_manager.current_scrambles_and_solve()
-
-        try:
-            round_session = (User.objects.get(id=request.user.id)
-                             .round_session_set.get
-                             (contest__contest_number=contest_number,
-                              discipline__name=discipline))
-            solves_changed_to_extra = round_session.solve_set.filter(user=request.user.id,
-                                       discipline__name=discipline, state=SOLVE_CHANGED_TO_EXTRA_STATE)
-            submitted_solves = round_session.solve_set.filter(state=SOLVE_SUBMITTED_STATE)
-        except ObjectDoesNotExist:
-            solves_changed_to_extra = []
-            submitted_solves = []
-        if len(solves_changed_to_extra) >= 2:
-            can_change_to_extra = False
-        else:
-            can_change_to_extra = True
-        submitted_solves_serializer = SolveSerializer(submitted_solves, many=True,
-                                                      fields=('id', 'time_ms', 'dnf', 'scramble'),
-                                                      scramble_fields=('id', 'scramble', 'extra', 'position')).data
-        try:
-            if current_solve is not None:
-                current_solve_serializer = SolveSerializer(current_solve, fields=('id', 'time_ms', 'dnf')).data
-            else:
-                current_solve_serializer = None
-        except AttributeError:
-            current_solve_serializer = None
-        current_scramble_serializer = ScrambleSerializer(current_scramble).data
-
-        return Response({'submitted_solves': submitted_solves_serializer,
-                         'current_solve': {'scramble': current_scramble_serializer,
-                         'solve': current_solve_serializer, 'can_change_to_extra': can_change_to_extra}})
-
-    def post(self, request, contest_number, discipline):
-        solve_manager = SolveManager(request, contest_number, discipline)
-        solve_id = solve_manager.create_solve()
-        if solve_id:
-            return Response({'solve_id': solve_id}, status=status.HTTP_200_OK)
-        else:
-            APIException.default_detail = "wrong scramble provided"
-            APIException.status_code = 400
-            raise APIException
-
-    def put(self, request, contest_number, discipline):
-        manager = SolveManager(request, contest_number, discipline)
-        start_time = time.time()
-        solve_updated = manager.update_solve()
-        print(time.time() - start_time)
-        if solve_updated:
-            contest_is_finished = manager.contest_is_finished()
-            if contest_is_finished:
-                manager.submit_round_session()
-                return Response({'detail': 'contest submitted'}, status=status.HTTP_200_OK)
-            else:
-                request.method = 'GET'
-                return self.get(request, contest_number, discipline)
-        else:
-            APIException.default_detail = 'solve is not updated'
-            APIException.status_code = 404
-            raise APIException
+    pass
 
 
 class OngoingContestNumberView(APIView):  # returns ongoing contest number
@@ -181,6 +53,9 @@ class NewContestView(APIView):  # dev method
 
 class RoundSessionView(APIView):  # dev method
     pass
+
+
+# ViewSets
 
 
 class DisciplineViewSet(ViewSet):
@@ -248,6 +123,21 @@ class RoundSessionViewSet(ViewSet):
             APIException.status_code = 400
             APIException.default_detail = 'dont exists'
 
+    @action(detail=False, methods=['get'])
+    def round_session_with_solves(self, request):
+        discipline = request.query_params.get('discipline_name')
+        contest_number = request.query_params.get('contest_number')
+        start_time = time.time()
+        round_session_set = RoundSessionModel.objects.filter(discipline__name=discipline, submitted=True,
+                                                             contest__contest_number=contest_number)
+        serializer = RoundSessionSerializer(round_session_set, many=True,
+                                            fields=['id', 'solve_set', 'discipline', 'avg_ms'],
+                                            solve_set_fields=['id', 'time_ms', 'dnf', 'state', 'scramble', 'created'],
+                                            user_fields=['username'])
+
+        print(time.time() - start_time)
+        return Response(serializer.data)
+
 
 class ScrambleViewSet(ViewSet):
     pass
@@ -264,13 +154,91 @@ class SolveViewSet(ViewSet):
         serializer = SolveSerializer(queryset)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['post'])
-    def create_solve(self):
-        pass
+    @action(detail=False, methods=['get'], permission_classes=[SolveContestPermission])
+    def solve_progress(self, request):
+        contest_number = ContestModel.objects.filter(ongoing=True).last().contest_number
+        discipline = request.query_params.get('discipline')
+        current_solve_manager = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
+        contest_is_finished = current_solve_manager.contest_is_finished()
+        print(contest_is_finished)
+        if current_solve_manager.contest_is_finished():
+            session_submitted = current_solve_manager.submit_round_session()
+            if session_submitted:
+                pass
+            elif not session_submitted:
+                APIException.default_detail = "Round Session can't be submitted"
+                APIException.status_code = 500
+                raise APIException
+        else:
+            pass
 
-    @action(detail=True, methods=['patch'])
-    def submit_solve(self):
-        pass
+        current_solve, current_scramble = current_solve_manager.current_scrambles_and_solve()
+
+        try:
+            round_session = (User.objects.get(id=request.user.id)
+                             .round_session_set.get
+                             (contest__contest_number=contest_number,
+                              discipline__name=discipline))
+            solves_changed_to_extra = round_session.solve_set.filter(user=request.user.id,
+                                       discipline__name=discipline, state=SOLVE_CHANGED_TO_EXTRA_STATE)
+            submitted_solves = round_session.solve_set.filter(state=SOLVE_SUBMITTED_STATE)
+        except ObjectDoesNotExist:
+            solves_changed_to_extra = []
+            submitted_solves = []
+        if len(solves_changed_to_extra) >= 2:
+            can_change_to_extra = False
+        else:
+            can_change_to_extra = True
+        submitted_solves_serializer = SolveSerializer(submitted_solves, many=True,
+                                                      fields=('id', 'time_ms', 'dnf', 'scramble'),
+                                                      scramble_fields=('id', 'scramble', 'extra', 'position')).data
+        try:
+            if current_solve is not None:
+                current_solve_serializer = SolveSerializer(current_solve, fields=('id', 'time_ms', 'dnf')).data
+            else:
+                current_solve_serializer = None
+        except AttributeError:
+            current_solve_serializer = None
+        current_scramble_serializer = ScrambleSerializer(current_scramble).data
+
+        return Response({'submitted_solves': submitted_solves_serializer,
+                         'current_solve': {'scramble': current_scramble_serializer,
+                         'solve': current_solve_serializer, 'can_change_to_extra': can_change_to_extra}})
+
+    @action(detail=False, methods=['post'], permission_classes=[SolveContestPermission])
+    def create_solve(self, request):
+        contest_number = ContestModel.objects.filter(ongoing=True).last().contest_number
+        discipline = request.query_params.get('discipline')
+        solve_manager = SolveManager(request, contest_number, discipline)
+        solve_id = solve_manager.create_solve()
+        if solve_id:
+            return Response({'solve_id': solve_id}, status=status.HTTP_200_OK)
+        else:
+            APIException.default_detail = "wrong scramble provided"
+            APIException.status_code = 400
+            raise APIException
+
+    @action(detail=True, methods=['patch'], permission_classes=[SolveContestPermission])
+    def submit_solve(self, request):
+        contest_number = ContestModel.objects.filter(ongoing=True).last().contest_number
+        discipline = request.query_params.get('discipline')
+
+        manager = SolveManager(request, contest_number, discipline)
+        start_time = time.time()
+        solve_updated = manager.update_solve()
+        print(time.time() - start_time)
+        if solve_updated:
+            contest_is_finished = manager.contest_is_finished()
+            if contest_is_finished:
+                manager.submit_round_session()
+                return Response({'detail': 'contest submitted'}, status=status.HTTP_200_OK)
+            else:
+                request.method = 'GET'
+                return self.get(request, contest_number, discipline)
+        else:
+            APIException.default_detail = 'solve is not updated'
+            APIException.status_code = 404
+            raise APIException
 
     @action(detail=TypeError, methods=['get'])
     def solve_reconstruction(self, request, pk):
@@ -283,4 +251,50 @@ class SolveViewSet(ViewSet):
                                      scramble_fields=['scramble', 'position'],
                                      discipline_fields=['name'],
                                      user_fields=['username'])
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def best_solves_in_discipline(self, request):
+        disciplines = DisciplineModel.objects.all()
+
+        solve_set = []
+        for discipline in disciplines:
+            solve = discipline.solve_set.order_by('time_ms').filter(state=SOLVE_SUBMITTED_STATE,
+                                                                    round_session__submitted=True,
+                                                                    dnf=False).first()
+            if solve:
+                solve_set.append(solve)
+
+        best_solves_serializer = SolveSerializer(solve_set, many=True,
+                                                 fields=['id', 'time_ms', 'scramble', 'contest_number', 'created'],
+                                                 scramble_fields=['id'],
+                                                 discipline_fields=['name'],
+                                                 user_fields=['username']
+                                                 )
+        return Response(best_solves_serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def every_user_best_solve(self, request):
+        discipline = request.query_params.get('discipline')
+        best_solves = SolveModel.objects.filter(
+            user_id=OuterRef('user_id'),
+            discipline__name=discipline,
+            state=SOLVE_SUBMITTED_STATE,
+            dnf=False,
+            round_session__submitted=True,
+
+        ).order_by('time_ms').values('id')[:1]
+
+        all_solves = SolveModel.objects.filter(
+            id__in=Subquery(best_solves)
+        )
+
+        print(all_solves)
+        serializer = SolveSerializer(all_solves, many=True,
+                                     fields=['id', 'time_ms', 'created'],
+                                     user_fields=['id', 'username'],
+                                     scramble_fields=['id', 'scramble'],
+                                     contest_fields=['contest_number'],
+                                     discipline_fields=['name']
+                                     )
         return Response(serializer.data)
