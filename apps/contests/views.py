@@ -18,46 +18,6 @@ from scripts.scramble import generate_scramble
 from .serializers import SolveSerializer, ScrambleSerializer, RoundSessionSerializer, ContestSerializer, DisciplineSerializer
 
 
-class DashboardView(APIView):
-
-    pass
-
-
-class LeaderboardView(APIView):
-    pass
-
-
-class ContestView(APIView):  #
-    pass
-
-
-class SolveContestView(APIView):  # view that manages solving contests
-    pass
-
-
-class OngoingContestNumberView(APIView):  # returns ongoing contest number
-    pass
-
-
-class SolveReconstructionSerializer(APIView):  # returns single solve reconstruction
-    pass
-
-
-class SolveView(APIView):  # returns list of solves with just scrambles
-    pass
-
-
-class NewContestView(APIView):  # dev method
-    pass
-
-
-class RoundSessionView(APIView):  # dev method
-    pass
-
-
-# ViewSets
-
-
 class DisciplineViewSet(ViewSet):
     def list(self, request):
         queryset = DisciplineModel.objects.all()
@@ -123,7 +83,7 @@ class RoundSessionViewSet(ViewSet):
             APIException.status_code = 400
             APIException.default_detail = 'dont exists'
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], permission_classes=[ContestPermission])
     def round_session_with_solves(self, request):
         discipline = request.query_params.get('discipline_name')
         contest_number = request.query_params.get('contest_number')
