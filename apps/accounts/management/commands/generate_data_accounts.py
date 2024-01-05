@@ -1,7 +1,15 @@
+import os
+
 from django.core.management.base import BaseCommand
+from allauth.socialaccount.models import SocialApp
+from django.db.transaction import atomic
 from faker import Faker
+from dotenv import load_dotenv
+
 from apps.contests.models import ContestModel, SolveModel, DisciplineModel, ScrambleModel, RoundSessionModel
 from apps.accounts.models import User
+
+load_dotenv()
 
 USERS_QTY = 100
 
@@ -13,6 +21,7 @@ class Command(BaseCommand):
         self.fake = Faker()
         self.users()
         self.superuser()
+        self.google_client()
 
     def users(self):
         for user in range(USERS_QTY):
@@ -34,3 +43,16 @@ class Command(BaseCommand):
             is_active=True,
             is_staff=True,
         )
+
+    @atomic
+    def google_client(self):
+        print(SocialApp._meta.get_fields())
+        social_app = SocialApp.objects.create(
+            provider='google',
+            name='google_cliend',
+            client_id=os.getenv('GOOGLE_CLIENT_ID'),
+            secret=os.getenv('GOOGLE_SECRET_KEY'),
+        )
+        social_app.sites.set([1])
+        social_app.save()
+
