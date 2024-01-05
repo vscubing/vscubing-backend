@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+from django.utils import timezone
 from django.core.management.base import BaseCommand
 from faker import Faker
 from apps.contests.models import ContestModel, SolveModel, DisciplineModel, ScrambleModel, RoundSessionModel
@@ -48,9 +51,13 @@ class Command(BaseCommand):
             contest_number = last_contest.contest_number + 1
             last_contest.ongoing=False
             last_contest.save()
+        else:
+            start_time = timezone.now()
 
+        end_time = start_time + timedelta(days=7)
         ContestModel.objects.create(
             contest_number=contest_number,
-
+            start=start_time,
+            end=start_time + timedelta(days=7)
         )
 
