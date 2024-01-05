@@ -167,9 +167,9 @@ class SolveViewSet(ViewSet):
 
     @action(detail=False, methods=['post'], permission_classes=[SolveContestPermission])
     def create_solve(self, request):
-        contest_number = ContestModel.objects.filter(ongoing=True).last().contest_number
-        discipline = request.query_params.get('discipline')
-        solve_manager = SolveManager(request, contest_number, discipline)
+        discipline_name = request.query_params.get('discipline_name')
+        contest_number = request.query_params.get('contest_number')
+        solve_manager = SolveManager(request, contest_number, discipline_name)
         solve_id = solve_manager.create_solve()
         if solve_id:
             return Response({'solve_id': solve_id}, status=status.HTTP_200_OK)

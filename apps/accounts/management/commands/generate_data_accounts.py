@@ -12,6 +12,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.fake = Faker()
         self.users()
+        self.superuser()
 
     def users(self):
         for user in range(USERS_QTY):
