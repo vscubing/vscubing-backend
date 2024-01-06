@@ -25,4 +25,3 @@ class CurrentSolveSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolveModel
         fields = ['id', 'time_ms', 'dnf']
-

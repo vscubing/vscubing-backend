@@ -1,25 +1,22 @@
-
 # vscubing api
 
 RESTful api for vscubing.com powerd with Django Rest Framework
-
 
 ## Badges
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
-
 ## Tech Stack
 
 Django, Django Rest Framework
 
-
 ## api docs
-Check api documentation in [API Docs](docs/README.md) 
+
+Check api documentation in [API Docs](docs/README.md)
+
 ## Authors
 
 - [@HomaDev](https://github.com/HomaDev)
-
 
 ## Run Locally
 
@@ -35,17 +32,24 @@ Go to the project directory
   cd vscubing-backend
 ```
 
-Create venv (on linux)
+Create venv (same on linux and windows)
 
 ```bash
   python3 -m venv venv
 ```
 
+Activate venv
 
-Activate venv (on linux)
+- Linux:
 
 ```bash
-  source venv/bing/activate
+  source venv/bin/activate
+```
+
+- Windows:
+
+```bash
+  source venv/scripts/activate
 ```
 
 Install requirements
@@ -53,7 +57,14 @@ Install requirements
 ```bash
   pip install -r requirements.txt
 ```
+
 Before starting the server check the next section "Environment Variables" right below
+
+Run migrations
+
+```bash
+  python manage.py migrate
+```
 
 Start the server
 
@@ -61,13 +72,11 @@ Start the server
   python manage.py runserver
 ```
 
-
 ## Environment Variables
 
-To run this project, you will need to add the following environment variables to your .env file 
+To run this project, you will need to add the following environment variables to your .env file
 
 File direction /vscubing-backend/.env
-
 
 `SECRET_KEY` = 'django-key'
 
@@ -77,14 +86,13 @@ File direction /vscubing-backend/.env
 
 `ALLOWED_HOSTS` = '["127.0.0.1", "127.0.0.1:8000", "0.0.0.0:8000", "192.168.1.7"]'
 
+`RUN_MODE` = dev # dev or prod
 
 ## Contributing
 
 Contributions are always welcome!
 
 See [contributing.md](docs/contributing.md) for ways to get started.
-
-
 
 ## Support
 
