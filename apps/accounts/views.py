@@ -1,13 +1,16 @@
 from os import getenv
 
-from rest_framework.views import APIView, Response
-from rest_framework.permissions import IsAuthenticated
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from dj_rest_auth.registration.views import SocialLoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import RedirectView
+
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import APIException
+from rest_framework.views import APIView, Response
+
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+
+from dj_rest_auth.registration.views import SocialLoginView
 
 from .serializers import UserSerializer
 from .models import User

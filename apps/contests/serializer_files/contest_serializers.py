@@ -10,5 +10,5 @@ class ContestSubmittedSolvesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolveModel
-        fields = ['id', 'username', 'time_ms', 'discipline', 'scramble_position', 'dnf']
-
+        fields = ['id', 'username', 'time_ms',
+                  'discipline', 'scramble_position', 'dnf']

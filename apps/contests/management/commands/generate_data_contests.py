@@ -4,10 +4,14 @@ from datetime import timedelta
 from django.db.transaction import atomic
 from django.utils import timezone
 from django.core.management.base import BaseCommand
+
 from faker import Faker
+
 from apps.contests.models import ContestModel, SolveModel, DisciplineModel, ScrambleModel, RoundSessionModel
 from apps.accounts.models import User
+
 from config import SOLVE_SUBMITTED_STATE
+
 from scripts.scramble import generate_scramble
 
 DISCIPLINE_NAMES = ['3by3']
@@ -57,7 +61,7 @@ class Command(BaseCommand):
         contest_number = 1
         if last_contest:
             contest_number = last_contest.contest_number + 1
-            last_contest.ongoing=False
+            last_contest.ongoing = False
             last_contest.save()
             start_time = last_contest.start
         else:
@@ -95,10 +99,14 @@ class Command(BaseCommand):
             )
             random_time = random.uniform(8, 100)
 
-            scrambles = ScrambleModel.objects.filter(contest=contest, discipline=discipline, extra=False)
+            scrambles = ScrambleModel.objects.filter(
+                contest=contest, discipline=discipline, extra=False)
+
             for scramble in scrambles:
+                _time = random.uniform(
+                    random_time * random.uniform(0.7, 1.3), random_time * random.uniform(0.7, 1.3))
                 solve = SolveModel.objects.create(
-                    time_ms=round(random.uniform(random_time*random.uniform(0.7, 1.3), random_time*random.uniform(0.7, 1.3)), 3)*1000,
+                    time_ms=round(_time, 3) * 1000,
                     dnf=False,
                     state='submitted',
                     scramble=scramble,
@@ -109,7 +117,9 @@ class Command(BaseCommand):
                     reconstruction=scramble
                 )
                 sum_ms = 0
-            solve_set = round_session.solve_set.filter(state=SOLVE_SUBMITTED_STATE, dnf=False).order_by('time_ms')
+
+            solve_set = round_session.solve_set.filter(
+                state=SOLVE_SUBMITTED_STATE, dnf=False).order_by('time_ms')
             dnf_count = 0
             lowest_solve = solve_set.first()
             highest_solve = solve_set.last()
@@ -119,16 +129,19 @@ class Command(BaseCommand):
                 round_session.save()
                 return True
             elif len(solve_set) > 3:
-                solve_set_modified = solve_set.exclude(pk__in=[lowest_solve.pk, highest_solve.pk])
+                solve_set_modified = solve_set.exclude(
+                    pk__in=[lowest_solve.pk, highest_solve.pk])
+
                 for solve in solve_set_modified:
                     sum_ms += solve.time_ms
+
                 if len(solve_set) == 4:
                     sum_ms += highest_solve.time_ms
                 elif len(solve_set) == 5:
                     print('solve set lin is 5')
                     pass
+
                 print('solve set lin is ' + str(len(solve_set)))
                 round_session.avg_ms = sum_ms / 3
                 round_session.submitted = True
                 round_session.save()
-

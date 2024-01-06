@@ -1,12 +1,13 @@
 import os
 
-from django.core.management.base import BaseCommand
-from allauth.socialaccount.models import SocialApp
-from django.db.transaction import atomic
-from faker import Faker
 from dotenv import load_dotenv
+from faker import Faker
 
-from apps.contests.models import ContestModel, SolveModel, DisciplineModel, ScrambleModel, RoundSessionModel
+from django.core.management.base import BaseCommand
+from django.db.transaction import atomic
+
+from allauth.socialaccount.models import SocialApp
+
 from apps.accounts.models import User
 
 load_dotenv()
@@ -55,4 +56,3 @@ class Command(BaseCommand):
         )
         social_app.sites.set([1])
         social_app.save()
-

@@ -1,12 +1,14 @@
-from rubik.cube import Cube
 import time
 import re
+
+from rubik.cube import Cube
 
 
 class SolveValidator:
     def __init__(self, scramble, reconstruction):
         self.start_time = time.time()
-        self.cube = Cube("WWWWWWWWWOOOGGGRRRBBBOOOGGGRRRBBBOOOGGGRRRBBBYYYYYYYYY")
+        self.cube = Cube(
+            "WWWWWWWWWOOOGGGRRRBBBOOOGGGRRRBBBOOOGGGRRRBBBYYYYYYYYY")
         print(self.cube)
 
         self.scramble = scramble

@@ -1,8 +1,16 @@
+# PyCharm
 .idea
+
+# Pycache
 **/__pycache__/
 **/**/__pycache__/
 
+# VSCode
+.vscode
+
+# Django
 .env
 venv
+.venv
 db.sqlite3
 celerybeat-schedule

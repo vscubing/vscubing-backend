@@ -2,20 +2,24 @@ import time
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Subquery, OuterRef
-from rest_framework.exceptions import APIException
-from rest_framework.views import APIView, Response, status
-from rest_framework.viewsets import ViewSet
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser
 from django.db.transaction import atomic
 
+from rest_framework.views import APIView, Response, status
+from rest_framework.exceptions import APIException
+from rest_framework.permissions import IsAdminUser
+from rest_framework.decorators import action
+from rest_framework.viewsets import ViewSet
+
+from scripts.scramble import generate_scramble
+
+from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
+
 from apps.accounts.models import User
+
+from .serializers import SolveSerializer, ScrambleSerializer, RoundSessionSerializer, ContestSerializer, DisciplineSerializer
 from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel, RoundSessionModel
 from .permissions import ContestPermission, SolveContestPermission
 from .managers import SolveManager
-from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
-from scripts.scramble import generate_scramble
-from .serializers import SolveSerializer, ScrambleSerializer, RoundSessionSerializer, ContestSerializer, DisciplineSerializer
 
 
 class DisciplineViewSet(ViewSet):
@@ -46,11 +50,13 @@ class ContestViewSet(ViewSet):
     def new_contest(self, request):
         @atomic()
         def create_contest():
-            previous_contest = ContestModel.objects.order_by('contest_number').last()
+            previous_contest = ContestModel.objects.order_by(
+                'contest_number').last()
             if previous_contest:
                 previous_contest.ongoing = False
                 previous_contest.save()
-                new_contest = ContestModel(contest_number=previous_contest.contest_number + 1)
+                new_contest = ContestModel(
+                    contest_number=previous_contest.contest_number + 1)
             else:
                 new_contest = ContestModel(contest_number=1)
             new_contest.save()
@@ -75,7 +81,8 @@ class RoundSessionViewSet(ViewSet):
     @action(detail=False, methods=['delete'])
     def delete_user_session(self, request):
         last_contest = ContestModel.objects.last()
-        round_session = RoundSessionModel.objects.filter(contest=last_contest, user=request.user.id)
+        round_session = RoundSessionModel.objects.filter(
+            contest=last_contest, user=request.user.id)
         if round_session:
             round_session.delete()
             return Response('resource deleted successfully', status=status.HTTP_202_ACCEPTED)
@@ -91,8 +98,10 @@ class RoundSessionViewSet(ViewSet):
         round_session_set = RoundSessionModel.objects.filter(discipline__name=discipline, submitted=True,
                                                              contest__contest_number=contest_number)
         serializer = RoundSessionSerializer(round_session_set, many=True,
-                                            fields=['id', 'solve_set', 'discipline', 'avg_ms'],
-                                            solve_set_fields=['id', 'time_ms', 'dnf', 'state', 'scramble', 'created'],
+                                            fields=['id', 'solve_set',
+                                                    'discipline', 'avg_ms'],
+                                            solve_set_fields=[
+                                                'id', 'time_ms', 'dnf', 'state', 'scramble', 'created'],
                                             user_fields=['username'])
 
         print(time.time() - start_time)
@@ -116,9 +125,11 @@ class SolveViewSet(ViewSet):
 
     @action(detail=False, methods=['get'], permission_classes=[SolveContestPermission])
     def solve_progress(self, request):
-        contest_number = ContestModel.objects.filter(ongoing=True).last().contest_number
+        contest_number = ContestModel.objects.filter(
+            ongoing=True).last().contest_number
         discipline = request.query_params.get('discipline')
-        current_solve_manager = SolveManager(request=request, contest_number=contest_number, discipline=discipline)
+        current_solve_manager = SolveManager(
+            request=request, contest_number=contest_number, discipline=discipline)
         contest_is_finished = current_solve_manager.contest_is_finished()
         print(contest_is_finished)
         if current_solve_manager.contest_is_finished():
@@ -140,8 +151,9 @@ class SolveViewSet(ViewSet):
                              (contest__contest_number=contest_number,
                               discipline__name=discipline))
             solves_changed_to_extra = round_session.solve_set.filter(user=request.user.id,
-                                       discipline__name=discipline, state=SOLVE_CHANGED_TO_EXTRA_STATE)
-            submitted_solves = round_session.solve_set.filter(state=SOLVE_SUBMITTED_STATE)
+                                                                     discipline__name=discipline, state=SOLVE_CHANGED_TO_EXTRA_STATE)
+            submitted_solves = round_session.solve_set.filter(
+                state=SOLVE_SUBMITTED_STATE)
         except ObjectDoesNotExist:
             solves_changed_to_extra = []
             submitted_solves = []
@@ -150,11 +162,13 @@ class SolveViewSet(ViewSet):
         else:
             can_change_to_extra = True
         submitted_solves_serializer = SolveSerializer(submitted_solves, many=True,
-                                                      fields=('id', 'time_ms', 'dnf', 'scramble'),
+                                                      fields=(
+                                                          'id', 'time_ms', 'dnf', 'scramble'),
                                                       scramble_fields=('id', 'scramble', 'extra', 'position')).data
         try:
             if current_solve is not None:
-                current_solve_serializer = SolveSerializer(current_solve, fields=('id', 'time_ms', 'dnf')).data
+                current_solve_serializer = SolveSerializer(
+                    current_solve, fields=('id', 'time_ms', 'dnf')).data
             else:
                 current_solve_serializer = None
         except AttributeError:
@@ -163,7 +177,8 @@ class SolveViewSet(ViewSet):
 
         return Response({'submitted_solves': submitted_solves_serializer,
                          'current_solve': {'scramble': current_scramble_serializer,
-                         'solve': current_solve_serializer, 'can_change_to_extra': can_change_to_extra}})
+                                           'solve': current_solve_serializer,
+                                           'can_change_to_extra': can_change_to_extra}})
 
     @action(detail=False, methods=['post'], permission_classes=[SolveContestPermission])
     def create_solve(self, request):
@@ -180,7 +195,8 @@ class SolveViewSet(ViewSet):
 
     @action(detail=True, methods=['patch'], permission_classes=[SolveContestPermission])
     def submit_solve(self, request):
-        contest_number = ContestModel.objects.filter(ongoing=True).last().contest_number
+        contest_number = ContestModel.objects.filter(
+            ongoing=True).last().contest_number
         discipline = request.query_params.get('discipline')
 
         manager = SolveManager(request, contest_number, discipline)
@@ -226,7 +242,8 @@ class SolveViewSet(ViewSet):
                 solve_set.append(solve)
 
         best_solves_serializer = SolveSerializer(solve_set, many=True,
-                                                 fields=['id', 'time_ms', 'scramble', 'contest_number', 'created'],
+                                                 fields=[
+                                                     'id', 'time_ms', 'scramble', 'contest_number', 'created'],
                                                  scramble_fields=['id'],
                                                  discipline_fields=['name'],
                                                  user_fields=['username']
