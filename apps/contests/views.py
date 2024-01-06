@@ -83,19 +83,17 @@ class RoundSessionViewSet(ViewSet):
             APIException.status_code = 400
             APIException.default_detail = 'dont exists'
 
-    @action(detail=False, methods=['get'], permission_classes=[ContestPermission])
-    def round_session_with_solves(self, request):
-        discipline = request.query_params.get('discipline_name')
+    @action(detail=False, methods=['get'])
+    def round_sessions_with_solves(self, request):
+        discipline_name = request.query_params.get('discipline_name')
         contest_number = request.query_params.get('contest_number')
-        start_time = time.time()
-        round_session_set = RoundSessionModel.objects.filter(discipline__name=discipline, submitted=True,
+        round_session_set = RoundSessionModel.objects.filter(discipline__name=discipline_name, submitted=True,
                                                              contest__contest_number=contest_number)
         serializer = RoundSessionSerializer(round_session_set, many=True,
                                             fields=['id', 'solve_set', 'discipline', 'avg_ms'],
                                             solve_set_fields=['id', 'time_ms', 'dnf', 'state', 'scramble', 'created'],
                                             user_fields=['username'])
 
-        print(time.time() - start_time)
         return Response(serializer.data)
 
 
@@ -105,13 +103,13 @@ class ScrambleViewSet(ViewSet):
 
 class SolveViewSet(ViewSet):
     def list(self, request):
-        scramble = ScrambleModel.objects.all()
-        s = ScrambleSerializer(scramble, many=True, fields=['id', 'scramble'])
-        return Response(s.data)
+        scramble = SolveModel.objects.all()
+        serializer = SolveSerializer(scramble, many=True, fields=['id', 'scramble'])
+        return Response(serializer.data)
 
     def retrieve(self, reqeust, pk):
         queryset = SolveModel.objects.get(id=pk)
-        serializer = SolveSerializer(queryset)
+        serializer = SolveSerializer(queryset, fields=['id'])
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'], permission_classes=[SolveContestPermission])
@@ -235,10 +233,10 @@ class SolveViewSet(ViewSet):
 
     @action(detail=False, methods=['get'])
     def every_user_best_solve(self, request):
-        discipline = request.query_params.get('discipline')
+        discipline_name = request.query_params.get('discipline_name')
         best_solves = SolveModel.objects.filter(
             user_id=OuterRef('user_id'),
-            discipline__name=discipline,
+            discipline__name=discipline_name,
             state=SOLVE_SUBMITTED_STATE,
             dnf=False,
             round_session__submitted=True,
