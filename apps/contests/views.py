@@ -275,7 +275,9 @@ class SolveView(APIView):
 
 class SolvesView(SolveService, APIView):
     def get(self, request):
-        return Response(200)
+        self.params = request.query_params
+        serializer = self.solve_list()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         pass

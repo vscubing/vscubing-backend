@@ -95,10 +95,11 @@ class ScrambleSerializer(DynamicFieldsModelSerializer):
 class SolveSerializer(serializers.Serializer):
     # 'id', 'time_ms', 'dnf', 'extra_id', 'state', 'reconstruction', 'contest_number', 'created'
     id = serializers.IntegerField()
-    time_ms = serializers.DateTimeField()
+    time_ms = serializers.IntegerField()
     dnf = serializers.BooleanField()
     extra_id = serializers.IntegerField()
     state = serializers.CharField()
     created = serializers.DateTimeField()
+    reconstruction = serializers.CharField()
 
     #  TODO 5 more related fields
