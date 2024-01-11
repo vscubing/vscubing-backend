@@ -92,46 +92,13 @@ class ScrambleSerializer(DynamicFieldsModelSerializer):
         fields = ['id', 'submitted', 'scramble', 'extra', 'position']
 
 
-class SolveSerializer(DynamicFieldsModelSerializer):
-
-    def __init__(self, *args, **kwargs):
-        fields = kwargs.get('fields', None)
-        scramble_fields = kwargs.pop('scramble_fields', None)
-        discipline_fields = kwargs.pop('discipline_fields', None)
-        round_session_fields = kwargs.pop('round_session_fields', None)
-        user_fields = kwargs.pop('user_fields', None)
-        contest_fields = kwargs.pop('contest_fields', None)
-
-        super().__init__(*args, **kwargs)
-        if scramble_fields:
-            self.fields['scramble'] = ScrambleSerializer(fields=scramble_fields)
-        elif 'scramble' in fields:
-            self.fields['scramble'] = ScrambleSerializer(fields=['position'])
-        if discipline_fields:
-            self.fields['discipline'] = DisciplineSerializer(fields=discipline_fields)
-        elif 'discipline' in fields:
-            self.fields['discipline'] = DisciplineSerializer(fields=['name'])
-        if round_session_fields:
-            self.fields['round_session'] = RoundSessionSerializer(fields=round_session_fields)
-        elif 'round_session' in fields:
-            self.fields['round_session'] = RoundSessionSerializer(fields=['id'])
-        if user_fields:
-            self.fields['user'] = UserSerializer(fields=user_fields)
-        elif 'user' in fields:
-            self.fields['user'] = UserSerializer(fields=['username'])
-        if contest_fields:
-            self.fields['contest'] = ContestSerializer(fields=contest_fields)
-
+class SolveSerializer(serializers.Serializer):
+    # 'id', 'time_ms', 'dnf', 'extra_id', 'state', 'reconstruction', 'contest_number', 'created'
     id = serializers.IntegerField()
-    time_ms = serializers.IntegerField(required=False)
-    dnf = serializers.BooleanField(required=False)
-    extra_id = serializers.IntegerField(required=False)
-    state = serializers.CharField(max_length=96, required=False)
-    reconstruction = serializers.CharField(max_length=15048, required=False)
-    created = serializers.DateTimeField(required=False)
+    time_ms = serializers.DateTimeField()
+    dnf = serializers.BooleanField()
+    extra_id = serializers.IntegerField()
+    state = serializers.CharField()
+    created = serializers.DateTimeField()
 
-    contest_number = serializers.IntegerField(source='round_session.contest.contest_number')
-
-    class Meta:
-        model = SolveModel
-        fields = ['id', 'time_ms', 'dnf', 'extra_id', 'state', 'reconstruction', 'contest_number', 'created']
+    #  TODO 5 more related fields

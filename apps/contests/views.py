@@ -13,6 +13,7 @@ from apps.accounts.models import User
 from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel, RoundSessionModel
 from .permissions import ContestPermission, SolveContestPermission
 from .managers import SolveManager
+from .services import SolveService
 from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from scripts.scramble import generate_scramble
 from .serializers import SolveSerializer, ScrambleSerializer, RoundSessionSerializer, ContestSerializer, DisciplineSerializer
@@ -256,3 +257,25 @@ class SolveViewSet(ViewSet):
                                      discipline_fields=['name']
                                      )
         return Response(serializer.data)
+
+
+class SolveView(APIView):
+    def get(self, request):
+        pass
+
+    def put(self, request):
+        pass
+
+    def patch(self, request):
+        pass
+
+    def delete(self, request):
+        pass
+
+
+class SolvesView(SolveService, APIView):
+    def get(self, request):
+        return Response(200)
+
+    def post(self, request):
+        pass
