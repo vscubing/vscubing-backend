@@ -25,7 +25,7 @@ class DynamicFieldsModelSerializer(serializers.ModelSerializer):
                 self.fields.pop(field_name)
 
 
-class UserSerializer(DynamicFieldsModelSerializer):
+class UserSerializer01(DynamicFieldsModelSerializer):
     id = serializers.IntegerField()
     username = serializers.CharField()
     class Meta:
@@ -33,7 +33,7 @@ class UserSerializer(DynamicFieldsModelSerializer):
         fields = ['id', 'username']
 
 
-class RoundSessionSerializer(DynamicFieldsModelSerializer):
+class RoundSessionSerializer01(DynamicFieldsModelSerializer):
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.get('fields')
@@ -43,11 +43,11 @@ class RoundSessionSerializer(DynamicFieldsModelSerializer):
 
         super().__init__(*args, **kwargs)
         if discipline_fields:
-            self.fields['discipline'] = DisciplineSerializer(fields=discipline_fields)
+            self.fields['discipline'] = DisciplineSerializer01(fields=discipline_fields)
         elif 'discipline' in fields:
-            self.fields['discipline'] = DisciplineSerializer(fields=['name'])
+            self.fields['discipline'] = DisciplineSerializer01(fields=['name'])
         if user_fields:
-            self.fields['user'] = UserSerializer(fields=user_fields)
+            self.fields['user'] = UserSerializer01(fields=user_fields)
         if solve_set_fields:
             self.fields['solve_set'] = SolveSerializer(fields=solve_set_fields, many=True)
 
@@ -59,7 +59,7 @@ class RoundSessionSerializer(DynamicFieldsModelSerializer):
         fields = ['id', 'submitted', 'avg_ms']
 
 
-class DisciplineSerializer(DynamicFieldsModelSerializer):
+class DisciplineSerializer01(DynamicFieldsModelSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField(required=False)
 
@@ -68,7 +68,7 @@ class DisciplineSerializer(DynamicFieldsModelSerializer):
         fields = ['id', 'name']
 
 
-class ContestSerializer(DynamicFieldsModelSerializer):
+class ContestSerializer01(DynamicFieldsModelSerializer):
     id = serializers.IntegerField()
     contest_number = serializers.IntegerField(required=False)
     start = serializers.DateTimeField(required=False)
@@ -80,7 +80,7 @@ class ContestSerializer(DynamicFieldsModelSerializer):
         fields = ['id', 'contest_number', 'start', 'end', 'ongoing']
 
 
-class ScrambleSerializer(DynamicFieldsModelSerializer):
+class ScrambleSerializer01(DynamicFieldsModelSerializer):
 
     id = serializers.IntegerField(required=False)
     position = serializers.CharField(max_length=10, required=False)
@@ -92,14 +92,31 @@ class ScrambleSerializer(DynamicFieldsModelSerializer):
         fields = ['id', 'submitted', 'scramble', 'extra', 'position']
 
 
-class SolveSerializer(serializers.Serializer):
-    # 'id', 'time_ms', 'dnf', 'extra_id', 'state', 'reconstruction', 'contest_number', 'created'
-    id = serializers.IntegerField()
-    time_ms = serializers.IntegerField()
-    dnf = serializers.BooleanField()
-    extra_id = serializers.IntegerField()
-    state = serializers.CharField()
-    created = serializers.DateTimeField()
-    reconstruction = serializers.CharField()
+# Refactored serializers
 
-    #  TODO 5 more related fields
+
+class SolveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SolveModel
+        fields = ['id', 'time_ms', 'dnf', 'state', 'reconstruction', 'created']
+
+
+class ScrambleSerializer(serializers.ModelSerializer):
+    solve_set = SolveSerializer(many=True)
+
+    class Meta:
+        model = ScrambleModel
+        fields = '__all__'
+
+
+class ContestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContestModel
+        fields = '__all__'
+
+
+class SolveWithRelatedFieldsSerializer(SolveSerializer):
+    contest = ContestSerializer()
+
+    class Meta(SolveSerializer.Meta):
+        fields = SolveSerializer.Meta.fields + ['contest']

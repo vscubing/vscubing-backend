@@ -16,31 +16,31 @@ from .managers import SolveManager
 from .services import SolveService
 from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from scripts.scramble import generate_scramble
-from .serializers import SolveSerializer, ScrambleSerializer, RoundSessionSerializer, ContestSerializer, DisciplineSerializer
+from .serializers import SolveSerializer, ScrambleSerializer01, RoundSessionSerializer01, ContestSerializer01, DisciplineSerializer01
 
 
 class DisciplineViewSet(ViewSet):
     def list(self, request):
         queryset = DisciplineModel.objects.all()
-        serializer = DisciplineSerializer(queryset, many=True)
+        serializer = DisciplineSerializer01(queryset, many=True)
         return Response(serializer.data)
 
 
 class ContestViewSet(ViewSet):
     def list(self, request):
         queryset = ContestModel.objects.all()
-        serializer = ContestSerializer(queryset, many=True)
+        serializer = ContestSerializer01(queryset, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk):
         queryset = ContestModel.objects.get(id=pk)
-        serializer = ContestSerializer(queryset)
+        serializer = ContestSerializer01(queryset)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def ongoing_contest(self, request):
         queryset = ContestModel.objects.filter(ongoing=True).last()
-        serializer = ContestSerializer(queryset)
+        serializer = ContestSerializer01(queryset)
         return Response(serializer.data)
 
     @action(detail=False, methods=['post'], permission_classes=[IsAdminUser])
@@ -90,10 +90,10 @@ class RoundSessionViewSet(ViewSet):
         contest_number = request.query_params.get('contest_number')
         round_session_set = RoundSessionModel.objects.filter(discipline__name=discipline_name, submitted=True,
                                                              contest__contest_number=contest_number)
-        serializer = RoundSessionSerializer(round_session_set, many=True,
-                                            fields=['id', 'solve_set', 'discipline', 'avg_ms'],
-                                            solve_set_fields=['id', 'time_ms', 'dnf', 'state', 'scramble', 'created'],
-                                            user_fields=['username'])
+        serializer = RoundSessionSerializer01(round_session_set, many=True,
+                                              fields=['id', 'solve_set', 'discipline', 'avg_ms'],
+                                              solve_set_fields=['id', 'time_ms', 'dnf', 'state', 'scramble', 'created'],
+                                              user_fields=['username'])
 
         return Response(serializer.data)
 
@@ -158,7 +158,7 @@ class SolveViewSet(ViewSet):
                 current_solve_serializer = None
         except AttributeError:
             current_solve_serializer = None
-        current_scramble_serializer = ScrambleSerializer(current_scramble).data
+        current_scramble_serializer = ScrambleSerializer01(current_scramble).data
 
         return Response({'submitted_solves': submitted_solves_serializer,
                          'current_solve': {'scramble': current_scramble_serializer,
@@ -275,8 +275,9 @@ class SolveView(APIView):
 
 class SolvesView(SolveService, APIView):
     def get(self, request):
-        self.params = request.query_params
-        serializer = self.solve_list()
+        params = request.query_params
+        user = request.user
+        serializer = self.list_solve(params, user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):

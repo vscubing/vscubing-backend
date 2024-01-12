@@ -2,34 +2,35 @@ from django.db.models import Subquery, OuterRef
 
 from config import SOLVE_SUBMITTED_STATE
 from .models import SolveModel, DisciplineModel
-from .serializers import SolveSerializer
+from .serializers import SolveSerializer, SolveWithRelatedFieldsSerializer
 from .paginators import solve_paginator
 
 
-class SolveService():  # One service for one model
-    def solve_create(self):
+class SolveService:  # One service for one model
+    def create_solve(self):
         pass
 
-    def solve_partial_update(self):
+    def partial_update_solve(self):
         pass
 
-    def solve_update(self):
+    def update_solve(self):
         pass
 
-    def solve_list(self):
+    def list_solve(self, params, user):
 
-        if self.params.get('best_solves_in_disciplines'):
+        if params.get('best_solves_in_disciplines'):
             disciplines = DisciplineModel.objects.all()
             queryset = []
             for discipline in disciplines:
                 solve = SolveModel.objects.order_by('time_ms').filter(discipline=discipline.id).first()
                 queryset.append(solve)
-            serializer = SolveSerializer(data=queryset, many=True)
+            serializer = SolveWithRelatedFieldsSerializer(data=queryset, many=True)
             serializer.is_valid()
             return serializer
 
-        elif self.params.get('every_user_best_solve'):
-            discipline_name = self.params.get('discipline_name')
+        elif params.get('every_user_best_solve'):
+            discipline_name = params.get('discipline_name')
+            # TODO Not constant speed of db reads
             best_solves = SolveModel.objects.filter(
                 user_id=OuterRef('user_id'),
                 discipline__name=discipline_name,
@@ -42,6 +43,7 @@ class SolveService():  # One service for one model
             queryset = SolveModel.objects.filter(
                 id__in=Subquery(best_solves)
             )
+            queryset = solve_paginator(queryset=queryset, params=params)
             serializer = SolveSerializer(data=queryset, many=True)
             serializer.is_valid()
 
@@ -49,13 +51,13 @@ class SolveService():  # One service for one model
 
         else:
             queryset = SolveModel.objects.all()
-            queryset = solve_paginator(queryset=queryset, params=self.params)
+            queryset = solve_paginator(queryset=queryset, params=params)
             serializer = SolveSerializer(data=queryset, many=True)
             serializer.is_valid()
             return serializer
 
-    def solve_retrieve(self):
+    def retrieve_solve(self):
         pass
 
-    def solve_delete(self):
+    def delete_solve(self):
         pass
