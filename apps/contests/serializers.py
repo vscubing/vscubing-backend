@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from .models import ContestModel, DisciplineModel, SolveModel, RoundSessionModel, ScrambleModel
 from apps.accounts.models import User
+from apps.accounts.serializers import UserSerializer
 
 
 class DynamicFieldsModelSerializer(serializers.ModelSerializer):
@@ -102,8 +103,6 @@ class SolveSerializer(serializers.ModelSerializer):
 
 
 class ScrambleSerializer(serializers.ModelSerializer):
-    solve_set = SolveSerializer(many=True)
-
     class Meta:
         model = ScrambleModel
         fields = '__all__'
@@ -115,8 +114,23 @@ class ContestSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class RoundSessionSerializer():
+    class Meta:
+        model = RoundSessionModel
+        fields = '__all__'
+
+
+class DisciplineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DisciplineModel
+        fields = '__all__'
+
+
 class SolveWithRelatedFieldsSerializer(SolveSerializer):
     contest = ContestSerializer()
+    discipline = DisciplineSerializer()
+    scramble = ScrambleSerializer()
+    user = UserSerializer()
 
     class Meta(SolveSerializer.Meta):
-        fields = SolveSerializer.Meta.fields + ['contest']
+        fields = SolveSerializer.Meta.fields + ['contest', 'discipline', 'scramble', 'user']
