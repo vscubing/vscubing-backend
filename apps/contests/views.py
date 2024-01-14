@@ -9,6 +9,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 from django.db.transaction import atomic
+from drf_spectacular.utils import extend_schema
 
 from apps.accounts.models import User
 from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel, RoundSessionModel
@@ -269,6 +270,7 @@ class SolveListApi(APIView, SolveSelector):
             model = SolveModel
             fields = '__all__'
 
+    @extend_schema(responses=OutputSerializer)
     def get(self, request):
         queryset = self.solve_list(params=request.query_params)
         data = self.OutputSerializer(queryset, many=True).data

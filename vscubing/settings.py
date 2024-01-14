@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'drf_yasg',
+    'drf_spectacular',
 
     'apps.accounts',
     'apps.contests',
@@ -60,6 +60,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
@@ -81,8 +82,6 @@ REST_AUTH = {
 
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_USERNAME_REQUIRED = False
-
-
 SITE_ID = 1
 
 CORS_ALLOWED_ORIGINS = [
@@ -91,6 +90,13 @@ CORS_ALLOWED_ORIGINS = [
     'http://vscubing.com',
     'http://www.vscubing.com'
 ]
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'vscubing Api',
+    'DESCRIPTION': 'vscubing is a contest platform for speedcubers to compete in virtual speedcubing',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 
 # LOGGING = {
 #     'version': 1,
