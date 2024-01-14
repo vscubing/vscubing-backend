@@ -2,6 +2,7 @@ import time
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Subquery, OuterRef
+from rest_framework import serializers
 from rest_framework.exceptions import APIException
 from rest_framework.views import APIView, Response, status
 from rest_framework.viewsets import ViewSet
@@ -13,7 +14,7 @@ from apps.accounts.models import User
 from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel, RoundSessionModel
 from .permissions import ContestPermission, SolveContestPermission
 from .managers import SolveManager
-from .services import SolveService
+from .selectors import SolveSelector
 from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from scripts.scramble import generate_scramble
 from .serializers import SolveSerializer, ScrambleSerializer01, RoundSessionSerializer01, ContestSerializer01, DisciplineSerializer01
@@ -259,26 +260,36 @@ class SolveViewSet(ViewSet):
         return Response(serializer.data)
 
 
-class SolveView(APIView):
+# solve related apis
+
+
+class SolveListApi(APIView, SolveSelector):
+    class OutputSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = SolveModel
+            fields = '__all__'
+
     def get(self, request):
-        pass
-
-    def put(self, request):
-        pass
-
-    def patch(self, request):
-        pass
-
-    def delete(self, request):
-        pass
+        queryset = self.solve_list(params=request.query_params)
+        data = self.OutputSerializer(queryset, many=True).data
+        return Response(data, status=status.HTTP_200_OK)
 
 
-class SolvesView(SolveService, APIView):
-    def get(self, request):
-        params = request.query_params
-        user = request.user
-        serializer = self.list_solve(params, user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+class SolveListBestOfEveryUserApi(APIView):  # needs to be renamed
+    pass
 
-    def post(self, request):
-        pass
+
+class SolveListBestsInDisciplinesApi(APIView):
+    pass
+
+
+class SolveRetrieveApi(APIView):
+    pass
+
+
+class SolveCreateApi(APIView):
+    pass
+
+
+class SolveSubmitApi(APIView):
+    pass
