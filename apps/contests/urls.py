@@ -32,8 +32,8 @@ solve_urlpatterns = [
     path('<int:pk>/', SolveRetrieveApi.as_view(), name='detail'),
     path('create/', SolveCreateApi.as_view(), name='create'),
     path('submit/', SolveSubmitApi.as_view(), name='submit'),
-    path('list-every-user-best', SolveListBestOfEveryUserApi.as_view(), name='list-best-of-every-user'),
-    path('list-bests-in-disciplines', SolveListBestsInDisciplinesApi.as_view(), name='list-bests-in-disciplines'),
+    path('list-every-user-best/', SolveListBestOfEveryUserApi.as_view(), name='list-best-of-every-user'),
+    path('list-bests-in-disciplines/', SolveListBestsInDisciplinesApi.as_view(), name='list-bests-in-disciplines'),
 ]
 
 urlpatterns += [

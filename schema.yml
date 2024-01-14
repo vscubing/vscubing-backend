@@ -106,6 +106,17 @@ paths:
   /api/contests_app/solves/:
     get:
       operationId: contests_app_solves_retrieve
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: page
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: page size
       tags:
       - contests_app
       security:
@@ -117,11 +128,173 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Output'
+                $ref: '#/components/schemas/contests.SolveLisOutput'
+          description: ''
+  /api/contests_app/solves/{id}/:
+    get:
+      operationId: contests_app_solves_retrieve_2
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - contests_app
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/contests_app/solves/list-bests-in-disciplines/:
+    get:
+      operationId: contests_app_solves_list_bests_in_disciplines_retrieve
+      tags:
+      - contests_app
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/contests.SolveListBestsInDisciplinesOutput'
+          description: ''
+  /api/contests_app/solves/list-every-user-best/:
+    get:
+      operationId: contests_app_solves_list_every_user_best_list
+      description: my description
+      parameters:
+      - in: query
+        name: discipline_name
+        schema:
+          type: string
+        description: discipline name
+        required: true
+      tags:
+      - contests_app
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/contests.SolveListBestOfEveryUserOutput'
           description: ''
 components:
   schemas:
-    Output:
+    Contest:
+      type: object
+      description: |-
+        A ModelSerializer that takes an additional `fields` argument that
+        controls which fields should be displayed.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        contest_number:
+          type: integer
+        start:
+          type: string
+          format: date-time
+          readOnly: true
+        end:
+          type: string
+          format: date-time
+          nullable: true
+        ongoing:
+          type: boolean
+      required:
+      - contest_number
+      - id
+      - start
+    Discipline:
+      type: object
+      description: |-
+        A ModelSerializer that takes an additional `fields` argument that
+        controls which fields should be displayed.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 128
+      required:
+      - id
+      - name
+    Scramble:
+      type: object
+      description: |-
+        A ModelSerializer that takes an additional `fields` argument that
+        controls which fields should be displayed.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        position:
+          type: string
+          maxLength: 10
+        scramble:
+          type: string
+          maxLength: 512
+        extra:
+          type: boolean
+        contest:
+          type: integer
+        discipline:
+          type: integer
+      required:
+      - contest
+      - discipline
+      - extra
+      - id
+      - position
+      - scramble
+    SocialLogin:
+      type: object
+      properties:
+        access_token:
+          type: string
+        code:
+          type: string
+        id_token:
+          type: string
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+    UserSerializer01:
+      type: object
+      description: |-
+        A ModelSerializer that takes an additional `fields` argument that
+        controls which fields should be displayed.
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+      required:
+      - id
+      - username
+    contests.SolveLisOutput:
       type: object
       properties:
         id:
@@ -164,27 +337,92 @@ components:
       - round_session
       - scramble
       - user
-    SocialLogin:
+    contests.SolveListBestOfEveryUserOutput:
       type: object
       properties:
-        access_token:
-          type: string
-        code:
-          type: string
-        id_token:
-          type: string
-    TokenRefresh:
-      type: object
-      properties:
-        access:
-          type: string
+        id:
+          type: integer
           readOnly: true
-        refresh:
+        user:
+          $ref: '#/components/schemas/UserSerializer01'
+        contest:
+          $ref: '#/components/schemas/Contest'
+        discipline:
+          $ref: '#/components/schemas/Discipline'
+        time_ms:
+          type: integer
+          nullable: true
+        dnf:
+          type: boolean
+        extra_id:
+          type: integer
+          nullable: true
+        state:
           type: string
-          writeOnly: true
+          maxLength: 96
+        reconstruction:
+          type: string
+          nullable: true
+          maxLength: 15048
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        scramble:
+          type: integer
+        round_session:
+          type: integer
       required:
-      - access
-      - refresh
+      - contest
+      - created
+      - discipline
+      - id
+      - round_session
+      - scramble
+      - user
+    contests.SolveListBestsInDisciplinesOutput:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          $ref: '#/components/schemas/UserSerializer01'
+        contest:
+          $ref: '#/components/schemas/Contest'
+        discipline:
+          $ref: '#/components/schemas/Discipline'
+        scramble:
+          $ref: '#/components/schemas/Scramble'
+        time_ms:
+          type: integer
+          nullable: true
+        dnf:
+          type: boolean
+        extra_id:
+          type: integer
+          nullable: true
+        state:
+          type: string
+          maxLength: 96
+        reconstruction:
+          type: string
+          nullable: true
+          maxLength: 15048
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        round_session:
+          type: integer
+      required:
+      - contest
+      - created
+      - discipline
+      - id
+      - round_session
+      - scramble
+      - user
   securitySchemes:
     jwtCookieAuth:
       type: apiKey

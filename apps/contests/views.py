@@ -9,7 +9,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 from django.db.transaction import atomic
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 from apps.accounts.models import User
 from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel, RoundSessionModel
@@ -18,7 +18,7 @@ from .managers import SolveManager
 from .selectors import SolveSelector
 from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from scripts.scramble import generate_scramble
-from .serializers import SolveSerializer, ScrambleSerializer01, RoundSessionSerializer01, ContestSerializer01, DisciplineSerializer01
+from .serializers import SolveSerializer, ScrambleSerializer01, UserSerializer01, RoundSessionSerializer01, ContestSerializer01, DisciplineSerializer01, ContestSerializer, DisciplineSerializer, ScrambleSerializer, UserSerializer
 
 
 class DisciplineViewSet(ViewSet):
@@ -267,26 +267,104 @@ class SolveViewSet(ViewSet):
 class SolveListApi(APIView, SolveSelector):
     class OutputSerializer(serializers.ModelSerializer):
         class Meta:
+            ref_name = 'contests.SolveLisOutputSerializer'
             model = SolveModel
             fields = '__all__'
 
-    @extend_schema(responses=OutputSerializer)
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='page_size',
+                location=OpenApiParameter.QUERY,
+                description='page size',
+                required=False,
+                type=int
+            ),
+            OpenApiParameter(
+                name='page',
+                location=OpenApiParameter.QUERY,
+                description='page',
+                required=False,
+                type=int
+            ),
+        ],
+        responses={200: OutputSerializer(many=True)},
+        )
     def get(self, request):
         queryset = self.solve_list(params=request.query_params)
         data = self.OutputSerializer(queryset, many=True).data
         return Response(data, status=status.HTTP_200_OK)
 
 
-class SolveListBestOfEveryUserApi(APIView):  # needs to be renamed
-    pass
+class SolveListBestOfEveryUserApi(APIView, SolveSelector):  # needs to be renamed
+    class OutputSerializer(serializers.ModelSerializer):
+        user = UserSerializer01()
+        contest = ContestSerializer()
+        discipline = DisciplineSerializer()
+
+        class Meta:
+            ref_name = 'contests.SolveListBestOfEveryUserOutputSerializer'
+            model = SolveModel
+            fields = '__all__'
+
+    @extend_schema(
+        description='my description',
+        parameters=[
+            OpenApiParameter(
+                name='discipline_name',
+                location=OpenApiParameter.QUERY,
+                description='discipline name',
+                required=True,
+                type=str
+            ),
+        ],
+        responses={200: OutputSerializer(many=True)},
+    )
+    def get(self, request):
+        queryset = self.solve_list_every_user_best(params=request.query_params)
+        serializer = self.OutputSerializer(data=queryset, many=True)
+        serializer.is_valid()
+        data = serializer.data
+        return Response(data=data)
 
 
-class SolveListBestsInDisciplinesApi(APIView):
-    pass
+class SolveListBestsInDisciplinesApi(APIView, SolveSelector):
+    class OutputSerializer(serializers.ModelSerializer):
+        user = UserSerializer01()
+        contest = ContestSerializer()
+        discipline = DisciplineSerializer()
+        scramble = ScrambleSerializer()
+
+        class Meta:
+            ref_name = 'contests.SolveListBestsInDisciplinesOutputSerializer'
+            model = SolveModel
+            fields = '__all__'
+
+    @extend_schema(
+        responses={200: OutputSerializer(many=True)},
+    )
+    def get(self, request):
+        queryset = self.solve_list_bests_in_disciplines()
+        serializer = self.OutputSerializer(data=queryset, many=True)
+        serializer.is_valid()
+        data = serializer.data
+        return Response(data=data)
 
 
-class SolveRetrieveApi(APIView):
-    pass
+class SolveRetrieveApi(APIView, SolveSelector):
+    class OutputSerializer(serializers.ModelSerializer):
+        class Meta:
+            ref_name = 'contests.SolveRetrieveOutputSerializer'
+            model = SolveModel
+            fields = '__all__'
+
+    @extend_schema(
+        responses={200: OutputSerializer()},
+    )
+    def get(self, request, pk):
+        queryset = self.solve_retrieve(pk=pk)
+        data = self.OutputSerializer(queryset).data
+        return Response(data=data, status=status.HTTP_200_OK)
 
 
 class SolveCreateApi(APIView):

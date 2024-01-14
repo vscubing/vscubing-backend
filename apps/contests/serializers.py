@@ -96,31 +96,31 @@ class ScrambleSerializer01(DynamicFieldsModelSerializer):
 # Refactored serializers
 
 
-class SolveSerializer(serializers.ModelSerializer):
+class SolveSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = SolveModel
         fields = ['id', 'time_ms', 'dnf', 'state', 'reconstruction', 'created']
 
 
-class ScrambleSerializer(serializers.ModelSerializer):
+class ScrambleSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = ScrambleModel
         fields = '__all__'
 
 
-class ContestSerializer(serializers.ModelSerializer):
+class ContestSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = ContestModel
         fields = '__all__'
 
 
-class RoundSessionSerializer():
+class RoundSessionSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = RoundSessionModel
         fields = '__all__'
 
 
-class DisciplineSerializer(serializers.ModelSerializer):
+class DisciplineSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = DisciplineModel
         fields = '__all__'
