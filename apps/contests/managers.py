@@ -32,7 +32,7 @@ class SolveManager:
         self.dnf = request.data.get('dnf')
         print(request)
 
-    def current_scrambles_and_solve(self):
+    def current_scrambles_and_solve(self):  # TODO divide on scramble and solve
         scrambles = ContestModel.objects.get(contest_number=self.contest_number).scramble_set.all()
         previous_solve = None
         for scramble in scrambles:
@@ -61,7 +61,7 @@ class SolveManager:
                 return solve, scramble
             previous_solve = solve
 
-    def contest_is_finished(self):
+    def contest_is_finished(self):  # checking if contest is finished
         try:
             user_submitted_solves = (RoundSessionModel.objects.get(contest__contest_number=self.contest_number,
                                                         discipline__name=self.discipline, user=self.request.user.id)

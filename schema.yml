@@ -105,7 +105,7 @@ paths:
           description: ''
   /api/contests_app/solves/:
     get:
-      operationId: contests_app_solves_retrieve
+      operationId: contests_app_solves_list
       parameters:
       - in: query
         name: page
@@ -128,11 +128,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/contests.SolveLisOutput'
+                type: array
+                items:
+                  $ref: '#/components/schemas/contests.SolveLisOutput'
           description: ''
   /api/contests_app/solves/{id}/:
     get:
-      operationId: contests_app_solves_retrieve_2
+      operationId: contests_app_solves_retrieve
       parameters:
       - in: path
         name: id
@@ -147,10 +149,46 @@ paths:
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/contests.SolveRetrieveOutput'
+          description: ''
+  /api/contests_app/solves/create/:
+    post:
+      operationId: contests_app_solves_create_create
+      parameters:
+      - in: query
+        name: dnf
+        schema:
+          type: boolean
+        description: dnf
+      - in: query
+        name: reconstruction
+        schema:
+          type: string
+        description: reconstruction
+      - in: query
+        name: time_ms
+        schema:
+          type: integer
+        description: time in milliseconds
+      tags:
+      - contests_app
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/contests.SolveCreateOutput'
+          description: ''
   /api/contests_app/solves/list-bests-in-disciplines/:
     get:
-      operationId: contests_app_solves_list_bests_in_disciplines_retrieve
+      operationId: contests_app_solves_list_bests_in_disciplines_list
       tags:
       - contests_app
       security:
@@ -162,7 +200,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/contests.SolveListBestsInDisciplinesOutput'
+                type: array
+                items:
+                  $ref: '#/components/schemas/contests.SolveListBestsInDisciplinesOutput'
           description: ''
   /api/contests_app/solves/list-every-user-best/:
     get:
@@ -294,6 +334,49 @@ components:
       required:
       - id
       - username
+    contests.SolveCreateOutput:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        time_ms:
+          type: integer
+          nullable: true
+        dnf:
+          type: boolean
+        extra_id:
+          type: integer
+          nullable: true
+        state:
+          type: string
+          maxLength: 96
+        reconstruction:
+          type: string
+          nullable: true
+          maxLength: 15048
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        scramble:
+          type: integer
+        user:
+          type: integer
+        discipline:
+          type: integer
+        round_session:
+          type: integer
+        contest:
+          type: integer
+      required:
+      - contest
+      - created
+      - discipline
+      - id
+      - round_session
+      - scramble
+      - user
     contests.SolveLisOutput:
       type: object
       properties:
@@ -414,6 +497,49 @@ components:
           format: date-time
           readOnly: true
         round_session:
+          type: integer
+      required:
+      - contest
+      - created
+      - discipline
+      - id
+      - round_session
+      - scramble
+      - user
+    contests.SolveRetrieveOutput:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        time_ms:
+          type: integer
+          nullable: true
+        dnf:
+          type: boolean
+        extra_id:
+          type: integer
+          nullable: true
+        state:
+          type: string
+          maxLength: 96
+        reconstruction:
+          type: string
+          nullable: true
+          maxLength: 15048
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        scramble:
+          type: integer
+        user:
+          type: integer
+        discipline:
+          type: integer
+        round_session:
+          type: integer
+        contest:
           type: integer
       required:
       - contest

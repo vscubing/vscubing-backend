@@ -1,8 +1,8 @@
 class SolveService:  # One service for one model
-    def create_solve(self):
+    def solve_create(self):
         pass
 
-    def partial_update_solve(self):
+    def solve_submit(self):
         pass
 
     def update_solve(self):

@@ -16,6 +16,7 @@ from .models import ContestModel, SolveModel, DisciplineModel, ScrambleModel, Ro
 from .permissions import ContestPermission, SolveContestPermission
 from .managers import SolveManager
 from .selectors import SolveSelector
+from .services import SolveService
 from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from scripts.scramble import generate_scramble
 from .serializers import SolveSerializer, ScrambleSerializer01, UserSerializer01, RoundSessionSerializer01, ContestSerializer01, DisciplineSerializer01, ContestSerializer, DisciplineSerializer, ScrambleSerializer, UserSerializer
@@ -367,8 +368,30 @@ class SolveRetrieveApi(APIView, SolveSelector):
         return Response(data=data, status=status.HTTP_200_OK)
 
 
-class SolveCreateApi(APIView):
-    pass
+class SolveCreateApi(APIView, SolveService):
+    class OutputSerializer(serializers.ModelSerializer):
+        class Meta:
+            ref_name = 'contests.SolveCreateOutputSerializer'
+            model = SolveModel
+            fields = '__all__'
+
+    class InputSerializer(serializers.ModelSerializer):
+        class Meta:
+            ref_name = 'contests.SolveCreateInputSerializer'
+            model = SolveModel
+            fields = ['reconstruction', 'time_ms', 'dnf']
+
+    @extend_schema(
+        request=InputSerializer,
+        responses={201: OutputSerializer()},
+        )
+    def post(self, request):
+        serializer = self.InputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        data = self.solve_create()
+
+        return Response(data, status=status.HTTP_201_CREATED)
 
 
 class SolveSubmitApi(APIView):
