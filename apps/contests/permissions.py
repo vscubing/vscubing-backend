@@ -18,8 +18,8 @@ class Vieew(APIView):
 class ContestPermission(BasePermission):
 
     def has_permission(self, request, view):
-        contest_number = request.query_params.get('contest_number')
-        discipline_name = request.query_params.get('discipline_name')
+        contest_number = view.kwargs.get('contest_number')
+        discipline = view.kwargs.get('discipline')
         try:
             contest = ContestModel.objects.get(contest_number=contest_number)
         except ObjectDoesNotExist:
@@ -30,7 +30,7 @@ class ContestPermission(BasePermission):
             if bool(request.user and request.user.is_authenticated):
                 if request.user.is_verified:
                     round_session = RoundSessionModel.objects.filter(contest__contest_number=contest_number,
-                                                                     discipline__name=discipline_name, submitted=True, user=request.user.id)
+                                                                     discipline__name=discipline, submitted=True, user=request.user.id)
                     if round_session:
                         return True
                     elif not round_session:
@@ -51,8 +51,8 @@ class ContestPermission(BasePermission):
 
 class SolveContestPermission(BasePermission):
     def has_permission(self, request, view):
-        contest_number = request.query_params.get('contest_number')
-        discipline_name = request.query_params.get('discipline_name')
+        contest_number = view.kwargs.get('contest_number')
+        discipline = view.kwargs.get('discipline')
         try:
             contest = ContestModel.objects.get(contest_number=contest_number)
         except ObjectDoesNotExist:
@@ -65,7 +65,7 @@ class SolveContestPermission(BasePermission):
                 user = User.objects.get(id=request.user.id)
                 round_session = user.round_session_set.filter(contest__contest_number=contest_number,
                                                                              submitted=True,
-                                                                             discipline__name=discipline_name).last()
+                                                                             discipline__name=discipline).last()
                 if not round_session:
                     return True
                 elif round_session:
