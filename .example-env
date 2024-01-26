@@ -1,0 +1,4 @@
+export SECRET_KEY = 'django-insecure-fNs9QGntegaPwMqYSAXLEUp7xBbFhJv6DH8ZrC4dVzmWy2k3jc'
+export DEBUG = 1 # 1 == True, 0 == False
+export GOOGLE_REDIRECT_URL = 'http://127.0.0.1:3000'
+export ALLOWED_HOSTS = '["127.0.0.1", "127.0.0.1:8000", "0.0.0.0:8000", "192.168.1.7"]'
