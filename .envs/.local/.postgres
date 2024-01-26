@@ -1,0 +1,7 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=vscubing
+POSTGRES_USER=IzMhJUclNewPcQVvYuxupGWPRVJGGBOD
+POSTGRES_PASSWORD=Jwvwh9CjKCZhJ6rcZmn8WmPKpKb5jZaKlSFNrF1n6eE3Mlfb06mWVcI80Pkjhll2

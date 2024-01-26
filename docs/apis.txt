@@ -1,0 +1,41 @@
+
+
+Auth endpoints
+
+-----
+
+contest endpoints
+
+root /api/contests-app/
+
+- /contests/ongoing/: віддає slug of ongoing contest
+
+- /contests/<slug>/ - контест
+- /contests/ - всі контести
+
+Endpoints to solve contest:
+- /solve/create/?discipline=<id> - create solve (that user just solved)
+- /solve/<id>/submit/ - submit solve
+
+- /scramble/current/?discipline=<slug>
+- /get-all-solve-of-contest-in-discipline/
+
+що вопинно бути у стейт?
+
+currentSolve: {
+    canChangeToExtra: boolean
+    scramble: Scramble
+    solve: SolveNotInited | SolveSuccessful | SolveDnf
+  }
+submittedSolves: Array<(SolveSuccessful | SolveDnf) & { scramble: Scramble }>
+
+
+
+Scramble
+
+- /scrambles/ filters = {discipline or contest}
+-
+
+root /api/tutorials-app/
+
+-
