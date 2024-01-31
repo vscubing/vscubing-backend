@@ -54,6 +54,7 @@ INSTALLED_APPS = [
 
     'apps.accounts',
     'apps.legacy_contests',
+    'apps.core',
 ]
 
 REST_FRAMEWORK = {
