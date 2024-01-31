@@ -1,0 +1,318 @@
+openapi: 3.0.3
+info:
+  title: Vscubing Api
+  version: 0.0.0
+  description: vscubing Api
+paths:
+  /api/accounts/change-username/:
+    put:
+      operationId: accounts_change_username_update
+      tags:
+      - accounts
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/accounts/current-user/:
+    get:
+      operationId: accounts_current_user_retrieve
+      tags:
+      - accounts
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/accounts/google/login/:
+    post:
+      operationId: accounts_google_login_create
+      description: |-
+        class used for social authentications
+        example usage for facebook with access_token
+        -------------
+        from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+
+        class FacebookLogin(SocialLoginView):
+            adapter_class = FacebookOAuth2Adapter
+        -------------
+
+        example usage for facebook with code
+
+        -------------
+        from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+        from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+
+        class FacebookLogin(SocialLoginView):
+            adapter_class = FacebookOAuth2Adapter
+            client_class = OAuth2Client
+            callback_url = 'localhost:8000'
+        -------------
+      tags:
+      - accounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SocialLogin'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SocialLogin'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SocialLogin'
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialLogin'
+          description: ''
+  /api/accounts/token/refresh/:
+    post:
+      operationId: accounts_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - accounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/contests/contest/{contest_number}/discipline/{discipline}/:
+    get:
+      operationId: contests_contest_discipline_retrieve
+      parameters:
+      - in: path
+        name: contest_number
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: discipline
+        schema:
+          type: string
+        required: true
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/contests/dashboard/:
+    get:
+      operationId: contests_dashboard_retrieve
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/contests/leaderboard/{discipline}/:
+    get:
+      operationId: contests_leaderboard_retrieve
+      parameters:
+      - in: path
+        name: discipline
+        schema:
+          type: string
+        required: true
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/contests/new-contest/:
+    post:
+      operationId: contests_new_contest_create
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/contests/ongoing-contest-number/:
+    get:
+      operationId: contests_ongoing_contest_number_retrieve
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/contests/round-session/:
+    delete:
+      operationId: contests_round_session_destroy
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/contests/solve/:
+    get:
+      operationId: contests_solve_retrieve
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/contests/solve-contest/{contest_number}/discipline/{discipline}/:
+    get:
+      operationId: contests_solve_contest_discipline_retrieve
+      parameters:
+      - in: path
+        name: contest_number
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: discipline
+        schema:
+          type: string
+        required: true
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          description: No response body
+    post:
+      operationId: contests_solve_contest_discipline_create
+      parameters:
+      - in: path
+        name: contest_number
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: discipline
+        schema:
+          type: string
+        required: true
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          description: No response body
+    put:
+      operationId: contests_solve_contest_discipline_update
+      parameters:
+      - in: path
+        name: contest_number
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: discipline
+        schema:
+          type: string
+        required: true
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/contests/solve-reconstruction/{id}/:
+    get:
+      operationId: contests_solve_reconstruction_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+components:
+  schemas:
+    SocialLogin:
+      type: object
+      properties:
+        access_token:
+          type: string
+        code:
+          type: string
+        id_token:
+          type: string
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+  securitySchemes:
+    jwtCookieAuth:
+      type: apiKey
+      in: cookie
+      name: jwt-auth
+    jwtHeaderAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
