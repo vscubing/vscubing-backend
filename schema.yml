@@ -117,7 +117,7 @@ paths:
           type: string
         required: true
       tags:
-      - contests
+      - legacy-contests
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []
@@ -128,7 +128,7 @@ paths:
     get:
       operationId: contests_dashboard_retrieve
       tags:
-      - contests
+      - legacy-contests
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []
@@ -146,7 +146,7 @@ paths:
           type: string
         required: true
       tags:
-      - contests
+      - legacy-contests
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []
@@ -158,7 +158,7 @@ paths:
     post:
       operationId: contests_new_contest_create
       tags:
-      - contests
+      - legacy-contests
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []
@@ -170,7 +170,7 @@ paths:
     get:
       operationId: contests_ongoing_contest_number_retrieve
       tags:
-      - contests
+      - legacy-contests
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []
@@ -182,7 +182,7 @@ paths:
     delete:
       operationId: contests_round_session_destroy
       tags:
-      - contests
+      - legacy-contests
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []
@@ -194,7 +194,7 @@ paths:
     get:
       operationId: contests_solve_retrieve
       tags:
-      - contests
+      - legacy-contests
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []
@@ -217,7 +217,7 @@ paths:
           type: string
         required: true
       tags:
-      - contests
+      - legacy-contests
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []
@@ -238,7 +238,7 @@ paths:
           type: string
         required: true
       tags:
-      - contests
+      - legacy-contests
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []
@@ -259,7 +259,7 @@ paths:
           type: string
         required: true
       tags:
-      - contests
+      - legacy-contests
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []
@@ -276,7 +276,7 @@ paths:
           type: integer
         required: true
       tags:
-      - contests
+      - legacy-contests
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []

@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
 
     'apps.accounts',
-    'apps.contests',
+    'apps.legacy-contests',
 ]
 
 REST_FRAMEWORK = {
@@ -222,7 +222,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CELERY_BEAT_SCHEDULE = {
     'add': {
-        'task': 'apps.contests.tasks.add',
+        'task': 'apps.legacy-contests.tasks.add',
         'schedule': timedelta(seconds=10)
     },
 }

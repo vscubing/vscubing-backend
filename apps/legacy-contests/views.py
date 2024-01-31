@@ -38,7 +38,7 @@ class DashboardView(APIView):
                                                  discipline_fields=['name'],
                                                  user_fields=['username']
                                                  )
-        return Response({'contests': contests_serializer.data, 'best_solves': best_solves_serializer.data})
+        return Response({'legacy-contests': contests_serializer.data, 'best_solves': best_solves_serializer.data})
 
 
 class LeaderboardView(APIView):
