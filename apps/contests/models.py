@@ -5,7 +5,7 @@ from apps.core.models import BaseModel
 
 
 class ContestModel(BaseModel):
-    name = models.IntegerField(max_length=128, unique=True)
+    name = models.CharField(max_length=128, unique=True)
     slug = models.SlugField(max_length=128, unique=True, db_index=True)
     start_date = models.DateTimeField(auto_now_add=True)
     end_date = models.DateTimeField(null=True)
