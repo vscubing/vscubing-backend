@@ -5,7 +5,8 @@ from .apis import (
 )
 
 solve_urlpatterns = [
-    path('', SolveListApi.as_view(), name='list')
+    path('', SolveListApi.as_view(), name='list'),
+    # path('retrieve')
 ]
 
 
