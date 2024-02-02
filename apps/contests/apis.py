@@ -9,6 +9,7 @@ from rest_framework import serializers
 class SolveListApi(APIView):
     def get(self, request):
         # selectors: select all solves including round_sessions` data to every solve and then sort on frontend
+
         # filters
         # serializers
         return Response(data={'json': 'data'})
@@ -71,14 +72,14 @@ class RoundSessionWithSolvesListApi(APIView):
 @extend_schema(
     responses={200: {'json': 'data'}}
 )
-class ContestListApi(APIView):
-    def get(self, request):
+class RoundSessionProgresStateApi(APIView):
+    def get(self):
         return Response(data={'json': 'data'})
 
 
 @extend_schema(
     responses={200: {'json': 'data'}}
 )
-class RoundSessionProgresStateApi(APIView):
-    def get(self):
+class ContestListApi(APIView):
+    def get(self, request):
         return Response(data={'json': 'data'})
