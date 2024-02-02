@@ -25,22 +25,36 @@ class SolveRetrieveApi(APIView):
         return Response(data={'json': 'data'})
 
 
+@extend_schema(
+    responses={200: {'json': 'data'}}
+)
 class SolveListBestInDisciplineList(APIView):
     def get(self, request):
         return Response(data={'json', 'data'})
 
 
+@extend_schema(
+    responses={200: {'json': 'data'}}
+)
 class SolveListBestOfEveryUser(APIView):
     def get(self, request):
         return Response(data={'json', 'data'})
 
 
+@extend_schema(
+    responses={200: {'json': 'data'}}
+)
 class SolveCreateApi(APIView):
-    pass
+    def post(self, request):
+        return Response(data={'json': 'data'})
 
 
+@extend_schema(
+    responses={200: {'json': 'data'}}
+)
 class SolveSubmitApi(APIView):
-    pass
+    def patch(self, request):
+        return Response(data={'json': 'data'})
 
 
 @extend_schema(
