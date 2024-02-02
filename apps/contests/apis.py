@@ -68,9 +68,17 @@ class RoundSessionWithSolvesListApi(APIView):
         return Response(data={'json': 'data'})
 
 
+@extend_schema(
+    responses={200: {'json': 'data'}}
+)
 class ContestListApi(APIView):
     def get(self, request):
         return Response(data={'json': 'data'})
 
 
-
+@extend_schema(
+    responses={200: {'json': 'data'}}
+)
+class RoundSessionProgresStateApi(APIView):
+    def get(self):
+        return Response(data={'json': 'data'})
