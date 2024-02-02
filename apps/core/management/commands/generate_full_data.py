@@ -9,16 +9,22 @@ from django.utils import timezone
 from django.core.management.base import BaseCommand
 from faker import Faker
 
-from apps.legacy_contests.models import ContestModel, SolveModel, DisciplineModel, ScrambleModel, RoundSessionModel
+from apps.contests.models import (
+    ContestModel,
+    SolveModel,
+    DisciplineModel,
+    ScrambleModel,
+    RoundSessionModel
+)
 from apps.accounts.models import User
 from config import SOLVE_SUBMITTED_STATE
 from scripts.scramble import generate_scramble
 
 load_dotenv()
 
-USERS_QTY = 500
+USERS_QTY = 50
 DISCIPLINE_NAMES = ['3by3']
-CONTEST_QTY = 50
+CONTEST_QTY = 10
 
 
 class Command(BaseCommand):
@@ -72,40 +78,42 @@ class Command(BaseCommand):
         if not DisciplineModel.objects.all():
             for discipline in DISCIPLINE_NAMES:
                 DisciplineModel.objects.create(
-                    name=discipline
+                    name=discipline,
+                    slug=discipline
                 )
         else:
             pass
 
     def contest_scrambles_sessions_solves(self):
         last_contest = ContestModel.objects.last()
-        contest_number = 1
+        name = 1
         if last_contest:
-            contest_number = last_contest.contest_number + 1
-            last_contest.ongoing=False
+            name = str(int(last_contest.name) + 1)
+            last_contest.is_ongoing = False
             last_contest.save()
-            start_time = last_contest.start
+            start_date = last_contest.start_date
         else:
-            start_time = timezone.now()
+            start_date = timezone.now()
 
-        end_time = start_time + timedelta(days=7)
+        end_date = start_date + timedelta(days=7)
         contest = ContestModel.objects.create(
-            contest_number=contest_number,
-            start=start_time,
-            end=end_time
+            name=name,
+            slug=name,
+            start_date=start_date,
+            end_date=end_date
         )
 
         discipline = DisciplineModel.objects.get(name='3by3')
         for scramble_position in range(1, 6):
             generated_scramble = generate_scramble()
             scramble = ScrambleModel(position=scramble_position, scramble=generated_scramble,
-                                     extra=False, contest=contest, discipline=discipline)
+                                     is_extra=False, contest=contest, discipline=discipline)
             scramble.save()
         for scramble_position in range(1, 3):
             scramble_position = f"E{scramble_position}"
             generated_scramble = generate_scramble()
             scramble = ScrambleModel(position=scramble_position, scramble=generated_scramble,
-                                     extra=True, contest=contest, discipline=discipline)
+                                     is_extra=True, contest=contest, discipline=discipline)
             scramble.save()
 
         users = User.objects.all()
@@ -116,16 +124,16 @@ class Command(BaseCommand):
                 contest=contest,
                 discipline=discipline,
                 user=user,
-                submitted=True
+                is_finished=True
             )
             random_time = random.uniform(8, 100)
 
-            scrambles = ScrambleModel.objects.filter(contest=contest, discipline=discipline, extra=False)
+            scrambles = ScrambleModel.objects.filter(contest=contest, discipline=discipline, is_extra=False)
             for scramble in scrambles:
                 solve = SolveModel.objects.create(
                     time_ms=round(random.uniform(random_time*random.uniform(0.7, 1.3), random_time*random.uniform(0.7, 1.3)), 3)*1000,
-                    dnf=False,
-                    state='submitted',
+                    is_dnf=False,
+                    submission_state='submitted',
                     scramble=scramble,
                     user=user,
                     discipline=discipline,
@@ -134,7 +142,7 @@ class Command(BaseCommand):
                     reconstruction=scramble
                 )
                 sum_ms = 0
-            solve_set = round_session.solve_set.filter(state=SOLVE_SUBMITTED_STATE, dnf=False).order_by('time_ms')
+            solve_set = round_session.solve_set.filter(submission_state=SOLVE_SUBMITTED_STATE, is_dnf=False).order_by('time_ms')
             dnf_count = 0
             lowest_solve = solve_set.first()
             highest_solve = solve_set.last()

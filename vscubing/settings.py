@@ -53,8 +53,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
 
     'apps.accounts',
-    'apps.legacy_contests',
     'apps.core',
+    'apps.contests',
 ]
 
 REST_FRAMEWORK = {
