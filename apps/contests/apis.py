@@ -1,5 +1,5 @@
 from rest_framework.views import APIView, Response
-from drf_spectacular.views import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from rest_framework import serializers
 
 from apps.core.utils import inline_serializer
@@ -67,7 +67,8 @@ class RoundSessionWithSolvesListApi(APIView, RoundSessionSelector):
         default_limit = 10
 
     class FilterSerializer(serializers.Serializer):
-        pass
+        contest_id = serializers.IntegerField()
+        discipline_id = serializers.IntegerField()
 
     class OutputSerializer(serializers.Serializer):
         id = serializers.IntegerField()
@@ -90,17 +91,32 @@ class RoundSessionWithSolvesListApi(APIView, RoundSessionSelector):
             ref_name = 'contests.RoundSessionWithSolvesListOutputSerializer'
 
     @extend_schema(
-        responses={200: OutputSerializer()}
+        responses={200: OutputSerializer()},
+        parameters=[
+            OpenApiParameter(
+                name='contest_id',
+                location=OpenApiParameter.QUERY,
+                description='contest id',
+                required=True,
+                type=int,
+            ),
+            OpenApiParameter(
+                name='discipline_id',
+                location=OpenApiParameter.QUERY,
+                description='discipline id',
+                required=True,
+                type=int,
+            )
+        ]
     )
     def get(self, request):
-        # selectors: select all solves including round_sessions` data to every solve and then sort on frontend
-        round_session_set = self.list_with_solves(params=request.query_params)
-        # filters
-        data = self.OutputSerializer(round_session_set, many=True).data
+        filters_serializer = self.FilterSerializer(data=request.query_params)
+        filters_serializer.is_valid(raise_exception=True)
+        round_session_set = self.list_with_solves(filters=filters_serializer.validated_data)
         return get_paginated_response(
             pagination_class=self.Pagination,
             serializer_class=self.OutputSerializer,
-            queryset=data,
+            queryset=round_session_set,
             request=request,
             view=self
         )

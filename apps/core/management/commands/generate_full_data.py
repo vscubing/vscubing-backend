@@ -22,9 +22,9 @@ from scripts.scramble import generate_scramble
 
 load_dotenv()
 
-USERS_QTY = 50
+USERS_QTY = 100
 DISCIPLINE_NAMES = ['3by3']
-CONTEST_QTY = 10
+CONTEST_QTY = 500
 
 
 class Command(BaseCommand):
