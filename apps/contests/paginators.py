@@ -24,6 +24,9 @@ class LimitOffsetPagination(_LimitOffsetPagination):
         This is used by the frontend to construct the pagination itself.
         """
         return Response(OrderedDict([
+            ('limit', self.limit),
+            ('offset', self.offset),
+            ('count', self.count),
             ('next', self.get_next_link()),
             ('previous', self.get_previous_link()),
             ('results', data)

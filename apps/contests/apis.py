@@ -69,12 +69,15 @@ class RoundSessionWithSolvesListApi(APIView, RoundSessionSelector):
     class FilterSerializer(serializers.Serializer):
         contest_id = serializers.IntegerField()
         discipline_id = serializers.IntegerField()
+        order_by = serializers.CharField()
 
     class OutputSerializer(serializers.Serializer):
         id = serializers.IntegerField()
         avg_ms = serializers.IntegerField()
         is_dnf = serializers.BooleanField()
         is_finished = serializers.BooleanField()
+        created_at = serializers.DateTimeField()
+        updated_at = serializers.DateTimeField()
 
         user = inline_serializer(fields={
             'id': serializers.IntegerField(),
@@ -85,6 +88,12 @@ class RoundSessionWithSolvesListApi(APIView, RoundSessionSelector):
         })
         discipline = inline_serializer(fields={
             'id': serializers.IntegerField()
+        }),
+        solve_set = inline_serializer(many=True, fields={
+            'id': serializers.IntegerField(),
+            'is_dnf': serializers.BooleanField(),
+            'submission_state': serializers.CharField(),
+            'extra_id': serializers.IntegerField(),
         })
 
         class Meta:
@@ -106,6 +115,13 @@ class RoundSessionWithSolvesListApi(APIView, RoundSessionSelector):
                 description='discipline id',
                 required=True,
                 type=int,
+            ),
+            OpenApiParameter(
+                name='order_by',
+                location=OpenApiParameter.QUERY,
+                description='order by something',
+                type=str,
+                enum=('avg_ms', '-avg_ms')
             )
         ]
     )
