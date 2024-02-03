@@ -26,12 +26,12 @@ contests_urlpatterns = [
 ]
 
 round_session_urlpatterns = [
-    path('with-solves', RoundSessionWithSolvesListApi.as_view(), name='list-with-nested-solves'),
-    path('list-best-of-every-user', RoundSessionProgresStateApi.as_view(), name='list-best-of-every-user'),
+    path('with-solves/', RoundSessionWithSolvesListApi.as_view(), name='list-with-nested-solves'),
+    path('list-best-of-every-user/', RoundSessionProgresStateApi.as_view(), name='list-best-of-every-user'),
 ]
 
 urlpatterns = [
     path('solves/', include(solves_urlpatterns)),
     path('contests/', include(contests_urlpatterns)),
-    path('round-sessions', include(round_session_urlpatterns)),
+    path('round-sessions/', include(round_session_urlpatterns)),
 ]
