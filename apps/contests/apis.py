@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from rest_framework.views import APIView, Response
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from rest_framework import serializers
@@ -138,10 +140,72 @@ class RoundSessionWithSolvesListApi(APIView, RoundSessionSelector):
         )
 
 
-@extend_schema(
-    responses={200: {'json': 'data'}}
-)
+class RoundSessionRetrieveApi(APIView, RoundSessionSelector):
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        avg_ms = serializers.IntegerField()
+        is_dnf = serializers.BooleanField()
+        is_finished = serializers.BooleanField()
+        created_at = serializers.DateTimeField()
+        updated_at = serializers.DateTimeField()
+
+        user = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'username': serializers.CharField()  # add max_length
+        })
+        contest = inline_serializer(fields={
+            'id': serializers.IntegerField()
+        })
+        discipline = inline_serializer(fields={
+            'id': serializers.IntegerField()
+        }),
+        solve_set = inline_serializer(many=True, fields={
+            'id': serializers.IntegerField(),
+            'is_dnf': serializers.BooleanField(),
+            'submission_state': serializers.CharField(),
+            'extra_id': serializers.IntegerField(),
+        })
+
+    @extend_schema(
+        responses={200: OutputSerializer()},
+        parameters=[
+            OpenApiParameter(
+                name='contest_id',
+                location=OpenApiParameter.QUERY,
+                description='contest id',
+                required=True,
+                type=int,
+            ),
+            OpenApiParameter(
+                name='discipline_id',
+                location=OpenApiParameter.QUERY,
+                description='discipline id',
+                required=True,
+                type=int,
+            ),
+            OpenApiParameter(
+                name='user_id',
+                location=OpenApiParameter.PATH,
+                description='user_id',
+                required=True,
+                type=int,
+            ),
+        ]
+    )
+    def get(self, request, user_id):
+        round_session = self.retrieve_with_solves(user_id=user_id, params=request.query_params)
+        round_session_place = self.retrieve_place(user_id=user_id, params=request.query_params)
+        print(round_session)
+        print(round_session_place)
+        data = self.OutputSerializer(round_session).data
+        data['place'] = round_session_place
+        return Response(data=data)
+
+
 class RoundSessionProgresStateApi(APIView):
+    @extend_schema(
+        responses={200: {'json': 'data'}}
+    )
     def get(self):
         return Response(data={'json': 'data'})
 
