@@ -1,18 +1,22 @@
 from rest_framework.views import APIView, Response
-from drf_spectacular.views import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from rest_framework import serializers
+
+from apps.core.utils import inline_serializer
+from .paginators import (
+    LimitOffsetPagination,
+    get_paginated_response,
+)
+from .selectors import (
+    RoundSessionSelector,
+)
 
 
 @extend_schema(
     responses={200: {'json': 'data'}}
 )
 class SolveListApi(APIView):
-    def get(self, request):
-        # selectors: select all solves including round_sessions` data to every solve and then sort on frontend
-
-        # filters
-        # serializers
-        return Response(data={'json': 'data'})
+    pass
 
 
 @extend_schema(
@@ -58,15 +62,80 @@ class SolveSubmitApi(APIView):
         return Response(data={'json': 'data'})
 
 
-@extend_schema(
-    responses={200: {'json': 'data'}}
-)
-class RoundSessionWithSolvesListApi(APIView):
+class RoundSessionWithSolvesListApi(APIView, RoundSessionSelector):
+    class Pagination(LimitOffsetPagination):
+        default_limit = 10
+
+    class FilterSerializer(serializers.Serializer):
+        contest_id = serializers.IntegerField()
+        discipline_id = serializers.IntegerField()
+        order_by = serializers.CharField()
+
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        avg_ms = serializers.IntegerField()
+        is_dnf = serializers.BooleanField()
+        is_finished = serializers.BooleanField()
+        created_at = serializers.DateTimeField()
+        updated_at = serializers.DateTimeField()
+
+        user = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'username': serializers.CharField()  # add max_length
+        })
+        contest = inline_serializer(fields={
+            'id': serializers.IntegerField()
+        })
+        discipline = inline_serializer(fields={
+            'id': serializers.IntegerField()
+        }),
+        solve_set = inline_serializer(many=True, fields={
+            'id': serializers.IntegerField(),
+            'is_dnf': serializers.BooleanField(),
+            'submission_state': serializers.CharField(),
+            'extra_id': serializers.IntegerField(),
+        })
+
+        class Meta:
+            ref_name = 'contests.RoundSessionWithSolvesListOutputSerializer'
+
+    @extend_schema(
+        responses={200: OutputSerializer()},
+        parameters=[
+            OpenApiParameter(
+                name='contest_id',
+                location=OpenApiParameter.QUERY,
+                description='contest id',
+                required=True,
+                type=int,
+            ),
+            OpenApiParameter(
+                name='discipline_id',
+                location=OpenApiParameter.QUERY,
+                description='discipline id',
+                required=True,
+                type=int,
+            ),
+            OpenApiParameter(
+                name='order_by',
+                location=OpenApiParameter.QUERY,
+                description='order by something',
+                type=str,
+                enum=('avg_ms', '-avg_ms')
+            )
+        ]
+    )
     def get(self, request):
-        # selectors: select needed round_session models with nested solves
-        # filters
-        # serializers
-        return Response(data={'json': 'data'})
+        filters_serializer = self.FilterSerializer(data=request.query_params)
+        filters_serializer.is_valid(raise_exception=True)
+        round_session_set = self.list_with_solves(filters=filters_serializer.validated_data)
+        return get_paginated_response(
+            pagination_class=self.Pagination,
+            serializer_class=self.OutputSerializer,
+            queryset=round_session_set,
+            request=request,
+            view=self
+        )
 
 
 @extend_schema(
