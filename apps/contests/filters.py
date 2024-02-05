@@ -2,6 +2,7 @@ import django_filters
 
 from .models import (
     RoundSessionModel,
+    ContestModel,
 )
 
 
@@ -17,3 +18,7 @@ class RoundSessionFilter(django_filters.FilterSet):
     class Meta:
         model = RoundSessionModel
         fields = ('discipline_id', 'contest_id', 'order_by')
+
+
+class ContestFilter(django_filters.FilterSet):
+    pass

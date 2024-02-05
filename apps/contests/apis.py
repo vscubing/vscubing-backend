@@ -11,6 +11,7 @@ from .paginators import (
 )
 from .selectors import (
     RoundSessionSelector,
+    ContestSelector,
 )
 
 
@@ -210,9 +211,46 @@ class RoundSessionProgresStateApi(APIView):
         return Response(data={'json': 'data'})
 
 
-@extend_schema(
-    responses={200: {'json': 'data'}}
-)
-class ContestListApi(APIView):
+class ContestListApi(APIView, ContestSelector):
+    class Pagination(LimitOffsetPagination):
+        default_limit = 5
+
+    class FilterSerializer(serializers.Serializer):
+        order_by = serializers.CharField(required=False)
+
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        name = serializers.CharField()
+        slug = serializers.CharField()
+
+    @extend_schema(
+        responses={200: OutputSerializer()},
+        parameters=[
+            OpenApiParameter(
+                name='limit',
+                location=OpenApiParameter.QUERY,
+                description='count of contest to be returned',
+                required=False,
+                type=int,
+            ),
+            OpenApiParameter(
+                name='offset',
+                location=OpenApiParameter.QUERY,
+                description='offset',
+                required=False,
+                type=int,
+            )
+        ]
+    )
     def get(self, request):
-        return Response(data={'json': 'data'})
+        filter_serializers = self.FilterSerializer(data=request.query_params)
+        filter_serializers.is_valid(raise_exception=True)
+        contest_set = self.list(filters=filter_serializers.validated_data)
+
+        return get_paginated_response(
+            pagination_class=self.Pagination,
+            serializer_class=self.OutputSerializer,
+            queryset=contest_set,
+            request=request,
+            view=self,
+        )

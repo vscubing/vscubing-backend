@@ -1,3 +1,5 @@
+from django.db.models import Avg
+
 from .models import (
     RoundSessionModel,
     SolveModel,
@@ -6,7 +8,8 @@ from .models import (
     ScrambleModel,
 )
 from .filters import (
-    RoundSessionFilter
+    RoundSessionFilter,
+    ContestFilter,
 )
 
 
@@ -28,8 +31,6 @@ class RoundSessionSelector:
         return round_session
 
     def retrieve_place(self, params, user_id):
-        from django.db.models import Avg
-
         # Assuming the rating field in the Rating model is named 'value'
         round_session = RoundSessionModel.objects.filter(
             user_id=user_id,
@@ -53,3 +54,10 @@ class SolveSelector:
 
     def retrieve(self, filters=None):
         pass
+
+
+class ContestSelector:
+    def list(self, filters=None):
+        contest_set = ContestModel.objects.all()
+        # contest_set = ContestFilter(filters, contest_set).qs
+        return contest_set
