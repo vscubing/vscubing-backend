@@ -12,6 +12,7 @@ from .paginators import (
 from .selectors import (
     RoundSessionSelector,
     ContestSelector,
+    SolveSelector,
 )
 
 
@@ -22,15 +23,37 @@ class SolveListApi(APIView):
     pass
 
 
-@extend_schema(
-    responses={200: {'json': 'data'}}
-)
-class SolveRetrieveApi(APIView):
+class SolveRetrieveApi(APIView, SolveSelector):
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        time_ms = serializers.IntegerField()
+        is_dnf = serializers.BooleanField()
+        submission_state = serializers.CharField()
+        reconstruction = serializers.CharField()
+
+        scramble = inline_serializer(fields={
+            'id': serializers.IntegerField()
+        })
+        user = inline_serializer(fields={
+            'id': serializers.IntegerField()
+        })
+        discipline = inline_serializer(fields={
+            'id': serializers.IntegerField()
+        })
+        round_session = inline_serializer(fields={
+            'id': serializers.IntegerField()
+        })
+        contest = inline_serializer(fields={
+            'id': serializers.IntegerField()
+        })
+
+    @extend_schema(
+        responses={200: OutputSerializer}
+    )
     def get(self, request, pk):
-        # selectors: select one solve by id
-        # filters: filter with filter serializer
-        # serializers: serialize
-        return Response(data={'json': 'data'})
+        solve = self.retrieve(pk)
+        data = self.OutputSerializer(solve).data
+        return Response(data=data)
 
 
 @extend_schema(

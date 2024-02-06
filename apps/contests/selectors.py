@@ -52,8 +52,10 @@ class SolveSelector:
     def list(self, filters=None):
         pass
 
-    def retrieve(self, filters=None):
-        pass
+    def retrieve(self, pk):
+        # TODO add select_related and prefetch_related
+        solve = SolveModel.objects.get(id=pk)
+        return solve
 
 
 class ContestSelector:

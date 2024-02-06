@@ -15,7 +15,7 @@ from .apis import (
 
 solves_urlpatterns = [
     path('', SolveListApi.as_view(), name='list'),
-    path('retrieve/<int:pk>/', SolveRetrieveApi.as_view(), name='retrieve'),
+    path('<int:pk>/retrieve/', SolveRetrieveApi.as_view(), name='retrieve'),
     path('create/', SolveCreateApi.as_view(), name='create'),
     path('submit/<int:pk>/', SolveSubmitApi.as_view(), name='submit'),
     path('best-in-discipline/', SolveListBestInDisciplineList.as_view(), name='list-best-in-discipline'),
