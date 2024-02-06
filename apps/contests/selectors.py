@@ -57,6 +57,19 @@ class SolveSelector:
         solve = SolveModel.objects.get(id=pk)
         return solve
 
+    def list_best_in_every_discipline(self):
+
+        disciplines = DisciplineModel.objects.all()
+        solve_set = []
+        # TODO add select related and prefetch related
+        for discipline in disciplines:
+            solve = discipline.solve_set.order_by('time_ms').filter(submission_state='submitted',
+                                                                    round_session__is_finished=True,
+                                                                    is_dnf=False).first()
+            if solve:
+                solve_set.append(solve)
+        return solve_set
+
 
 class ContestSelector:
     def list(self, filters=None):

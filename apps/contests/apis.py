@@ -56,12 +56,37 @@ class SolveRetrieveApi(APIView, SolveSelector):
         return Response(data=data)
 
 
-@extend_schema(
-    responses={200: {'json': 'data'}}
-)
-class SolveListBestInDisciplineList(APIView):
+class SolveListBestInEveryDiscipline(APIView, SolveSelector):
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        time_ms = serializers.IntegerField()
+        created_at = serializers.DateTimeField()
+        user = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'username': serializers.CharField(),
+        })
+        scramble = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'scramble': serializers.CharField()
+        })
+        contest = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'name': serializers.CharField(),
+            'slug': serializers.CharField(),
+        })
+        discipline = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'name': serializers.CharField(),
+            'slug': serializers.CharField(),
+        })
+
+    @extend_schema(
+        responses={200: OutputSerializer}
+    )
     def get(self, request):
-        return Response(data={'json', 'data'})
+        solve_set = self.list_best_in_every_discipline()
+        data = self.OutputSerializer(solve_set, many=True).data
+        return Response(data=data)
 
 
 @extend_schema(
