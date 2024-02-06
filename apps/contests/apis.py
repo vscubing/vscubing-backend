@@ -56,7 +56,7 @@ class SolveRetrieveApi(APIView, SolveSelector):
         return Response(data=data)
 
 
-class SolveListBestInDiscipline(APIView, SolveSelector):
+class SolveListBestInEveryDiscipline(APIView, SolveSelector):
     class OutputSerializer(serializers.Serializer):
         id = serializers.IntegerField()
         time_ms = serializers.IntegerField()
