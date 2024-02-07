@@ -92,9 +92,59 @@ class SolveListBestInEveryDiscipline(APIView, SolveSelector):
 @extend_schema(
     responses={200: {'json': 'data'}}
 )
-class SolveListBestOfEveryUser(APIView):
+class SolveListBestOfEveryUser(APIView, SolveSelector):
+    class Pagination(LimitOffsetPagination):
+        default_limit = 10
+
+    class FilterSerializer(serializers.Serializer):
+        discipline = serializers.CharField()
+
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        time_ms = serializers.IntegerField()
+        created_at = serializers.DateTimeField()
+        user = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'username': serializers.CharField(),
+        })
+        scramble = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'scramble': serializers.CharField()
+        })
+        contest = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'name': serializers.CharField(),
+            'slug': serializers.CharField(),
+        })
+        discipline = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'name': serializers.CharField(),
+            'slug': serializers.CharField(),
+        })
+
+    @extend_schema(
+        responses={200: OutputSerializer},
+        parameters=[
+            OpenApiParameter(
+                name='discipline',
+                location=OpenApiParameter.QUERY,
+                description='discipline_slug',
+                required=True,
+                type=str,
+            ),
+        ]
+    )
     def get(self, request):
-        return Response(data={'json', 'data'})
+        filters_serializer = self.FilterSerializer(data=request.query_params)
+        filters_serializer.is_valid(raise_exception=True)
+        solve_set = self.list_best_of_every_user(params=request.query_params)
+        return get_paginated_response(
+            pagination_class=self.Pagination,
+            serializer_class=self.OutputSerializer,
+            queryset=solve_set,
+            request=request,
+            view=self
+        )
 
 
 @extend_schema(

@@ -1,4 +1,4 @@
-from django.db.models import Avg
+from django.db.models import Avg, Min, Max
 
 from .models import (
     RoundSessionModel,
@@ -68,6 +68,11 @@ class SolveSelector:
                                                                     is_dnf=False).first()
             if solve:
                 solve_set.append(solve)
+        return solve_set
+
+    def list_best_of_every_user(self, params):
+
+        solve_set = SolveModel.objects.annotate(best_time_ms=Min('time_ms'))
         return solve_set
 
 
