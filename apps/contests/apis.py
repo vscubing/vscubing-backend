@@ -301,9 +301,37 @@ class RoundSessionRetrieveApi(APIView, RoundSessionSelector):
         return Response(data=data)
 
 
-class RoundSessionProgresStateApi(APIView):
+class NotFinishedRoundSessionWithSolvesApi(APIView):
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        avg_ms = serializers.IntegerField()
+        is_dnf = serializers.BooleanField()
+        is_finished = serializers.BooleanField()
+        created_at = serializers.DateTimeField()
+        updated_at = serializers.DateTimeField()
+
+        user = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'username': serializers.CharField()
+        })
+        contest = inline_serializer(fields={
+            'id': serializers.IntegerField()
+        })
+        discipline = inline_serializer(fields={
+            'id': serializers.IntegerField()
+        }),
+        solve_set = inline_serializer(many=True, fields={
+            'id': serializers.IntegerField(),
+            'is_dnf': serializers.BooleanField(),
+            'submission_state': serializers.CharField(),
+            'extra_id': serializers.IntegerField(),
+        })
+
+        class Meta:
+            ref_name = 'contests.NotFinishedRoundSessionWithSolvesSerializer'
+
     @extend_schema(
-        responses={200: {'json': 'data'}}
+        responses={200: OutputSerializer()}
     )
     def get(self):
         return Response(data={'json': 'data'})

@@ -8,7 +8,7 @@ from .apis import (
     SolveListBestInEveryDiscipline,
     SolveListBestOfEveryUser,
     RoundSessionWithSolvesListApi,
-    RoundSessionProgresStateApi,
+    NotFinishedRoundSessionWithSolvesApi,
     RoundSessionRetrieveApi,
     ContestListApi,
 )
@@ -27,13 +27,21 @@ contests_urlpatterns = [
 ]
 
 round_session_urlpatterns = [
-    path('with-solves/', RoundSessionWithSolvesListApi.as_view(), name='list-with-nested-solves'),
+    path(
+        'with-solves/',
+        RoundSessionWithSolvesListApi.as_view(),
+        name='list-with-nested-solves'
+    ),
     path(
         'with-solves/<int:user_id>/retrieve/',
         RoundSessionRetrieveApi.as_view(),
         name='retrieve-with-nested-solves'
     ),
-    path('list-best-of-every-user/', RoundSessionProgresStateApi.as_view(), name='list-best-of-every-user'),
+    path(
+        'not-finished/',
+        NotFinishedRoundSessionWithSolvesApi.as_view(),
+        name='retrieve-not-finished'
+    ),
 ]
 
 urlpatterns = [

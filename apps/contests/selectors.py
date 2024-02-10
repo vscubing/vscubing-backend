@@ -47,6 +47,10 @@ class RoundSessionSelector:
         place = higher_rated_round_sessions.count() + 1
         return place
 
+    def retrieve_not_finished(self, params, user_id):
+        round_session = RoundSessionModel.objects.get(user=user_id, contest=params['contest'], )
+        return round_session
+
 
 class SolveSelector:
     def list(self, filters=None):
