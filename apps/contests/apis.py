@@ -13,17 +13,25 @@ from .selectors import (
     RoundSessionSelector,
     ContestSelector,
     SolveSelector,
+    ScrambleSelector,
+)
+from .services import (
+    SolveService,
+    RoundSessionService
 )
 
 
-@extend_schema(
-    responses={200: {'json': 'data'}}
-)
 class SolveListApi(APIView):
-    pass
+    # TODO find out what this should do, and if we need it
+    @extend_schema(
+        responses={200: {'json': 'data'}}
+    )
+    def get(self, request):
+        pass
 
 
 class SolveRetrieveApi(APIView, SolveSelector):
+    # Should be a class for retrieving solve by pk
     class OutputSerializer(serializers.Serializer):
         id = serializers.IntegerField()
         time_ms = serializers.IntegerField()
@@ -67,7 +75,7 @@ class SolveListBestInEveryDiscipline(APIView, SolveSelector):
         })
         scramble = inline_serializer(fields={
             'id': serializers.IntegerField(),
-            'scramble': serializers.CharField()
+            'moves': serializers.CharField()
         })
         contest = inline_serializer(fields={
             'id': serializers.IntegerField(),
@@ -93,6 +101,7 @@ class SolveListBestInEveryDiscipline(APIView, SolveSelector):
     responses={200: {'json': 'data'}}
 )
 class SolveListBestOfEveryUser(APIView, SolveSelector):
+    # TODO should be rebuild with separate leaderboard model, or with good O time. Sends current users' res separately
     class Pagination(LimitOffsetPagination):
         default_limit = 10
 
@@ -109,7 +118,7 @@ class SolveListBestOfEveryUser(APIView, SolveSelector):
         })
         scramble = inline_serializer(fields={
             'id': serializers.IntegerField(),
-            'scramble': serializers.CharField()
+            'moves': serializers.CharField()
         })
         contest = inline_serializer(fields={
             'id': serializers.IntegerField(),
@@ -147,23 +156,85 @@ class SolveListBestOfEveryUser(APIView, SolveSelector):
         )
 
 
-@extend_schema(
-    responses={200: {'json': 'data'}}
-)
-class SolveCreateApi(APIView):
+class SolveCurrentRetrieveApi(APIView):
+    class OutputSerializer(serializers.Serializer):
+        pass
+
+    def get(self, request):
+        data = {}
+        data = self.OutputSerializer(data).data
+        return Response(data)
+
+
+class SolveCreateApi(APIView, SolveService):
+    # Api to create solve when user finished solving cube
+    class InputSerializer(serializers.Serializer):
+        reconstruction = serializers.CharField()
+        is_dnf = serializers.BooleanField()
+        time_ms = serializers.IntegerField()
+
+        class Meta:
+            ref_name = 'contests.SolveCreateInputSerializer'
+
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        time_ms = serializers.IntegerField()
+        created_at = serializers.DateTimeField()
+        scramble = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'moves': serializers.CharField()
+        })
+
+        class Meta:
+            ref_name = 'contests.SolveCreateOutputSerializer'
+
+    @extend_schema(
+        responses={200: OutputSerializer()},
+        request={InputSerializer()},
+        parameters=[
+            OpenApiParameter(
+                name='contest_id',
+                location=OpenApiParameter.QUERY,
+                description='contest id',
+                required=True,
+                type=int,
+            ),
+            OpenApiParameter(
+                name='discipline_id',
+                location=OpenApiParameter.QUERY,
+                description='discipline id',
+                required=True,
+                type=int,
+            ),
+            OpenApiParameter(
+                name='scramble_id',
+                location=OpenApiParameter.QUERY,
+                description='scramble id',
+                required=True,
+                type=int,
+            ),
+        ]
+    )
     def post(self, request):
-        return Response(data={'json': 'data'})
+        serializer = self.InputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        solve = self.solve_create(request.query_params, **serializer.validated_data, user_id=request.uesr)
+        data = self.OutputSerializer(solve).data
+        return Response(data=data)
 
 
-@extend_schema(
-    responses={200: {'json': 'data'}}
-)
 class SolveSubmitApi(APIView):
+    # Api for submitting or rejecting solve
+    @extend_schema(
+        responses={200: {'json': 'data'}}
+    )
     def patch(self, request):
         return Response(data={'json': 'data'})
 
 
 class RoundSessionWithSolvesListApi(APIView, RoundSessionSelector):
+    # Api for contest dashboard to display finished round_sessions
     class Pagination(LimitOffsetPagination):
         default_limit = 10
 
@@ -182,7 +253,7 @@ class RoundSessionWithSolvesListApi(APIView, RoundSessionSelector):
 
         user = inline_serializer(fields={
             'id': serializers.IntegerField(),
-            'username': serializers.CharField()  # add max_length
+            'username': serializers.CharField()
         })
         contest = inline_serializer(fields={
             'id': serializers.IntegerField()
@@ -239,77 +310,124 @@ class RoundSessionWithSolvesListApi(APIView, RoundSessionSelector):
         )
 
 
-class RoundSessionRetrieveApi(APIView, RoundSessionSelector):
-    class OutputSerializer(serializers.Serializer):
-        id = serializers.IntegerField()
-        avg_ms = serializers.IntegerField()
-        is_dnf = serializers.BooleanField()
-        is_finished = serializers.BooleanField()
-        created_at = serializers.DateTimeField()
-        updated_at = serializers.DateTimeField()
-
-        user = inline_serializer(fields={
-            'id': serializers.IntegerField(),
-            'username': serializers.CharField()  # add max_length
-        })
-        contest = inline_serializer(fields={
-            'id': serializers.IntegerField()
-        })
-        discipline = inline_serializer(fields={
-            'id': serializers.IntegerField()
-        }),
-        solve_set = inline_serializer(many=True, fields={
-            'id': serializers.IntegerField(),
-            'is_dnf': serializers.BooleanField(),
-            'submission_state': serializers.CharField(),
-            'extra_id': serializers.IntegerField(),
-        })
-
-    @extend_schema(
-        responses={200: OutputSerializer()},
-        parameters=[
-            OpenApiParameter(
-                name='contest_id',
-                location=OpenApiParameter.QUERY,
-                description='contest id',
-                required=True,
-                type=int,
-            ),
-            OpenApiParameter(
-                name='discipline_id',
-                location=OpenApiParameter.QUERY,
-                description='discipline id',
-                required=True,
-                type=int,
-            ),
-            OpenApiParameter(
-                name='user_id',
-                location=OpenApiParameter.PATH,
-                description='user_id',
-                required=True,
-                type=int,
-            ),
-        ]
-    )
-    def get(self, request, user_id):
-        round_session = self.retrieve_with_solves(user_id=user_id, params=request.query_params)
-        round_session_place = self.retrieve_place(user_id=user_id, params=request.query_params)
-        print(round_session)
-        print(round_session_place)
-        data = self.OutputSerializer(round_session).data
-        data['place'] = round_session_place
-        return Response(data=data)
-
-
-class RoundSessionProgresStateApi(APIView):
-    @extend_schema(
-        responses={200: {'json': 'data'}}
-    )
-    def get(self):
-        return Response(data={'json': 'data'})
+# class RoundSessionRetrieveApi(APIView, RoundSessionSelector):
+#     class OutputSerializer(serializers.Serializer):
+#         id = serializers.IntegerField()
+#         avg_ms = serializers.IntegerField()
+#         is_dnf = serializers.BooleanField()
+#         is_finished = serializers.BooleanField()
+#         created_at = serializers.DateTimeField()
+#         updated_at = serializers.DateTimeField()
+#
+#         user = inline_serializer(fields={
+#             'id': serializers.IntegerField(),
+#             'username': serializers.CharField()  # add max_length
+#         })
+#         contest = inline_serializer(fields={
+#             'id': serializers.IntegerField()
+#         })
+#         discipline = inline_serializer(fields={
+#             'id': serializers.IntegerField()
+#         }),
+#         solve_set = inline_serializer(many=True, fields={
+#             'id': serializers.IntegerField(),
+#             'is_dnf': serializers.BooleanField(),
+#             'submission_state': serializers.CharField(),
+#             'extra_id': serializers.IntegerField(),
+#         })
+#
+#     @extend_schema(
+#         responses={200: OutputSerializer()},
+#         parameters=[
+#             OpenApiParameter(
+#                 name='contest_id',
+#                 location=OpenApiParameter.QUERY,
+#                 description='contest id',
+#                 required=True,
+#                 type=int,
+#             ),
+#             OpenApiParameter(
+#                 name='discipline_id',
+#                 location=OpenApiParameter.QUERY,
+#                 description='discipline id',
+#                 required=True,
+#                 type=int,
+#             ),
+#             OpenApiParameter(
+#                 name='user_id',
+#                 location=OpenApiParameter.PATH,
+#                 description='user_id',
+#                 required=True,
+#                 type=int,
+#             ),
+#         ]
+#     )
+#     def get(self, request, user_id):
+#         round_session = self.retrieve_with_solves(user_id=user_id, params=request.query_params)
+#         round_session_place = self.retrieve_place(user_id=user_id, params=request.query_params)
+#         print(round_session)
+#         print(round_session_place)
+#         data = self.OutputSerializer(round_session).data
+#         data['place'] = round_session_place
+#         return Response(data=data)
+#
+#
+# class RoundSessionCurrentWithSolvesRetrieveApi(APIView, RoundSessionSelector):
+#     class OutputSerializer(serializers.Serializer):
+#         id = serializers.IntegerField()
+#         avg_ms = serializers.IntegerField()
+#         is_dnf = serializers.BooleanField()
+#         is_finished = serializers.BooleanField()
+#         created_at = serializers.DateTimeField()
+#         updated_at = serializers.DateTimeField()
+#
+#         user = inline_serializer(fields={
+#             'id': serializers.IntegerField(),
+#             'username': serializers.CharField()
+#         })
+#         contest = inline_serializer(fields={
+#             'id': serializers.IntegerField()
+#         })
+#         discipline = inline_serializer(fields={
+#             'id': serializers.IntegerField()
+#         }),
+#         solve_set = inline_serializer(many=True, fields={
+#             'id': serializers.IntegerField(),
+#             'is_dnf': serializers.BooleanField(),
+#             'submission_state': serializers.CharField(),
+#             'extra_id': serializers.IntegerField(),
+#         })
+#
+#         class Meta:
+#             ref_name = 'contests.NotFinishedRoundSessionWithSolvesSerializer'
+#
+#     @extend_schema(
+#         responses={200: OutputSerializer()},
+#         parameters=[
+#             OpenApiParameter(
+#                 name='contest_slug',
+#                 location=OpenApiParameter.QUERY,
+#                 description='contest slug',
+#                 required=True,
+#                 type=str,
+#             ),
+#             OpenApiParameter(
+#                 name='discipline_slug',
+#                 location=OpenApiParameter.QUERY,
+#                 description='discipline slug',
+#                 required=True,
+#                 type=str,
+#             )
+#         ]
+#     )
+#     def get(self, request):
+#         round_session = self.retrieve_current(params=request.query_params, user_id=request.user.id)
+#         data = self.OutputSerializer(round_session).data
+#         return Response(data=data)
 
 
 class ContestListApi(APIView, ContestSelector):
+    # lists all existing contests
     class Pagination(LimitOffsetPagination):
         default_limit = 5
 
@@ -337,6 +455,13 @@ class ContestListApi(APIView, ContestSelector):
                 description='offset',
                 required=False,
                 type=int,
+            ),
+            OpenApiParameter(
+                name='order_by',
+                location=OpenApiParameter.QUERY,
+                description='order by something',
+                type=str,
+                enum=('created_at', '-created_at')
             )
         ]
     )
@@ -352,3 +477,109 @@ class ContestListApi(APIView, ContestSelector):
             request=request,
             view=self,
         )
+
+
+class CurrentSolveApi(APIView, SolveSelector):
+    # Sends current scramble, all needed for solving information and solve if exists
+    class OutputSerializer(serializers.Serializer):
+        current_scramble = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'is_extra': serializers.BooleanField(),
+            'position': serializers.CharField(),
+            'moves': serializers.CharField()
+        })
+        info = inline_serializer(fields={
+            'can_change_to_extra': serializers.BooleanField(),
+        })
+        current_solve = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'is_dnf': serializers.BooleanField(),
+            'time_ms': serializers.IntegerField(),
+        })
+        
+    @extend_schema(
+        responses={200: OutputSerializer()},
+        parameters=[
+            OpenApiParameter(
+                name='discipline_slug',
+                location=OpenApiParameter.QUERY,
+                description='discipline slug',
+                required=True,
+                type=str
+            ),
+            OpenApiParameter(
+                name='contest_slug',
+                location=OpenApiParameter.QUERY,
+                description='contest slug',
+                required=True,
+                type=str
+            ),
+        ]
+    )
+    def get(self, request):
+        solve_selector = SolveSelector()
+        scramble_selector = ScrambleSelector()
+
+        current_solve = solve_selector.retrieve_current(
+            user_id=request.user.id,
+            contest_slug=request.query_params['contest_slug'],
+            discipline_slug=request.query_params['discipline_slug'],
+        )
+
+        current_scramble = scramble_selector.retrieve_current(
+            user_id=request.user.id,
+            contest_slug=request.query_params['contest_slug'],
+            discipline_slug=request.query_params['discipline_slug'],
+        )
+        can_change_to_extra = solve_selector.can_change_current_to_extra(
+            user_id=request.user.id,
+            contest_slug=request.query_params['contest_slug'],
+            discipline_slug=request.query_params['discipline_slug'],
+        )
+
+        info = {'can_change_to_extra': can_change_to_extra}
+        data_bunch = {'current_solve': current_solve, 'current_scramble': current_scramble, 'info': info}
+        data = self.OutputSerializer(data_bunch).data
+        return Response(data)
+
+
+class SubmittedSolvesApi(APIView):
+    # Api to send submitted solves of the ongoing contest
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        is_dnf = serializers.BooleanField()
+        scramble = inline_serializer(fields={
+            'id': serializers.IntegerField(),
+            'is_extra': serializers.BooleanField(),
+            'position': serializers.CharField(),
+            'scramble': serializers.CharField()
+        })
+
+    @extend_schema(
+        responses={200: OutputSerializer()},
+        parameters=[
+            OpenApiParameter(
+                name='discipline_slug',
+                location=OpenApiParameter.QUERY,
+                description='discipline slug',
+                required=True,
+                type=str
+            ),
+            OpenApiParameter(
+                name='contest_slug',
+                location=OpenApiParameter.QUERY,
+                description='contest slug',
+                required=False,
+                type=str
+            ),
+        ]
+    )
+    def get(self, request):
+        solve_selector = SolveSelector()
+        solve_set = solve_selector.onging_contest_submitted(
+            user_id=request.user.id,
+            contest_slug=request.query_params['contest_slug'],
+            discipline_slug=request.query_params['discipline_slug']
+        )
+        data = self.OutputSerializer(solve_set, many=True).data
+        return Response(data)

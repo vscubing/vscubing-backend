@@ -85,7 +85,7 @@ class SolveManager:
             except ObjectDoesNotExist:
                 round_session = RoundSessionModel(contest=contest, discipline=discipline, user=user)
                 round_session.save()
-            v = SolveValidator(scramble=current_scramble.scramble, reconstruction=self.reconstruction)
+            v = SolveValidator(scramble=current_scramble.moves, reconstruction=self.reconstruction)
             print(self.dnf)
             if self.dnf is True:
                 solve = SolveModel(contest=contest, scramble=current_scramble,
