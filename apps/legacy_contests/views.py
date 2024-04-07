@@ -114,7 +114,7 @@ class SolveContestView(APIView):
             solves_changed_to_extra = []
             submitted_solves = []
         if len(solves_changed_to_extra) >= 2:
-            can_change_to_extra = False
+            to_extra = False
         else:
             can_change_to_extra = True
         submitted_solves_serializer = SolveSerializer(submitted_solves, many=True,

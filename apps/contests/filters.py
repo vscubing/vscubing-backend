@@ -21,4 +21,8 @@ class RoundSessionFilter(django_filters.FilterSet):
 
 
 class ContestFilter(django_filters.FilterSet):
-    pass
+    order_by = django_filters.OrderingFilter(
+        fields=(
+            ('created_at', '-created_at')
+        )
+    )

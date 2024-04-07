@@ -25,14 +25,14 @@ class DisciplineModel(BaseModel):
 
 class ScrambleModel(BaseModel):
     position = models.CharField(max_length=10)
-    scramble = models.TextField(max_length=512)
+    moves = models.TextField(max_length=512)
     is_extra = models.BooleanField(default=False)
 
     contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='scramble_set')
     discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE, related_name='scramble_set')
 
     def __str__(self):
-        return self.scramble
+        return self.moves
 
 
 class RoundSessionModel(BaseModel):
