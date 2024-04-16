@@ -438,6 +438,9 @@ class ContestListApi(APIView, ContestSelector):
         id = serializers.IntegerField()
         name = serializers.CharField()
         slug = serializers.CharField()
+        start_date = serializers.DateTimeField()
+        end_date = serializers.DateTimeField()
+
 
     @extend_schema(
         responses={200: OutputSerializer()},
