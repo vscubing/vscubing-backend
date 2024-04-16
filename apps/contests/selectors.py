@@ -129,6 +129,10 @@ class SolveSelector:
 
 
 class ContestSelector:
+    def current_retrieve(self):
+        current_contest = ContestModel.objects.filter(is_ongoing=True).last()
+        return current_contest
+
     def list(self, filters=None):
         filters = filters or {}
 

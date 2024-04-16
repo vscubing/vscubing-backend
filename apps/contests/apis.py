@@ -583,3 +583,14 @@ class SubmittedSolvesApi(APIView):
         )
         data = self.OutputSerializer(solve_set, many=True).data
         return Response(data)
+
+
+class OngoingContestRetrieveApi(APIView):
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+
+    def get(self, request):
+        contest_selector = ContestSelector()
+        current_contest = contest_selector.current_retrieve()
+        data = self.OutputSerializer(current_contest).data
+        return Response(data)

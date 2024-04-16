@@ -1,6 +1,9 @@
-export SECRET_KEY = 'django-insecure-fNs9QGntegaPwMqYSAXLEUp7xBbFhJv6DH8ZrC4dVzmWy2k3jc'
+export SECRET_KEY = 'DJANGO SECRET KEY'
 export DEBUG = 1 # 1 == True, 0 == False
 export GOOGLE_REDIRECT_URL = 'http://127.0.0.1:3000'
-export ALLOWED_HOSTS = '["127.0.0.1", "127.0.0.1:8000", "0.0.0.0:8000", "192.168.1.7"]'
-
-
+export ALLOWED_HOSTS = '["127.0.0.1", "127.0.0.1:8000", "0.0.0.0:8000", "192.168.1.7", "admin.vscubing.com", "vscubing.com", "www.vscubing.com", "164.92.180.227"]'
+export CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Replace with your Redis URL
+export CELERY_RESULT_BACKEND = 'redis://localhost:6379'  # Replace with your Redis URL
+export RUN_MODE = "dev" # can be "prod" and "dev"
+export GOOGLE_CLIENT_ID = "YOUR CLIENT ID"
+export GOOGLE_SECRET_KEY = "YOUR KEY"
