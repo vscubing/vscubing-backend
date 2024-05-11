@@ -1,0 +1,3 @@
+- Output and pagination serializers
+
+1. Divide into two serializers, ResultsSerializer and OutputSerializer.

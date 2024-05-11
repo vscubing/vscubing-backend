@@ -7,7 +7,7 @@ from .apis import (
     SolveSubmitApi,
     SolveListBestInEveryDiscipline,
     SolveListBestOfEveryUser,
-    RoundSessionWithSolvesListApi,
+    ContestLeaderboardApi,
     # RoundSessionCurrentWithSolvesRetrieveApi,
     # RoundSessionRetrieveApi,
     ContestListApi,
@@ -22,7 +22,7 @@ solves_urlpatterns = [
     path('create/', SolveCreateApi.as_view(), name='create'),
     path('submit/<int:pk>/', SolveSubmitApi.as_view(), name='submit'),
     path('best-in-every-discipline/', SolveListBestInEveryDiscipline.as_view(), name='list-best-in-every-discipline'),
-    path('best-of-every-user/', SolveListBestOfEveryUser.as_view(), name='list-best-of-every-user'),
+    # path('best-of-every-user/', SolveListBestOfEveryUser.as_view(), name='list-best-of-every-user'),
 ]
 
 ongoing_contest_urlpatterns = [
@@ -33,14 +33,14 @@ ongoing_contest_urlpatterns = [
 
 contests_urlpatterns = [
     path('', ContestListApi.as_view(), name='list'),
+    path(
+        '<str:contest_slug>/leaderboard/',
+        ContestLeaderboardApi.as_view(),
+        name='leaderboard'
+    ),
 ]
 
 round_session_urlpatterns = [
-    path(
-        'with-solves/',
-        RoundSessionWithSolvesListApi.as_view(),
-        name='list-with-nested-solves'
-    ),
     # path(
     #     'with-solves/<int:user_id>/retrieve/',
     #     RoundSessionRetrieveApi.as_view(),

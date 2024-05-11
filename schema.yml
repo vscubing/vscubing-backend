@@ -9,13 +9,29 @@ paths:
       operationId: accounts_change_username_update
       tags:
       - accounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Input'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Input'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Input'
+        required: true
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
   /api/accounts/current-user/:
     get:
       operationId: accounts_current_user_retrieve
@@ -102,173 +118,149 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenRefresh'
           description: ''
-  /api/contests/contest/{contest_number}/discipline/{discipline}/:
+  /api/contests/contests/:
     get:
-      operationId: contests_contest_discipline_retrieve
+      operationId: contests_contests_retrieve
       parameters:
-      - in: path
-        name: contest_number
+      - in: query
+        name: limit
         schema:
           type: integer
-        required: true
-      - in: path
-        name: discipline
-        schema:
-          type: string
-        required: true
-      tags:
-      - legacy-contests
-      security:
-      - jwtHeaderAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          description: No response body
-  /api/contests/dashboard/:
-    get:
-      operationId: contests_dashboard_retrieve
-      tags:
-      - legacy-contests
-      security:
-      - jwtHeaderAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-  /api/contests/leaderboard/{discipline}/:
-    get:
-      operationId: contests_leaderboard_retrieve
-      parameters:
-      - in: path
-        name: discipline
-        schema:
-          type: string
-        required: true
-      tags:
-      - legacy-contests
-      security:
-      - jwtHeaderAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-  /api/contests/new-contest/:
-    post:
-      operationId: contests_new_contest_create
-      tags:
-      - legacy-contests
-      security:
-      - jwtHeaderAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-  /api/contests/ongoing-contest-number/:
-    get:
-      operationId: contests_ongoing_contest_number_retrieve
-      tags:
-      - legacy-contests
-      security:
-      - jwtHeaderAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-  /api/contests/round-session/:
-    delete:
-      operationId: contests_round_session_destroy
-      tags:
-      - legacy-contests
-      security:
-      - jwtHeaderAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '204':
-          description: No response body
-  /api/contests/solve/:
-    get:
-      operationId: contests_solve_retrieve
-      tags:
-      - legacy-contests
-      security:
-      - jwtHeaderAuth: []
-      - jwtCookieAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-  /api/contests/solve-contest/{contest_number}/discipline/{discipline}/:
-    get:
-      operationId: contests_solve_contest_discipline_retrieve
-      parameters:
-      - in: path
-        name: contest_number
+        description: count of contest to be returned
+      - in: query
+        name: offset
         schema:
           type: integer
-        required: true
-      - in: path
-        name: discipline
+        description: offset
+      - in: query
+        name: order_by
         schema:
           type: string
-        required: true
+          enum:
+          - -created_at
+          - created_at
+        description: order by something
       tags:
-      - legacy-contests
+      - contests
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []
+      - {}
       responses:
         '200':
-          description: No response body
-    post:
-      operationId: contests_solve_contest_discipline_create
-      parameters:
-      - in: path
-        name: contest_number
-        schema:
-          type: integer
-        required: true
-      - in: path
-        name: discipline
-        schema:
-          type: string
-        required: true
-      tags:
-      - legacy-contests
-      security:
-      - jwtHeaderAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          description: No response body
-    put:
-      operationId: contests_solve_contest_discipline_update
-      parameters:
-      - in: path
-        name: contest_number
-        schema:
-          type: integer
-        required: true
-      - in: path
-        name: discipline
-        schema:
-          type: string
-        required: true
-      tags:
-      - legacy-contests
-      security:
-      - jwtHeaderAuth: []
-      - jwtCookieAuth: []
-      responses:
-        '200':
-          description: No response body
-  /api/contests/solve-reconstruction/{id}/:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/contests.ContestListOutput'
+          description: ''
+  /api/contests/ongoing-contest/current-solve/:
     get:
-      operationId: contests_solve_reconstruction_retrieve
+      operationId: contests_ongoing_contest_current_solve_retrieve
+      parameters:
+      - in: query
+        name: contest_slug
+        schema:
+          type: string
+        description: contest slug
+        required: true
+      - in: query
+        name: discipline_slug
+        schema:
+          type: string
+        description: discipline slug
+        required: true
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Output'
+          description: ''
+  /api/contests/ongoing-contest/retrieve/:
+    get:
+      operationId: contests_ongoing_contest_retrieve_retrieve
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/contests/ongoing-contest/submitted-solves/:
+    get:
+      operationId: contests_ongoing_contest_submitted_solves_retrieve
+      parameters:
+      - in: query
+        name: contest_slug
+        schema:
+          type: string
+        description: contest slug
+      - in: query
+        name: discipline_slug
+        schema:
+          type: string
+        description: discipline slug
+        required: true
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Output'
+          description: ''
+  /api/contests/round-sessions/with-solves/:
+    get:
+      operationId: contests_round_sessions_with_solves_retrieve
+      parameters:
+      - in: query
+        name: contest_id
+        schema:
+          type: integer
+        description: contest id
+        required: true
+      - in: query
+        name: discipline_id
+        schema:
+          type: integer
+        description: discipline id
+        required: true
+      - in: query
+        name: order_by
+        schema:
+          type: string
+          enum:
+          - -avg_ms
+          - avg_ms
+        description: order by something
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/contests.RoundSessionWithSolvesListOutput'
+          description: ''
+  /api/contests/solves/{id}/retrieve/:
+    get:
+      operationId: contests_solves_retrieve_retrieve
       parameters:
       - in: path
         name: id
@@ -276,16 +268,160 @@ paths:
           type: integer
         required: true
       tags:
-      - legacy-contests
+      - contests
       security:
       - jwtHeaderAuth: []
       - jwtCookieAuth: []
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Output'
+          description: ''
+  /api/contests/solves/best-in-every-discipline/:
+    get:
+      operationId: contests_solves_best_in_every_discipline_retrieve
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/contests.SolveListBestInEveryDiscipline'
+          description: ''
+  /api/contests/solves/best-of-every-user/:
+    get:
+      operationId: contests_solves_best_of_every_user_retrieve
+      parameters:
+      - in: query
+        name: discipline
+        schema:
+          type: string
+        description: discipline_slug
+        required: true
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Output'
+          description: ''
+  /api/contests/solves/create/:
+    post:
+      operationId: contests_solves_create_create
+      parameters:
+      - in: query
+        name: contest_id
+        schema:
+          type: integer
+        description: contest id
+        required: true
+      - in: query
+        name: discipline_id
+        schema:
+          type: integer
+        description: discipline id
+        required: true
+      - in: query
+        name: scramble_id
+        schema:
+          type: integer
+        description: scramble id
+        required: true
+      tags:
+      - contests
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: {}
+              description: Unspecified request body
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              additionalProperties: {}
+              description: Unspecified request body
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: {}
+              description: Unspecified request body
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/contests.SolveCreateOutput'
+          description: ''
+  /api/contests/solves/submit/{id}/:
+    patch:
+      operationId: contests_solves_submit_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - contests
+      security:
+      - jwtHeaderAuth: []
+      - jwtCookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                json: data
+          description: ''
 components:
   schemas:
+    Input:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          pattern: ^[a-zA-Z0-9_]*$
+          maxLength: 20
+          minLength: 3
+      required:
+      - id
+      - username
+    Output:
+      type: object
+      properties:
+        current_scramble:
+          $ref: '#/components/schemas/inline_serializer'
+        info:
+          $ref: '#/components/schemas/inline_serializer'
+        current_solve:
+          $ref: '#/components/schemas/inline_serializer'
+      required:
+      - current_scramble
+      - current_solve
+      - info
     SocialLogin:
       type: object
       properties:
@@ -307,6 +443,143 @@ components:
       required:
       - access
       - refresh
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          pattern: ^[a-zA-Z0-9_]*$
+          maxLength: 20
+          minLength: 3
+      required:
+      - id
+      - username
+    contests.ContestListOutput:
+      type: object
+      properties:
+        limit:
+          type: integer
+        offset:
+          type: integer
+        count:
+          type: integer
+        next:
+          type: string
+        previous:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_serializer'
+      required:
+      - count
+      - limit
+      - next
+      - offset
+      - previous
+      - results
+    contests.RoundSessionWithSolvesListOutput:
+      type: object
+      properties:
+        id:
+          type: integer
+        avg_ms:
+          type: integer
+        is_dnf:
+          type: boolean
+        is_finished:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        user:
+          $ref: '#/components/schemas/inline_serializer'
+        contest:
+          $ref: '#/components/schemas/inline_serializer'
+        solve_set:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_serializer'
+      required:
+      - avg_ms
+      - contest
+      - created_at
+      - id
+      - is_dnf
+      - is_finished
+      - solve_set
+      - updated_at
+      - user
+    contests.SolveCreateOutput:
+      type: object
+      properties:
+        id:
+          type: integer
+        time_ms:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        scramble:
+          $ref: '#/components/schemas/inline_serializer'
+      required:
+      - created_at
+      - id
+      - scramble
+      - time_ms
+    contests.SolveListBestInEveryDiscipline:
+      type: object
+      properties:
+        id:
+          type: integer
+        time_ms:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        user:
+          $ref: '#/components/schemas/inline_serializer'
+        scramble:
+          $ref: '#/components/schemas/inline_serializer'
+        contest:
+          $ref: '#/components/schemas/inline_serializer'
+        discipline:
+          $ref: '#/components/schemas/inline_serializer'
+      required:
+      - contest
+      - created_at
+      - discipline
+      - id
+      - scramble
+      - time_ms
+      - user
+    inline_serializer:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+      required:
+      - end_date
+      - id
+      - name
+      - slug
+      - start_date
   securitySchemes:
     jwtCookieAuth:
       type: apiKey

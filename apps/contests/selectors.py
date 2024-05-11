@@ -17,10 +17,17 @@ from .filters import (
 
 class RoundSessionSelector:
 
-    def list_with_solves(self, filters=None):
+    def list_contest_leaderboard(self, contest_slug, filters=None):
         filters = filters or {}
         # TODO add prefetch_related & select_related
         round_session_set = RoundSessionModel.objects.all()
+
+        return RoundSessionFilter(filters, round_session_set).qs
+
+    def contest_leaderboard(self, contest_slug, filters=None):
+        filters = filters or {}
+        # TODO add prefetch_related & select_related
+        round_session_set = RoundSessionModel.objects.filter(contest__slug=contest_slug)
 
         return RoundSessionFilter(filters, round_session_set).qs
 

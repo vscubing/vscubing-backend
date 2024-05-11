@@ -1,6 +1,7 @@
 from os import getenv
 
 from rest_framework.views import APIView, Response
+from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
@@ -8,6 +9,9 @@ from dj_rest_auth.registration.views import SocialLoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import RedirectView
 from rest_framework.exceptions import APIException
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from django.core.validators import RegexValidator
+from rest_framework.validators import UniqueValidator
 
 from .serializers import UserSerializer
 from .models import User
@@ -40,6 +44,27 @@ class CurrentUserView(APIView):
 
 
 class ChangeUsernameView(APIView):
+    class InputSerializer(serializers.ModelSerializer):
+        username = serializers.CharField(
+            max_length=20,
+            min_length=3,
+            validators=[RegexValidator(
+                regex='^[a-zA-Z0-9_]*$',
+                message='Username must be alphanumeric',
+                code='invalid_username'
+            ), UniqueValidator(queryset=User.objects.all())]
+        )
+
+        ref_name = 'accounts.ChangeUsernameInputSerializer'
+
+        class Meta:
+            model = User
+            fields = ['id', 'username']
+
+    @extend_schema(
+        responses={200: UserSerializer},
+        request=InputSerializer,
+    )
     def put(self, request):
         user = User.objects.get(id=request.user.id)
         if request.user == user and not request.user.is_verified:

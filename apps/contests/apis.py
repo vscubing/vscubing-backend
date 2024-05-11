@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView, Response
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from rest_framework import serializers
@@ -8,6 +9,7 @@ from apps.core.utils import inline_serializer
 from .paginators import (
     LimitOffsetPagination,
     get_paginated_response,
+    get_paginated_data,
 )
 from .selectors import (
     RoundSessionSelector,
@@ -69,24 +71,27 @@ class SolveListBestInEveryDiscipline(APIView, SolveSelector):
         id = serializers.IntegerField()
         time_ms = serializers.IntegerField()
         created_at = serializers.DateTimeField()
-        user = inline_serializer(fields={
+        user = inline_serializer(name="contests.SolveListBestInEveryDisciplineUserSerializer", fields={
             'id': serializers.IntegerField(),
             'username': serializers.CharField(),
         })
-        scramble = inline_serializer(fields={
+        scramble = inline_serializer(name="contests.SolveListBestInEveryDisciplineScrambleSerializer", fields={
             'id': serializers.IntegerField(),
             'moves': serializers.CharField()
         })
-        contest = inline_serializer(fields={
+        contest = inline_serializer(name="contests.SolveListBestInEveryDisciplineContestSerializer", fields={
             'id': serializers.IntegerField(),
             'name': serializers.CharField(),
             'slug': serializers.CharField(),
         })
-        discipline = inline_serializer(fields={
+        discipline = inline_serializer(name="contests.SolveListBestInEveryDisciplineDisciplineSerializer", fields={
             'id': serializers.IntegerField(),
             'name': serializers.CharField(),
-            'slug': serializers.CharField(),
+            'slug': serializers.CharField()
         })
+
+        class Meta:
+            ref_name = 'contests.SolveListBestInEveryDisciplineSerializer'
 
     @extend_schema(
         responses={200: OutputSerializer}
@@ -233,40 +238,48 @@ class SolveSubmitApi(APIView):
         return Response(data={'json': 'data'})
 
 
-class RoundSessionWithSolvesListApi(APIView, RoundSessionSelector):
+class ContestLeaderboardApi(APIView, RoundSessionSelector):
     # Api for contest dashboard to display finished round_sessions
     class Pagination(LimitOffsetPagination):
         default_limit = 10
 
     class FilterSerializer(serializers.Serializer):
-        contest_id = serializers.IntegerField()
-        discipline_id = serializers.IntegerField()
-        order_by = serializers.CharField()
+        discipline_slug = serializers.CharField()
+        order_by = serializers.CharField(required=False)
 
     class OutputSerializer(serializers.Serializer):
-        id = serializers.IntegerField()
-        avg_ms = serializers.IntegerField()
-        is_dnf = serializers.BooleanField()
-        is_finished = serializers.BooleanField()
-        created_at = serializers.DateTimeField()
-        updated_at = serializers.DateTimeField()
-
-        user = inline_serializer(fields={
+        limit = serializers.IntegerField()
+        offset = serializers.IntegerField()
+        count = serializers.IntegerField()
+        next = serializers.CharField()
+        previous = serializers.CharField()
+        results = inline_serializer(name='contests.RoundSessionWithSolvesListResultOutputSerializer', many=True, fields={
             'id': serializers.IntegerField(),
-            'username': serializers.CharField()
-        })
-        contest = inline_serializer(fields={
-            'id': serializers.IntegerField()
-        })
-        discipline = inline_serializer(fields={
-            'id': serializers.IntegerField()
-        }),
-        solve_set = inline_serializer(many=True, fields={
-            'id': serializers.IntegerField(),
+            'avg_ms': serializers.IntegerField(),
             'is_dnf': serializers.BooleanField(),
-            'submission_state': serializers.CharField(),
-            'extra_id': serializers.IntegerField(),
-        })
+            'is_finished': serializers.BooleanField(),
+            'created_at': serializers.DateTimeField(),
+            'updated_at': serializers.DateTimeField(),
+
+            'user': inline_serializer(name='contests.RoundSessionWithSolvesListUserOutputSerializer', fields={
+                'id': serializers.IntegerField(),
+                'username': serializers.CharField(),
+            }),
+
+            'contest': inline_serializer(name='contests.RoundSessionWithSolvesListContestOutputSerializer', fields={
+                'id': serializers.IntegerField(),
+            }),
+
+            'discipline': inline_serializer(name='contests.RoundSessionWithSolvesListDisciplineOutputSerializer', fields={
+                'id': serializers.IntegerField(),
+            }),
+
+            'solve_set': inline_serializer(name='contests.RoundSessionWithSolvesListSolveSetOutputSerializer', many=True, fields={
+                'id': serializers.IntegerField(),
+                'is_dnf': serializers.BooleanField(),
+                'submission_state': serializers.CharField(),
+                'extra_id': serializers.IntegerField(),
+            })})
 
         class Meta:
             ref_name = 'contests.RoundSessionWithSolvesListOutputSerializer'
@@ -275,18 +288,11 @@ class RoundSessionWithSolvesListApi(APIView, RoundSessionSelector):
         responses={200: OutputSerializer()},
         parameters=[
             OpenApiParameter(
-                name='contest_id',
+                name='discipline_slug',
                 location=OpenApiParameter.QUERY,
-                description='contest id',
+                description='discipline slug',
                 required=True,
-                type=int,
-            ),
-            OpenApiParameter(
-                name='discipline_id',
-                location=OpenApiParameter.QUERY,
-                description='discipline id',
-                required=True,
-                type=int,
+                type=str,
             ),
             OpenApiParameter(
                 name='order_by',
@@ -297,133 +303,19 @@ class RoundSessionWithSolvesListApi(APIView, RoundSessionSelector):
             )
         ]
     )
-    def get(self, request):
+    def get(self, request, contest_slug):
         filters_serializer = self.FilterSerializer(data=request.query_params)
         filters_serializer.is_valid(raise_exception=True)
-        round_session_set = self.list_with_solves(filters=filters_serializer.validated_data)
-        return get_paginated_response(
+        round_session_set = self.contest_leaderboard(contest_slug, filters=filters_serializer.validated_data)
+        data = get_paginated_data(
             pagination_class=self.Pagination,
-            serializer_class=self.OutputSerializer,
             queryset=round_session_set,
             request=request,
             view=self
         )
+        data = self.OutputSerializer(data).data
 
-
-# class RoundSessionRetrieveApi(APIView, RoundSessionSelector):
-#     class OutputSerializer(serializers.Serializer):
-#         id = serializers.IntegerField()
-#         avg_ms = serializers.IntegerField()
-#         is_dnf = serializers.BooleanField()
-#         is_finished = serializers.BooleanField()
-#         created_at = serializers.DateTimeField()
-#         updated_at = serializers.DateTimeField()
-#
-#         user = inline_serializer(fields={
-#             'id': serializers.IntegerField(),
-#             'username': serializers.CharField()  # add max_length
-#         })
-#         contest = inline_serializer(fields={
-#             'id': serializers.IntegerField()
-#         })
-#         discipline = inline_serializer(fields={
-#             'id': serializers.IntegerField()
-#         }),
-#         solve_set = inline_serializer(many=True, fields={
-#             'id': serializers.IntegerField(),
-#             'is_dnf': serializers.BooleanField(),
-#             'submission_state': serializers.CharField(),
-#             'extra_id': serializers.IntegerField(),
-#         })
-#
-#     @extend_schema(
-#         responses={200: OutputSerializer()},
-#         parameters=[
-#             OpenApiParameter(
-#                 name='contest_id',
-#                 location=OpenApiParameter.QUERY,
-#                 description='contest id',
-#                 required=True,
-#                 type=int,
-#             ),
-#             OpenApiParameter(
-#                 name='discipline_id',
-#                 location=OpenApiParameter.QUERY,
-#                 description='discipline id',
-#                 required=True,
-#                 type=int,
-#             ),
-#             OpenApiParameter(
-#                 name='user_id',
-#                 location=OpenApiParameter.PATH,
-#                 description='user_id',
-#                 required=True,
-#                 type=int,
-#             ),
-#         ]
-#     )
-#     def get(self, request, user_id):
-#         round_session = self.retrieve_with_solves(user_id=user_id, params=request.query_params)
-#         round_session_place = self.retrieve_place(user_id=user_id, params=request.query_params)
-#         print(round_session)
-#         print(round_session_place)
-#         data = self.OutputSerializer(round_session).data
-#         data['place'] = round_session_place
-#         return Response(data=data)
-#
-#
-# class RoundSessionCurrentWithSolvesRetrieveApi(APIView, RoundSessionSelector):
-#     class OutputSerializer(serializers.Serializer):
-#         id = serializers.IntegerField()
-#         avg_ms = serializers.IntegerField()
-#         is_dnf = serializers.BooleanField()
-#         is_finished = serializers.BooleanField()
-#         created_at = serializers.DateTimeField()
-#         updated_at = serializers.DateTimeField()
-#
-#         user = inline_serializer(fields={
-#             'id': serializers.IntegerField(),
-#             'username': serializers.CharField()
-#         })
-#         contest = inline_serializer(fields={
-#             'id': serializers.IntegerField()
-#         })
-#         discipline = inline_serializer(fields={
-#             'id': serializers.IntegerField()
-#         }),
-#         solve_set = inline_serializer(many=True, fields={
-#             'id': serializers.IntegerField(),
-#             'is_dnf': serializers.BooleanField(),
-#             'submission_state': serializers.CharField(),
-#             'extra_id': serializers.IntegerField(),
-#         })
-#
-#         class Meta:
-#             ref_name = 'contests.NotFinishedRoundSessionWithSolvesSerializer'
-#
-#     @extend_schema(
-#         responses={200: OutputSerializer()},
-#         parameters=[
-#             OpenApiParameter(
-#                 name='contest_slug',
-#                 location=OpenApiParameter.QUERY,
-#                 description='contest slug',
-#                 required=True,
-#                 type=str,
-#             ),
-#             OpenApiParameter(
-#                 name='discipline_slug',
-#                 location=OpenApiParameter.QUERY,
-#                 description='discipline slug',
-#                 required=True,
-#                 type=str,
-#             )
-#         ]
-#     )
-#     def get(self, request):
-#         round_session = self.retrieve_current(params=request.query_params, user_id=request.user.id)
-#         data = self.OutputSerializer(round_session).data
-#         return Response(data=data)
+        return Response(data)
 
 
 class ContestListApi(APIView, ContestSelector):
@@ -435,12 +327,21 @@ class ContestListApi(APIView, ContestSelector):
         order_by = serializers.CharField(required=False)
 
     class OutputSerializer(serializers.Serializer):
-        id = serializers.IntegerField()
-        name = serializers.CharField()
-        slug = serializers.CharField()
-        start_date = serializers.DateTimeField()
-        end_date = serializers.DateTimeField()
+        limit = serializers.IntegerField()
+        offset = serializers.IntegerField()
+        count = serializers.IntegerField()
+        next = serializers.CharField()
+        previous = serializers.CharField()
+        results = inline_serializer(name='contests.ContestListResultsOutputSerializer', many=True, fields={
+            'id': serializers.IntegerField(),
+            'name': serializers.CharField(),
+            'slug': serializers.CharField(),
+            'start_date': serializers.DateTimeField(),
+            'end_date': serializers.DateTimeField(),
+        })
 
+        class Meta:
+            ref_name = 'contests.ContestListOutputSerializer'
 
     @extend_schema(
         responses={200: OutputSerializer()},
@@ -472,18 +373,39 @@ class ContestListApi(APIView, ContestSelector):
         filter_serializers = self.FilterSerializer(data=request.query_params)
         filter_serializers.is_valid(raise_exception=True)
         contest_set = self.list(filters=filter_serializers.validated_data)
-
-        return get_paginated_response(
+        data = get_paginated_data(
             pagination_class=self.Pagination,
-            serializer_class=self.OutputSerializer,
             queryset=contest_set,
             request=request,
             view=self,
         )
+        
+        data = self.OutputSerializer(data).data
+        return Response(data)
+
+
+class OngoingContestRetrieveApi(APIView):
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        slug = serializers.CharField()
+
+        class Meta:
+            ref_name = 'OngoingContestRetrieveSerializer'
+
+    @extend_schema(
+        responses={200: OutputSerializer()}
+    )
+    def get(self, request):
+        contest_selector = ContestSelector()
+        current_contest = contest_selector.current_retrieve()
+        data = self.OutputSerializer(current_contest).data
+        return Response(data)
 
 
 class CurrentSolveApi(APIView, SolveSelector):
     # Sends current scramble, all needed for solving information and solve if exists
+    permission_classes = [IsAuthenticated]
+
     class OutputSerializer(serializers.Serializer):
         current_scramble = inline_serializer(fields={
             'id': serializers.IntegerField(),
@@ -520,6 +442,7 @@ class CurrentSolveApi(APIView, SolveSelector):
         ]
     )
     def get(self, request):
+
         solve_selector = SolveSelector()
         scramble_selector = ScrambleSelector()
 
@@ -587,13 +510,3 @@ class SubmittedSolvesApi(APIView):
         data = self.OutputSerializer(solve_set, many=True).data
         return Response(data)
 
-
-class OngoingContestRetrieveApi(APIView):
-    class OutputSerializer(serializers.Serializer):
-        id = serializers.IntegerField()
-
-    def get(self, request):
-        contest_selector = ContestSelector()
-        current_contest = contest_selector.current_retrieve()
-        data = self.OutputSerializer(current_contest).data
-        return Response(data)
