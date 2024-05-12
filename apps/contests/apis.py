@@ -41,21 +41,24 @@ class SolveRetrieveApi(APIView, SolveSelector):
         submission_state = serializers.CharField()
         reconstruction = serializers.CharField()
 
-        scramble = inline_serializer(fields={
+        scramble = inline_serializer(name='contests.SolveRetrieveScrambleSerializer', fields={
             'id': serializers.IntegerField()
         })
-        user = inline_serializer(fields={
+        user = inline_serializer(name='contests.SolveRetrieveUserSerializer', fields={
             'id': serializers.IntegerField()
         })
-        discipline = inline_serializer(fields={
+        discipline = inline_serializer(name='contests.SolveRetrieveDisciplineSerializer', fields={
             'id': serializers.IntegerField()
         })
-        round_session = inline_serializer(fields={
+        round_session = inline_serializer(name='contests.SolveRetrieveRoundSessionSerializer', fields={
             'id': serializers.IntegerField()
         })
-        contest = inline_serializer(fields={
+        contest = inline_serializer(name='contests.SolveRetrieveContestSerializer', fields={
             'id': serializers.IntegerField()
         })
+
+        class Meta:
+            ref_name = 'contests.SolveRetrieveOutputSerializer'
 
     @extend_schema(
         responses={200: OutputSerializer}
