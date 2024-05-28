@@ -14,7 +14,8 @@ from apps.contests.models import (
     SolveModel,
     DisciplineModel,
     ScrambleModel,
-    RoundSessionModel
+    RoundSessionModel,
+    SingleResultLeaderboardModel
 )
 from apps.accounts.models import User
 from config import SOLVE_SUBMITTED_STATE
@@ -35,10 +36,10 @@ class Command(BaseCommand):
         self.users()
         self.superuser()
         self.google_client()
-
         self.disciplines()
         for i in range(CONTEST_QTY):
             self.contest_scrambles_sessions_solves()
+        self.single_solve_leaderboard()
 
     def users(self):
         for user in range(USERS_QTY):
@@ -51,20 +52,25 @@ class Command(BaseCommand):
             )
 
     def superuser(self):
-        user = User.objects.create(
+        user, created = User.objects.get_or_create(
             username='1',
             email='1@gmail.com',
-            is_superuser=True,
-            is_verified=True,
-            is_active=True,
-            is_staff=True,
+            defaults={
+                'is_superuser': True,
+                'is_verified': True,
+                'is_active': True,
+                'is_staff': True,
+            }
         )
-        user.set_password('1')
-        user.save()
+
+        if created:
+            user.set_password('1')
+            user.save()
+
+
 
     @atomic
     def google_client(self):
-        print(SocialApp._meta.get_fields())
         social_app = SocialApp.objects.create(
             provider='google',
             name='google_client',
@@ -164,3 +170,13 @@ class Command(BaseCommand):
                 round_session.avg_ms = sum_ms / 3
                 round_session.submitted = True
                 round_session.save()
+
+    def single_solve_leaderboard(self):
+        users = User.objects.all()
+        for user in users:
+            best_solve = SolveModel.objects.filter(user=user).order_by('time_ms').first()
+            print(best_solve)
+            if best_solve:
+                leaderboard_result = SingleResultLeaderboardModel.objects.get_or_create(solve=best_solve)
+            else:
+                print('shit')
