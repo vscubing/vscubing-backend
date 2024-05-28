@@ -6,6 +6,7 @@ from .apis import (
     SolveCreateApi,
     SolveSubmitApi,
     SolveListBestInEveryDiscipline,
+    SingleResultLeaderboardApi,
     SolveListBestOfEveryUser,
     ContestLeaderboardApi,
     # RoundSessionCurrentWithSolvesRetrieveApi,
@@ -19,6 +20,7 @@ from .apis import (
 solves_urlpatterns = [
     # path('', SolveListApi.as_view(), name='list'),
     path('<int:pk>/retrieve/', SolveRetrieveApi.as_view(), name='retrieve'),
+    path('single-result-leaderboard', SingleResultLeaderboardApi.as_view(), name='list')
     # path('create/', SolveCreateApi.as_view(), name='create'),
     # path('submit/<int:pk>/', SolveSubmitApi.as_view(), name='submit'),
     # path('best-in-every-discipline/', SolveListBestInEveryDiscipline.as_view(), name='list-best-in-every-discipline'),

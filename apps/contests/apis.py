@@ -16,6 +16,7 @@ from .selectors import (
     ContestSelector,
     SolveSelector,
     ScrambleSelector,
+    SingleResultLeaderboardSelector
 )
 from .services import (
     SolveService,
@@ -513,3 +514,75 @@ class SubmittedSolvesApi(APIView):
         data = self.OutputSerializer(solve_set, many=True).data
         return Response(data)
 
+
+class SingleResultLeaderboardApi(APIView):
+    class Pagination(LimitOffsetPagination):
+        default_limit = 10
+
+    class OutputSerializer(serializers.Serializer):
+        limit = serializers.IntegerField()
+        offset = serializers.IntegerField()
+        count = serializers.IntegerField()
+        next = serializers.CharField()
+        previous = serializers.CharField()
+        results = inline_serializer(name='contests.SingleResultLeaderboardResultsOutputSerializer', many=True, fields={
+            'solve': inline_serializer(fields={
+                'id': serializers.IntegerField(),
+                'time_ms': serializers.IntegerField(),
+                'is_dnf': serializers.BooleanField(),
+                'submission_state': serializers.CharField(),
+                'reconstruction': serializers.CharField(),
+
+                'scramble': inline_serializer(name='contests.SingleResultLeaderboardResultsScrambleOutputSerializer', fields={
+                    'id': serializers.IntegerField()
+                }),
+                'user': inline_serializer(name='contests.SingleResultLeaderboardResultsUserOutputSerializer', fields={
+                    'id': serializers.IntegerField(),
+                    'username': serializers.CharField(),
+                }),
+                'discipline': inline_serializer(name='contests.SingleResultLeaderboardResultsDisciplineOutputSerializer', fields={
+                    'id': serializers.IntegerField(),
+                    'slug': serializers.CharField()
+                }),
+                'round_session': inline_serializer(name='contests.SingleResultLeaderboardResultsRoundSessionOutputSerializer', fields={
+                    'id': serializers.IntegerField()
+                }),
+                'contest': inline_serializer(name='contests.SingleResultLeaderboardResultsContestOutputSerializer', fields={
+                    'id': serializers.IntegerField()
+                }),
+            })
+        })
+
+        class Meta:
+            ref_name = 'contests.SingleResultLeaderboardOutputSerializer'
+
+    @extend_schema(
+        responses={200: OutputSerializer()},
+        parameters=[
+            OpenApiParameter(
+                name='limit',
+                location=OpenApiParameter.QUERY,
+                description='count of contest to be returned',
+                required=False,
+                type=int,
+            ),
+            OpenApiParameter(
+                name='offset',
+                location=OpenApiParameter.QUERY,
+                description='offset',
+                required=False,
+                type=int,
+            )
+        ]
+    )
+    def get(self, request):
+        leaderboard_selector = SingleResultLeaderboardSelector()
+        solve_set = leaderboard_selector.list()
+        data = get_paginated_data(
+            pagination_class=self.Pagination,
+            queryset=solve_set,
+            request=request,
+            view=self,
+        )
+        data = self.OutputSerializer(data).data
+        return Response(data)

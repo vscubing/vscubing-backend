@@ -69,3 +69,7 @@ class SolveModel(BaseModel):
 
     def __str__(self):
         return f"{self.time_ms}"
+
+
+class SingleResultLeaderboardModel(models.Model):
+    solve = models.OneToOneField(SolveModel, on_delete=models.CASCADE)

@@ -8,6 +8,7 @@ from .models import (
     ContestModel,
     DisciplineModel,
     ScrambleModel,
+    SingleResultLeaderboardModel
 )
 from .filters import (
     RoundSessionFilter,
@@ -173,3 +174,9 @@ class ScrambleSelector:
 
             elif solve.submission_state == SOLVE_PENDING_STATE:
                 return scramble
+
+
+class SingleResultLeaderboardSelector:
+    def list(self):
+        solve_set = SingleResultLeaderboardModel.objects.all()
+        return solve_set
