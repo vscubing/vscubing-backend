@@ -20,6 +20,7 @@ GOOGLE_REDIRECT_URL = getenv('GOOGLE_REDIRECT_URL')
 
 
 class GoogleLoginView(SocialLoginView):
+
     adapter_class = GoogleOAuth2Adapter
     callback_url = GOOGLE_REDIRECT_URL
     client_class = OAuth2Client
@@ -39,8 +40,21 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
 
+    class OutputSerializer(serializers.Serializer):
+        username = serializers.CharField()
+        auth_completed = serializers.CharField()
+
+        class Meta:
+            ref_name = 'accounts.CurrentUserOutputSerializer'
+
+    @extend_schema(
+        responses={200: UserSerializer},
+        request=OutputSerializer,
+    )
     def get(self, request):
-        return Response({'username': request.user.username, 'auth_completed': request.user.is_verified})
+        data = {'username': request.user.username, 'auth_completed': request.user.is_verified}
+        data = self.OutputSerializer(data).data
+        return Response(data)
 
 
 class ChangeUsernameView(APIView):
@@ -55,10 +69,9 @@ class ChangeUsernameView(APIView):
             ), UniqueValidator(queryset=User.objects.all())]
         )
 
-        ref_name = 'accounts.ChangeUsernameInputSerializer'
-
         class Meta:
             model = User
+            ref_name = 'accounts.ChangeUsernameInputSerializer'
             fields = ['id', 'username']
 
     @extend_schema(
