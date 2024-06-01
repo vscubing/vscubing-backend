@@ -24,15 +24,6 @@ from .services import (
 )
 
 
-class SolveListApi(APIView):
-    # TODO find out what this should do, and if we need it
-    @extend_schema(
-        responses={200: {'json': 'data'}}
-    )
-    def get(self, request):
-        pass
-
-
 class SolveRetrieveApi(APIView, SolveSelector):
     # Should be a class for retrieving solve by pk
     class OutputSerializer(serializers.Serializer):
@@ -104,65 +95,6 @@ class SolveListBestInEveryDiscipline(APIView, SolveSelector):
         solve_set = self.list_best_in_every_discipline()
         data = self.OutputSerializer(solve_set, many=True).data
         return Response(data=data)
-
-
-@extend_schema(
-    responses={200: {'json': 'data'}}
-)
-class SolveListBestOfEveryUser(APIView, SolveSelector):
-    # TODO should be rebuild with separate leaderboard model, or with good O time. Sends current users' res separately
-    class Pagination(LimitOffsetPagination):
-        default_limit = 10
-
-    class FilterSerializer(serializers.Serializer):
-        discipline = serializers.CharField()
-
-    class OutputSerializer(serializers.Serializer):
-        id = serializers.IntegerField()
-        time_ms = serializers.IntegerField()
-        created_at = serializers.DateTimeField()
-        user = inline_serializer(fields={
-            'id': serializers.IntegerField(),
-            'username': serializers.CharField(),
-        })
-        scramble = inline_serializer(fields={
-            'id': serializers.IntegerField(),
-            'moves': serializers.CharField()
-        })
-        contest = inline_serializer(fields={
-            'id': serializers.IntegerField(),
-            'name': serializers.CharField(),
-            'slug': serializers.CharField(),
-        })
-        discipline = inline_serializer(fields={
-            'id': serializers.IntegerField(),
-            'name': serializers.CharField(),
-            'slug': serializers.CharField(),
-        })
-
-    @extend_schema(
-        responses={200: OutputSerializer},
-        parameters=[
-            OpenApiParameter(
-                name='discipline',
-                location=OpenApiParameter.QUERY,
-                description='discipline_slug',
-                required=True,
-                type=str,
-            ),
-        ]
-    )
-    def get(self, request):
-        filters_serializer = self.FilterSerializer(data=request.query_params)
-        filters_serializer.is_valid(raise_exception=True)
-        solve_set = self.list_best_of_every_user(params=request.query_params)
-        return get_paginated_response(
-            pagination_class=self.Pagination,
-            serializer_class=self.OutputSerializer,
-            queryset=solve_set,
-            request=request,
-            view=self
-        )
 
 
 class SolveCurrentRetrieveApi(APIView):

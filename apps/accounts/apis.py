@@ -1,6 +1,6 @@
 from os import getenv
 
-from rest_framework.views import APIView, Response
+from rest_framework.views import APIView, Response, status
 from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
@@ -16,11 +16,12 @@ from rest_framework.validators import UniqueValidator
 from .serializers import UserSerializer
 from .models import User
 from apps.core.utils import inline_serializer
+from .services import UserService
 
 GOOGLE_REDIRECT_URL = getenv('GOOGLE_REDIRECT_URL')
 
 
-class GoogleLoginView(SocialLoginView):
+class GoogleLoginApi(SocialLoginView):
     class OutputSerializer(serializers.Serializer):
         access = serializers.CharField()
         refresh = serializers.CharField()
@@ -57,7 +58,7 @@ class GoogleLoginView(SocialLoginView):
         return result
 
 
-class UserRedirectView(LoginRequiredMixin, RedirectView):
+class UserRedirectApi(LoginRequiredMixin, RedirectView):
     """
     This view is needed by the dj-rest-auth-library in order to work the google login. It's a bug.
     """
@@ -68,19 +69,18 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
         return GOOGLE_REDIRECT_URL
 
 
-class CurrentUserView(APIView):
+class CurrentUserApi(APIView):
     permission_classes = [IsAuthenticated]
 
     class OutputSerializer(serializers.Serializer):
         username = serializers.CharField()
-        auth_completed = serializers.CharField()
+        auth_completed = serializers.BooleanField()
 
         class Meta:
             ref_name = 'accounts.CurrentUserOutputSerializer'
 
     @extend_schema(
-        responses={200: UserSerializer},
-        request=OutputSerializer,
+        responses={200: OutputSerializer()},
     )
     def get(self, request):
         data = {'username': request.user.username, 'auth_completed': request.user.is_verified}
@@ -88,8 +88,8 @@ class CurrentUserView(APIView):
         return Response(data)
 
 
-class ChangeUsernameView(APIView):
-    class InputSerializer(serializers.ModelSerializer):
+class ChangeUsernameApi(APIView):
+    class ChangeUsernameInputSerializer(serializers.Serializer):
         username = serializers.CharField(
             max_length=20,
             min_length=3,
@@ -101,23 +101,15 @@ class ChangeUsernameView(APIView):
         )
 
         class Meta:
-            model = User
             ref_name = 'accounts.ChangeUsernameInputSerializer'
-            fields = ['id', 'username']
 
     @extend_schema(
-        responses={200: UserSerializer},
-        request=InputSerializer,
+        request=ChangeUsernameInputSerializer(),
     )
     def put(self, request):
-        user = User.objects.get(id=request.user.id)
-        if request.user == user and not request.user.is_verified:
-            user = UserSerializer(user, data=request.data)
-            user.is_valid(raise_exception=True)
-            user.save()
-            return Response(user.data)
+        service = UserService()
+        serializer = self.ChangeUsernameInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        else:
-            APIException.default_detail = 'you dont have permission'
-            APIException.status_code = 403
-            raise APIException
+        user = service.change_username(**serializer.validated_data, user_id=request.user.id)
+        return Response(status=status.HTTP_200_OK)
