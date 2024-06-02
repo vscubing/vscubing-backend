@@ -22,6 +22,12 @@ GOOGLE_REDIRECT_URL = getenv('GOOGLE_REDIRECT_URL')
 
 
 class GoogleLoginApi(SocialLoginView):
+    class InputSerializer(serializers.Serializer):
+        code = serializers.CharField()
+
+        class Meta:
+            ref_name = 'accounts.GoogleLoginInputSerializer'
+
     class OutputSerializer(serializers.Serializer):
         access = serializers.CharField()
         refresh = serializers.CharField()
@@ -39,22 +45,10 @@ class GoogleLoginApi(SocialLoginView):
 
     @extend_schema(
         responses={200: OutputSerializer},
-        parameters=[
-            OpenApiParameter(
-                name='code',
-                location=OpenApiParameter.QUERY,
-                description='code',
-                required=True,
-                type=str
-            ),
-        ]
+        request=InputSerializer
     )
     def post(self, request, *args, **kwargs):
-        # Call the post method of the parent class
         result = super().post(request, *args, **kwargs)
-
-        # Add your custom logic here if needed
-
         return result
 
 
