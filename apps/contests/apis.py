@@ -89,7 +89,7 @@ class SolveListBestInEveryDiscipline(APIView, SolveSelector):
             ref_name = 'contests.SolveListBestInEveryDisciplineSerializer'
 
     @extend_schema(
-        responses={200: OutputSerializer}
+        responses={200: OutputSerializer(many=True)}
     )
     def get(self, request):
         solve_set = self.list_best_in_every_discipline()
