@@ -55,8 +55,10 @@ social-auth-core==4.4.2
 sqlparse==0.4.4
 typing_extensions==4.8.0
 tzdata==2023.3
+ulid-py==1.1.0
 uritemplate==4.1.1
 urllib3==2.0.7
 vine==5.1.0
 wcwidth==0.2.12
 zipp==3.17.0
+ulid-py

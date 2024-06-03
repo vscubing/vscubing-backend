@@ -33,19 +33,19 @@ class SolveRetrieveApi(APIView, SolveSelector):
         submission_state = serializers.CharField()
         reconstruction = serializers.CharField()
 
-        scramble = inline_serializer(name='contests.SolveRetrieveScrambleSerializer', fields={
+        scramble = inline_serializer(fields={
             'id': serializers.IntegerField()
         })
-        user = inline_serializer(name='contests.SolveRetrieveUserSerializer', fields={
+        user = inline_serializer(fields={
             'id': serializers.IntegerField()
         })
-        discipline = inline_serializer(name='contests.SolveRetrieveDisciplineSerializer', fields={
+        discipline = inline_serializer(fields={
             'id': serializers.IntegerField()
         })
-        round_session = inline_serializer(name='contests.SolveRetrieveRoundSessionSerializer', fields={
+        round_session = inline_serializer(fields={
             'id': serializers.IntegerField()
         })
-        contest = inline_serializer(name='contests.SolveRetrieveContestSerializer', fields={
+        contest = inline_serializer(fields={
             'id': serializers.IntegerField()
         })
 
@@ -66,20 +66,20 @@ class SolveListBestInEveryDiscipline(APIView, SolveSelector):
         id = serializers.IntegerField()
         time_ms = serializers.IntegerField()
         created_at = serializers.DateTimeField()
-        user = inline_serializer(name="contests.SolveListBestInEveryDisciplineUserSerializer", fields={
+        user = inline_serializer(fields={
             'id': serializers.IntegerField(),
             'username': serializers.CharField(),
         })
-        scramble = inline_serializer(name="contests.SolveListBestInEveryDisciplineScrambleSerializer", fields={
+        scramble = inline_serializer(fields={
             'id': serializers.IntegerField(),
             'moves': serializers.CharField()
         })
-        contest = inline_serializer(name="contests.SolveListBestInEveryDisciplineContestSerializer", fields={
+        contest = inline_serializer(fields={
             'id': serializers.IntegerField(),
             'name': serializers.CharField(),
             'slug': serializers.CharField(),
         })
-        discipline = inline_serializer(name="contests.SolveListBestInEveryDisciplineDisciplineSerializer", fields={
+        discipline = inline_serializer(fields={
             'id': serializers.IntegerField(),
             'name': serializers.CharField(),
             'slug': serializers.CharField()
@@ -189,7 +189,7 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
         count = serializers.IntegerField()
         next = serializers.CharField()
         previous = serializers.CharField()
-        results = inline_serializer(name='contests.RoundSessionWithSolvesListResultOutputSerializer', many=True, fields={
+        results = inline_serializer(many=True, fields={
             'id': serializers.IntegerField(),
             'avg_ms': serializers.IntegerField(),
             'is_dnf': serializers.BooleanField(),
@@ -197,20 +197,20 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
             'created_at': serializers.DateTimeField(),
             'updated_at': serializers.DateTimeField(),
 
-            'user': inline_serializer(name='contests.RoundSessionWithSolvesListUserOutputSerializer', fields={
+            'user': inline_serializer(fields={
                 'id': serializers.IntegerField(),
                 'username': serializers.CharField(),
             }),
 
-            'contest': inline_serializer(name='contests.RoundSessionWithSolvesListContestOutputSerializer', fields={
+            'contest': inline_serializer(fields={
                 'id': serializers.IntegerField(),
             }),
 
-            'discipline': inline_serializer(name='contests.RoundSessionWithSolvesListDisciplineOutputSerializer', fields={
+            'discipline': inline_serializer(fields={
                 'id': serializers.IntegerField(),
             }),
 
-            'solve_set': inline_serializer(name='contests.RoundSessionWithSolvesListSolveSetOutputSerializer', many=True, fields={
+            'solve_set': inline_serializer(many=True, fields={
                 'id': serializers.IntegerField(),
                 'is_dnf': serializers.BooleanField(),
                 'submission_state': serializers.CharField(),
@@ -268,7 +268,7 @@ class ContestListApi(APIView, ContestSelector):
         count = serializers.IntegerField()
         next = serializers.CharField()
         previous = serializers.CharField()
-        results = inline_serializer(name='contests.ContestListResultsOutputSerializer', many=True, fields={
+        results = inline_serializer(many=True, fields={
             'id': serializers.IntegerField(),
             'name': serializers.CharField(),
             'slug': serializers.CharField(),
@@ -457,31 +457,43 @@ class SingleResultLeaderboardApi(APIView):
         count = serializers.IntegerField()
         next = serializers.CharField()
         previous = serializers.CharField()
-        results = inline_serializer(name='contests.SingleResultLeaderboardResultsOutputSerializer', many=True, fields={
-            'solve': inline_serializer(fields={
-                'id': serializers.IntegerField(),
-                'time_ms': serializers.IntegerField(),
-                'is_dnf': serializers.BooleanField(),
-                'submission_state': serializers.CharField(),
-                'reconstruction': serializers.CharField(),
+        results = inline_serializer(fields={
+            'onw_solve': inline_serializer(fields={
+                'solve': inline_serializer(fields={
+                    'id': serializers.IntegerField(),
+                    'time_ms': serializers.IntegerField(),
+                    'is_dnf': serializers.BooleanField(),
+                    'submission_state': serializers.CharField(),
+                    'reconstruction': serializers.CharField(),
+                    'contest': inline_serializer(fields={
+                            'id': serializers.IntegerField()
+                        }),
+                }),
+                'place': serializers.IntegerField(),
+                'is_displayed_separately': serializers.BooleanField(required=False),
+                'page': serializers.IntegerField(required=False)
+            }),
 
-                'scramble': inline_serializer(name='contests.SingleResultLeaderboardResultsScrambleOutputSerializer', fields={
-                    'id': serializers.IntegerField()
-                }),
-                'user': inline_serializer(name='contests.SingleResultLeaderboardResultsUserOutputSerializer', fields={
+            'solve_set': inline_serializer(many=True, fields={
+                'solve': inline_serializer(fields={
                     'id': serializers.IntegerField(),
-                    'username': serializers.CharField(),
+                    'time_ms': serializers.IntegerField(),
+                    'is_dnf': serializers.BooleanField(),
+                    'submission_state': serializers.CharField(),
+                    'reconstruction': serializers.CharField(),
+
+                    'scramble': inline_serializer(fields={
+                            'id': serializers.IntegerField()
+                        }),
+                    'user': inline_serializer(fields={
+                                                  'id': serializers.IntegerField(),
+                                                  'username': serializers.CharField(),
+                                              }),
+                    'contest': inline_serializer(fields={
+                            'id': serializers.IntegerField()
+                        }),
                 }),
-                'discipline': inline_serializer(name='contests.SingleResultLeaderboardResultsDisciplineOutputSerializer', fields={
-                    'id': serializers.IntegerField(),
-                    'slug': serializers.CharField()
-                }),
-                'round_session': inline_serializer(name='contests.SingleResultLeaderboardResultsRoundSessionOutputSerializer', fields={
-                    'id': serializers.IntegerField()
-                }),
-                'contest': inline_serializer(name='contests.SingleResultLeaderboardResultsContestOutputSerializer', fields={
-                    'id': serializers.IntegerField()
-                }),
+                'place': serializers.IntegerField()
             })
         })
 

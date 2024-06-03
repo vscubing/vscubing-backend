@@ -31,7 +31,7 @@ class GoogleLoginApi(SocialLoginView):
     class OutputSerializer(serializers.Serializer):
         access = serializers.CharField()
         refresh = serializers.CharField()
-        user = inline_serializer(name='accounts.GoogleLoginUserSerializer', fields={
+        user = inline_serializer(fields={
             'pk': serializers.IntegerField(),
             'email': serializers.CharField()
         })

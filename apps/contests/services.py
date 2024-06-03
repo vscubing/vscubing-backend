@@ -31,7 +31,6 @@ class SolveService:
                 discipline_id=params['discipline_id'],
                 user_id=user_id,
             )
-
         solve = SolveModel.objects.create(
             time_ms=data.time_ms,
             is_dnf=data.is_dnf,
