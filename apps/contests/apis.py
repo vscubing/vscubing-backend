@@ -457,7 +457,7 @@ class SingleResultLeaderboardApi(APIView):
         pages = serializers.IntegerField()
         results = inline_serializer(fields={
             'own_solve': inline_serializer(fields={
-                'solve': inline_serializer(fields={
+                'solve': inline_serializer(required=False, fields={
                     'id': serializers.IntegerField(),
                     'time_ms': serializers.IntegerField(),
                     'is_dnf': serializers.BooleanField(),
@@ -467,7 +467,7 @@ class SingleResultLeaderboardApi(APIView):
                             'id': serializers.IntegerField()
                         }),
                 }),
-                'place': serializers.IntegerField(),
+                'place': serializers.IntegerField(required=False),
                 'is_displayed_separately': serializers.BooleanField(required=False),
                 'page': serializers.IntegerField(required=False)
             }),

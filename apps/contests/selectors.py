@@ -184,8 +184,11 @@ class SingleResultLeaderboardSelector:
         return solve_set
 
     def own_solve_retrieve(self, user_id):
-        own_solve = SingleResultLeaderboardModel.objects.get(solve__user_id=user_id)
-        return own_solve
+        try:
+            own_solve = SingleResultLeaderboardModel.objects.get(solve__user_id=user_id)
+            return own_solve
+        except ObjectDoesNotExist:
+            return None
 
     def get_place(self, solve):
         position = SingleResultLeaderboardModel.objects.filter(time_ms__lt=solve.time_ms).count() + 1
@@ -222,11 +225,13 @@ class SingleResultLeaderboardSelector:
         own_solve = {}
 
         solve_set = self.list()
-        own_solve_data = self.own_solve_retrieve(user_id=user_id)
 
-        own_solve['solve'] = own_solve_data.solve
-        own_solve['page'] = self.get_page(limit=limit, solve=own_solve_data)
-        own_solve['place'] = self.get_place(solve=own_solve_data)
+        own_solve_data = self.own_solve_retrieve(user_id=user_id)
+        if own_solve_data:
+            own_solve['solve'] = own_solve_data.solve
+            own_solve['page'] = self.get_page(limit=limit, solve=own_solve_data)
+            own_solve['place'] = self.get_place(solve=own_solve_data)
+
         pagination_info = self._get_pagination_info(
             queryset=solve_set,
             limit=limit,
@@ -242,7 +247,7 @@ class SingleResultLeaderboardSelector:
             solve_set=paginated_solve_set
         )
         paginated_solve_set = self.cut_last_solve(limit, own_solve_data, paginated_solve_set)
-        data.update(pagination_info)
+        data.update(pagination_info)  # adding pagination fields to response
         paginated_solve_set_with_solves = self.add_places(paginated_solve_set)
 
         results['own_solve'] = own_solve
