@@ -520,8 +520,8 @@ class SingleResultLeaderboardApi(APIView):
     def get(self, request):
         leaderboard_selector = SingleResultLeaderboardSelector()
         data = leaderboard_selector.leaderboard_retrieve(
-            limit=int(request.query_params['limit']),
-            page=int(request.query_params['page']),
+            limit=int(request.query_params.get('limit', 10)),
+            page=int(request.query_params.get('page', 1)),
             user_id=request.user.id
         )
         print(data)

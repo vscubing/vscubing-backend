@@ -220,7 +220,8 @@ class SingleResultLeaderboardSelector:
         else:
             return solve_set[:limit-1]
 
-    def leaderboard_retrieve(self, limit, page, user_id):
+    def leaderboard_retrieve(self, limit, page, user_id=None):
+        print(limit, page, user_id)
         data = {}
 
         results = {}
