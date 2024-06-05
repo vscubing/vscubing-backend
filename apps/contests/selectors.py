@@ -209,7 +209,9 @@ class SingleResultLeaderboardSelector:
     def is_displayed_separately(self, own_solve, solve_set):
         if own_solve in solve_set:
             return False
-        else:
+        elif own_solve is None:
+            return False
+        elif own_solve not in solve_set:
             return True
 
     def cut_last_solve(self, limit, own_solve, solve_set):
