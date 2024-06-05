@@ -8,7 +8,7 @@ from rest_framework import serializers
 from apps.core.utils import inline_serializer
 from .paginators import (
     LimitOffsetPagination,
-    get_paginated_response,
+    LimitPagePagination,
     get_paginated_data,
 )
 from .selectors import (
@@ -256,7 +256,7 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
 
 class ContestListApi(APIView, ContestSelector):
     # lists all existing contests
-    class Pagination(LimitOffsetPagination):
+    class Pagination(LimitPagePagination):
         default_limit = 5
 
     class FilterSerializer(serializers.Serializer):
@@ -264,7 +264,7 @@ class ContestListApi(APIView, ContestSelector):
 
     class OutputSerializer(serializers.Serializer):
         limit = serializers.IntegerField()
-        offset = serializers.IntegerField()
+        page = serializers.IntegerField()
         count = serializers.IntegerField()
         next = serializers.CharField()
         previous = serializers.CharField()
@@ -283,14 +283,14 @@ class ContestListApi(APIView, ContestSelector):
         responses={200: OutputSerializer()},
         parameters=[
             OpenApiParameter(
-                name='limit',
+                name='page',
                 location=OpenApiParameter.QUERY,
                 description='count of contest to be returned',
                 required=False,
                 type=int,
             ),
             OpenApiParameter(
-                name='offset',
+                name='limit',
                 location=OpenApiParameter.QUERY,
                 description='offset',
                 required=False,
@@ -448,17 +448,15 @@ class SubmittedSolvesApi(APIView):
 
 
 class SingleResultLeaderboardApi(APIView):
-    class Pagination(LimitOffsetPagination):
+    class Pagination(LimitPagePagination):
         default_limit = 10
 
     class OutputSerializer(serializers.Serializer):
         limit = serializers.IntegerField()
-        offset = serializers.IntegerField()
-        count = serializers.IntegerField()
-        next = serializers.CharField()
-        previous = serializers.CharField()
+        page = serializers.IntegerField()
+        pages = serializers.IntegerField()
         results = inline_serializer(fields={
-            'onw_solve': inline_serializer(fields={
+            'own_solve': inline_serializer(fields={
                 'solve': inline_serializer(fields={
                     'id': serializers.IntegerField(),
                     'time_ms': serializers.IntegerField(),
@@ -493,7 +491,7 @@ class SingleResultLeaderboardApi(APIView):
                             'id': serializers.IntegerField()
                         }),
                 }),
-                'place': serializers.IntegerField()
+                'place': serializers.IntegerField(default=None)
             })
         })
 
@@ -506,14 +504,14 @@ class SingleResultLeaderboardApi(APIView):
             OpenApiParameter(
                 name='limit',
                 location=OpenApiParameter.QUERY,
-                description='count of contest to be returned',
+                description='how many solves will be on the page',
                 required=False,
                 type=int,
             ),
             OpenApiParameter(
-                name='offset',
+                name='page',
                 location=OpenApiParameter.QUERY,
-                description='offset',
+                description='page number',
                 required=False,
                 type=int,
             )
@@ -521,12 +519,12 @@ class SingleResultLeaderboardApi(APIView):
     )
     def get(self, request):
         leaderboard_selector = SingleResultLeaderboardSelector()
-        solve_set = leaderboard_selector.list()
-        data = get_paginated_data(
-            pagination_class=self.Pagination,
-            queryset=solve_set,
-            request=request,
-            view=self,
+        data = leaderboard_selector.leaderboard_retrieve(
+            limit=int(request.query_params['limit']),
+            page=int(request.query_params['page']),
+            user_id=request.user.id
         )
+        print(data)
         data = self.OutputSerializer(data).data
-        return Response(data)
+
+        return Response(data, status=200)

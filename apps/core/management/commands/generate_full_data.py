@@ -175,8 +175,7 @@ class Command(BaseCommand):
         users = User.objects.all()
         for user in users:
             best_solve = SolveModel.objects.filter(user=user).order_by('time_ms').first()
-            print(best_solve)
             if best_solve:
-                leaderboard_result = SingleResultLeaderboardModel.objects.get_or_create(solve=best_solve)
+                SingleResultLeaderboardModel.objects.get_or_create(solve=best_solve, time_ms=best_solve.time_ms)
             else:
-                print('shit')
+                pass

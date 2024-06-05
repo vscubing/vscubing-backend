@@ -72,7 +72,8 @@ class SolveModel(BaseModel):
 
 
 class SingleResultLeaderboardModel(models.Model):
-    solve = models.OneToOneField(SolveModel, on_delete=models.CASCADE)
+    solve = models.OneToOneField(SolveModel, on_delete=models.CASCADE, unique=True)
+    time_ms = models.IntegerField(db_index=True)
 
     def __str__(self):
         return f'{self.solve.user.username} {self.solve}'

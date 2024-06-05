@@ -1,3 +1,5 @@
+import math
+
 from django.db.models import Avg, Min, Max
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -178,5 +180,99 @@ class ScrambleSelector:
 
 class SingleResultLeaderboardSelector:
     def list(self):
-        solve_set = SingleResultLeaderboardModel.objects.all()
+        solve_set = SingleResultLeaderboardModel.objects.order_by('time_ms')
         return solve_set
+
+    def own_solve_retrieve(self, user_id):
+        own_solve = SingleResultLeaderboardModel.objects.get(solve__user_id=user_id)
+        return own_solve
+
+    def get_place(self, solve):
+        position = SingleResultLeaderboardModel.objects.filter(time_ms__lt=solve.time_ms).count() + 1
+        return position
+
+    def add_places(self, solve_set):
+        solve_set_with_places = []
+        for solve in solve_set:
+            solve_set_with_places.append({'solve': solve.solve, 'place': self.get_place(solve)})
+
+        return solve_set_with_places
+
+    def get_page(self, limit, solve):
+        place = self.get_place(solve)
+        page = math.ceil(place / limit)
+        return page
+
+    def is_displayed_separately(self, own_solve, solve_set):
+        if own_solve in solve_set:
+            return False
+        else:
+            return True
+
+    def cut_last_solve(self, limit, own_solve, solve_set):
+        if own_solve in solve_set:
+            return solve_set
+        else:
+            return solve_set[:limit-1]
+
+    def leaderboard_retrieve(self, limit, page, user_id):
+        data = {}
+
+        results = {}
+        own_solve = {}
+
+        solve_set = self.list()
+        own_solve_data = self.own_solve_retrieve(user_id=user_id)
+
+        own_solve['solve'] = own_solve_data.solve
+        own_solve['page'] = self.get_page(limit=limit, solve=own_solve_data)
+        own_solve['place'] = self.get_place(solve=own_solve_data)
+        pagination_info = self._get_pagination_info(
+            queryset=solve_set,
+            limit=limit,
+            page=page
+        )
+        paginated_solve_set = self._get_paginated_data(
+            queryset=solve_set,
+            limit=limit,
+            page=page
+        )
+        own_solve['is_displayed_separately'] = self.is_displayed_separately(
+            own_solve=own_solve_data,
+            solve_set=paginated_solve_set
+        )
+        paginated_solve_set = self.cut_last_solve(limit, own_solve_data, paginated_solve_set)
+        data.update(pagination_info)
+        paginated_solve_set_with_solves = self.add_places(paginated_solve_set)
+
+        results['own_solve'] = own_solve
+        results['solve_set'] = paginated_solve_set_with_solves
+        data['results'] = results
+
+        return data
+
+    def _get_pagination_info(self, queryset, limit, page):
+        total_items = queryset.count()
+        total_pages = math.ceil(total_items / limit)
+
+        info = {
+            'limit': limit,
+            'page': page,
+            'pages': total_pages,
+        }
+
+        return info
+
+    def _get_paginated_data(self, queryset, limit, page):
+        start = (page - 1) * limit
+        end = page * limit
+        total_items = queryset.count()
+        total_pages = math.ceil(total_items / limit)
+
+        info = {
+            'limit': limit,
+            'page': page,
+            'pages': total_pages,
+        }
+
+        return queryset[start:end]

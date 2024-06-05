@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 from rest_framework.pagination import LimitOffsetPagination as _LimitOffsetPagination
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 
@@ -31,6 +32,27 @@ class LimitOffsetPagination(_LimitOffsetPagination):
             ('previous', self.get_previous_link()),
             ('results', data)
         ]))
+
+
+class LimitPagePagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'limit'
+    max_page_size = 50
+
+    def get_paginated_data(self, data):
+        """
+        We redefine this method in order to return `limit` and `page`.
+        This is used by the frontend to construct the pagination itself.
+        """
+        return OrderedDict([
+            ('limit', self.page_size),
+            ('page', self.page.number),
+            ('count', self.page.paginator.count),
+            ('next', self.get_next_link()),
+            ('previous', self.get_previous_link()),
+            ('results', data)
+        ])
+
 
 
 def get_paginated_response(*, pagination_class, serializer_class, queryset, request, view):
