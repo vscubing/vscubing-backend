@@ -221,7 +221,6 @@ class SingleResultLeaderboardSelector:
             return solve_set[:limit-1]
 
     def leaderboard_retrieve(self, limit, page, user_id=None):
-        print(limit, page, user_id)
         data = {}
 
         results = {}
@@ -274,6 +273,84 @@ class SingleResultLeaderboardSelector:
     def _get_paginated_data(self, queryset, limit, page):
         start = (page - 1) * limit
         end = page * limit
+
+        return queryset[start:end]
+
+
+class ContestLeaderboardSelector:
+    def get_place(self, round_session, contest, discipline):
+        position = RoundSessionModel.objects.filter(
+            avg_ms__lt=round_session.avg_ms,
+            contest=contest,
+            discipline=discipline
+        ).count() + 1
+        return position
+
+    def add_places(self, round_session_set, contest, discipline):
+        round_session_set_with_places = []
+        for round_session in round_session_set:
+            round_session_set_with_places.append({'round_session': round_session, 'place': self.get_place(
+                round_session,
+                contest=contest,
+                discipline=discipline,
+            )})
+
+        return round_session_set_with_places
+
+    def get_page(self, limit, round_session, contest, discipline):
+        place = self.get_place(round_session, contest, discipline)
+        page = math.ceil(place / limit)
+        return page
+
+    def is_displayed_separately(self, own_round_session, round_session_set):
+        if own_round_session in round_session_set:
+            return False
+        elif own_round_session is None:
+            return False
+        elif own_round_session not in round_session_set:
+            return True
+
+    def round_session_list(self, discipline, contest):
+        round_session_set = RoundSessionModel.objects.filter(
+            discipline=discipline,
+            contest=contest
+        ).order_by('avg_ms')
+        return round_session_set
+
+    def cut_last_round_session(self, round_session_set, ):
+
+    def round_session_set_retrieve(self, discipline, contest, limit, page, user_id):
+        round_session_set = RoundSessionModel.objects.filter(
+            discipline=discipline,
+            contest=contest,
+        ).order_by('avg_ms')
+        paginated_round_session_set = self._get_paginated_data(round_session_set, limit, page)
+        paginated_round_session_set_with_places = self.add_places(
+            paginated_round_session_set,
+            contest,
+            discipline,
+        )
+        cutted_paginated_round_session_set_with_places = self.cut_
+        return paginated_round_session_set_with_places
+
+    def own_round_session_retrieve(self, discipline, contest, limit, page, user_id):
+        round_session = RoundSessionModel.objects.first()
+        round_session_set = RoundSessionModel.objects.filter(
+            discipline=discipline,
+            contest=contest,
+        )
+        paginated_round_session_set = self._get_paginated_data(round_session_set, limit, page)
+        is_displayed_separately = self.is_displayed_separately(round_session, paginated_round_session_set)
+        own_round_session = {
+            'round_session': round_session,
+            'place': self.get_place(round_session, contest, discipline),
+            'is_displayed_separately': is_displayed_separately,
+            'page': self.get_page(limit, round_session, contest, discipline)
+        }
+        return own_round_session
+
+    def get_pagination_info(self, discipline, contest, limit, page):
+        queryset = self.round_session_list(discipline, contest)
         total_items = queryset.count()
         total_pages = math.ceil(total_items / limit)
 
@@ -282,5 +359,22 @@ class SingleResultLeaderboardSelector:
             'page': page,
             'pages': total_pages,
         }
+
+        return info
+
+    def leaderboard_retrieve(self, discipline_slug, contest_slug, limit, page, user_id):
+        contest = ContestModel.objects.get(slug=contest_slug)
+        discipline = DisciplineModel.objects.get(slug=discipline_slug)
+        data = {'results': {}}
+        data.update(self.get_pagination_info(discipline, contest, limit, page))
+        data['results']['own_round_session'] = self.own_round_session_retrieve(discipline, contest, limit, page,
+                                                                               user_id)
+        data['results']['round_session_set'] = self.round_session_set_retrieve(discipline, contest, limit, page, user_id)
+        print(data)
+        return data
+
+    def _get_paginated_data(self, queryset, limit, page):
+        start = (page - 1) * limit
+        end = page * limit
 
         return queryset[start:end]

@@ -16,7 +16,8 @@ from .selectors import (
     ContestSelector,
     SolveSelector,
     ScrambleSelector,
-    SingleResultLeaderboardSelector
+    SingleResultLeaderboardSelector,
+    ContestLeaderboardSelector
 )
 from .services import (
     SolveService,
@@ -185,37 +186,74 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
 
     class OutputSerializer(serializers.Serializer):
         limit = serializers.IntegerField()
-        offset = serializers.IntegerField()
-        count = serializers.IntegerField()
-        next = serializers.CharField()
-        previous = serializers.CharField()
-        results = inline_serializer(many=True, fields={
-            'id': serializers.IntegerField(),
-            'avg_ms': serializers.IntegerField(),
-            'is_dnf': serializers.BooleanField(),
-            'is_finished': serializers.BooleanField(),
-            'created_at': serializers.DateTimeField(),
-            'updated_at': serializers.DateTimeField(),
+        page = serializers.IntegerField()
+        pages = serializers.IntegerField()
+        results = inline_serializer(fields={
+            'own_round_session': inline_serializer(fields={
+                'round_session': inline_serializer(required=False, fields={
+                    'id': serializers.IntegerField(),
+                    'avg_ms': serializers.IntegerField(),
+                    'is_dnf': serializers.BooleanField(),
+                    'is_finished': serializers.BooleanField(),
+                    'created_at': serializers.DateTimeField(),
+                    'updated_at': serializers.DateTimeField(),
 
-            'user': inline_serializer(fields={
-                'id': serializers.IntegerField(),
-                'username': serializers.CharField(),
+                    'user': inline_serializer(fields={
+                        'id': serializers.IntegerField(),
+                        'username': serializers.CharField(),
+                    }),
+
+                    'contest': inline_serializer(fields={
+                        'id': serializers.IntegerField(),
+                    }),
+
+                    'discipline': inline_serializer(fields={
+                        'id': serializers.IntegerField(),
+                    }),
+
+                    'solve_set': inline_serializer(many=True, fields={
+                        'id': serializers.IntegerField(),
+                        'is_dnf': serializers.BooleanField(),
+                        'submission_state': serializers.CharField(),
+                        'extra_id': serializers.IntegerField(),
+                    })
+                }),
+                'place': serializers.IntegerField(required=False),
+                'is_displayed_separately': serializers.BooleanField(required=False),
+                'page': serializers.IntegerField(required=False)
             }),
+            'round_session_set': inline_serializer(many=True, fields={
+                'round_session': inline_serializer(fields={
+                    'id': serializers.IntegerField(),
+                    'avg_ms': serializers.IntegerField(),
+                    'is_dnf': serializers.BooleanField(),
+                    'is_finished': serializers.BooleanField(),
+                    'created_at': serializers.DateTimeField(),
+                    'updated_at': serializers.DateTimeField(),
 
-            'contest': inline_serializer(fields={
-                'id': serializers.IntegerField(),
-            }),
+                    'user': inline_serializer(fields={
+                        'id': serializers.IntegerField(),
+                        'username': serializers.CharField(),
+                    }),
 
-            'discipline': inline_serializer(fields={
-                'id': serializers.IntegerField(),
-            }),
+                    'contest': inline_serializer(fields={
+                        'id': serializers.IntegerField(),
+                    }),
 
-            'solve_set': inline_serializer(many=True, fields={
-                'id': serializers.IntegerField(),
-                'is_dnf': serializers.BooleanField(),
-                'submission_state': serializers.CharField(),
-                'extra_id': serializers.IntegerField(),
-            })})
+                    'discipline': inline_serializer(fields={
+                        'id': serializers.IntegerField(),
+                    }),
+
+                    'solve_set': inline_serializer(many=True, fields={
+                        'id': serializers.IntegerField(),
+                        'is_dnf': serializers.BooleanField(),
+                        'submission_state': serializers.CharField(),
+                        'extra_id': serializers.IntegerField(),
+                    })
+                }),
+                'place': serializers.IntegerField(required=False)
+            })
+        })
 
         class Meta:
             ref_name = 'contests.RoundSessionWithSolvesListOutputSerializer'
@@ -223,6 +261,27 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
     @extend_schema(
         responses={200: OutputSerializer()},
         parameters=[
+            OpenApiParameter(
+                name='page',
+                location=OpenApiParameter.QUERY,
+                description='count of contest to be returned',
+                required=False,
+                type=int,
+            ),
+            OpenApiParameter(
+                name='limit',
+                location=OpenApiParameter.QUERY,
+                description='offset',
+                required=False,
+                type=int,
+            ),
+            OpenApiParameter(
+                name='contest_slug',
+                location=OpenApiParameter.QUERY,
+                description='discipline slug',
+                required=True,
+                type=str,
+            ),
             OpenApiParameter(
                 name='discipline_slug',
                 location=OpenApiParameter.QUERY,
@@ -240,14 +299,23 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
         ]
     )
     def get(self, request, contest_slug):
-        filters_serializer = self.FilterSerializer(data=request.query_params)
-        filters_serializer.is_valid(raise_exception=True)
-        round_session_set = self.contest_leaderboard(contest_slug, filters=filters_serializer.validated_data)
-        data = get_paginated_data(
-            pagination_class=self.Pagination,
-            queryset=round_session_set,
-            request=request,
-            view=self
+        selector = ContestLeaderboardSelector()
+        # filters_serializer = self.FilterSerializer(data=request.query_params)
+        # filters_serializer.is_valid(raise_exception=True)
+        # round_session_set = self.contest_leaderboard(contest_slug, filters=filters_serializer.validated_data)
+        # data = get_paginated_data(
+        #     pagination_class=self.Pagination,
+        #     queryset=round_session_set,
+        #     request=request,
+        #     view=self
+        # )
+
+        data = selector.leaderboard_retrieve(
+            contest_slug=str(request.query_params.get('contest_slug', '20')),
+            discipline_slug=str(request.query_params.get('discipline_slug', '3by3')),
+            limit=int(request.query_params.get('limit', 10)),
+            page=int(request.query_params.get('page', 1)),
+            user_id=request.user.id
         )
         data = self.OutputSerializer(data).data
 
@@ -524,7 +592,6 @@ class SingleResultLeaderboardApi(APIView):
             page=int(request.query_params.get('page', 1)),
             user_id=request.user.id
         )
-        print(data)
         data = self.OutputSerializer(data).data
 
         return Response(data, status=200)
