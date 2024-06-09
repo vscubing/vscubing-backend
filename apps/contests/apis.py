@@ -298,7 +298,7 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
             )
         ]
     )
-    def get(self, request, contest_slug):
+    def get(self, request):
         selector = ContestLeaderboardSelector()
         # filters_serializer = self.FilterSerializer(data=request.query_params)
         # filters_serializer.is_valid(raise_exception=True)
@@ -311,7 +311,7 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
         # )
 
         data = selector.leaderboard_retrieve(
-            contest_slug=str(request.query_params.get('contest_slug', '20')),
+            contest_slug=str(request.query_params.get('contest_slug', '1')),
             discipline_slug=str(request.query_params.get('discipline_slug', '3by3')),
             limit=int(request.query_params.get('limit', 10)),
             page=int(request.query_params.get('page', 1)),

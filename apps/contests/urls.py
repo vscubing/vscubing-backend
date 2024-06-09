@@ -32,7 +32,7 @@ ongoing_contest_urlpatterns = [
 contests_urlpatterns = [
     path('', ContestListApi.as_view(), name='list'),
     path(
-        '<str:contest_slug>/leaderboard/',
+        'leaderboard/',
         ContestLeaderboardApi.as_view(),
         name='leaderboard'
     ),
