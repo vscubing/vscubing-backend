@@ -13,7 +13,7 @@ def inline_serializer(
     **kwargs,
 ):
     serializer_class = create_serializer_class(
-        name=str(ulid.new()),
+        name=('S' + str(ulid.new())),
         fields=fields,
     )
 
