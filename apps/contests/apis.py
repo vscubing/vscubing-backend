@@ -278,7 +278,7 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
             OpenApiParameter(
                 name='contest_slug',
                 location=OpenApiParameter.QUERY,
-                description='discipline slug',
+                description='contest slug',
                 required=True,
                 type=str,
             ),
@@ -484,6 +484,7 @@ class SubmittedSolvesApi(APIView):
             'position': serializers.CharField(),
             'scramble': serializers.CharField()
         })
+        
 
     @extend_schema(
         responses={200: OutputSerializer()},
