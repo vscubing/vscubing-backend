@@ -97,17 +97,6 @@ class SolveListBestInEveryDiscipline(APIView, SolveSelector):
         data = self.OutputSerializer(solve_set, many=True).data
         return Response(data=data)
 
-
-class SolveCurrentRetrieveApi(APIView):
-    class OutputSerializer(serializers.Serializer):
-        pass
-
-    def get(self, request):
-        data = {}
-        data = self.OutputSerializer(data).data
-        return Response(data)
-
-
 class SolveCreateApi(APIView, SolveService):
     # Api to create solve when user finished solving cube
     class InputSerializer(serializers.Serializer):
@@ -411,20 +400,34 @@ class CurrentSolveApi(APIView, SolveSelector):
     permission_classes = [IsAuthenticated]
 
     class OutputSerializer(serializers.Serializer):
-        current_scramble = inline_serializer(fields={
-            'id': serializers.IntegerField(),
-            'is_extra': serializers.BooleanField(),
-            'position': serializers.CharField(),
-            'moves': serializers.CharField()
-        })
-        info = inline_serializer(fields={
-            'can_change_to_extra': serializers.BooleanField(),
-        })
         current_solve = inline_serializer(fields={
-            'id': serializers.IntegerField(),
-            'is_dnf': serializers.BooleanField(),
-            'time_ms': serializers.IntegerField(),
+            'scramble': inline_serializer(fields={
+                'id': serializers.IntegerField(),
+                'is_extra': serializers.BooleanField(),
+                'position': serializers.CharField(),
+                'moves': serializers.CharField()
+            }),
+            'info': inline_serializer(fields={
+                'can_change_to_extra': serializers.BooleanField(),
+            }),
+            'solve': inline_serializer(fields={
+                'id': serializers.IntegerField(),
+                'is_dnf': serializers.BooleanField(),
+                'time_ms': serializers.IntegerField(),
+                'scramble': serializers.CharField()
+            })
         })
+        submitted_solve_set = inline_serializer(required=False, many=True, fields={
+            'solve': inline_serializer(fields={
+                'id': serializers.IntegerField(),
+                'is_dnf': serializers.BooleanField(),
+                'time_ms': serializers.IntegerField(),
+                'scramble': serializers.CharField(),
+            })
+        })
+
+        class Meta:
+            ref_name = 'contests.CurrentSolveOutputSerializer'
         
     @extend_schema(
         responses={200: OutputSerializer()},
@@ -467,52 +470,19 @@ class CurrentSolveApi(APIView, SolveSelector):
             discipline_slug=request.query_params['discipline_slug'],
         )
 
-        info = {'can_change_to_extra': can_change_to_extra}
-        data_bunch = {'current_solve': current_solve, 'current_scramble': current_scramble, 'info': info}
-        data = self.OutputSerializer(data_bunch).data
-        return Response(data)
-
-
-class SubmittedSolvesApi(APIView):
-    # Api to send submitted solves of the ongoing contest
-    class OutputSerializer(serializers.Serializer):
-        id = serializers.IntegerField()
-        is_dnf = serializers.BooleanField()
-        scramble = inline_serializer(fields={
-            'id': serializers.IntegerField(),
-            'is_extra': serializers.BooleanField(),
-            'position': serializers.CharField(),
-            'scramble': serializers.CharField()
-        })
-        
-
-    @extend_schema(
-        responses={200: OutputSerializer()},
-        parameters=[
-            OpenApiParameter(
-                name='discipline_slug',
-                location=OpenApiParameter.QUERY,
-                description='discipline slug',
-                required=True,
-                type=str
-            ),
-            OpenApiParameter(
-                name='contest_slug',
-                location=OpenApiParameter.QUERY,
-                description='contest slug',
-                required=False,
-                type=str
-            ),
-        ]
-    )
-    def get(self, request):
-        solve_selector = SolveSelector()
         solve_set = solve_selector.onging_contest_submitted(
             user_id=request.user.id,
             contest_slug=request.query_params['contest_slug'],
             discipline_slug=request.query_params['discipline_slug']
         )
-        data = self.OutputSerializer(solve_set, many=True).data
+
+        info = {'can_change_to_extra': can_change_to_extra}
+        data_bunch = {'current_solve': {'solve': current_solve, 'scramble': current_scramble, 'info': info},
+                      'submitted_solve_set': ({'solve': solve} for solve in solve_set)}
+
+
+
+        data = self.OutputSerializer(data_bunch).data
         return Response(data)
 
 

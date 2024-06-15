@@ -11,7 +11,6 @@ from .apis import (
     # RoundSessionRetrieveApi,
     ContestListApi,
     CurrentSolveApi,
-    SubmittedSolvesApi,
     OngoingContestRetrieveApi,
 )
 
@@ -24,7 +23,6 @@ solves_urlpatterns = [
 ]
 
 ongoing_contest_urlpatterns = [
-    path('submitted-solves/', SubmittedSolvesApi.as_view(), name='list-submitted'),
     path('current-solve/', CurrentSolveApi.as_view(), name='retrieve-current'),
     path('retrieve/', OngoingContestRetrieveApi.as_view(), name='retrieve')
 ]
