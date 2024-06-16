@@ -1,7 +1,8 @@
 import math
 
 from django.db.models import Avg, Min, Max
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.http import Http404
 
 from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE, SOLVE_PENDING_STATE
 from .models import (
@@ -10,7 +11,8 @@ from .models import (
     ContestModel,
     DisciplineModel,
     ScrambleModel,
-    SingleResultLeaderboardModel
+    SingleResultLeaderboardModel,
+    User
 )
 from .filters import (
     RoundSessionFilter,
@@ -138,6 +140,81 @@ class SolveSelector:
             return True
 
 
+class CurrentSolveSelector:
+    def __init__(self, user_id, discipline_slug):
+        self.user = User.objects.get(id=user_id)
+        self.discipline = DisciplineModel.objects.get(slug=discipline_slug)
+        self.contest = ContestModel.objects.filter(is_ongoing=True).last()
+
+    def _retrieve_current_scramble(self):
+        current_scramble = ScrambleSelector().retrieve_current(
+            contest=self.contest,
+            user=self.user
+        )
+        return current_scramble
+
+    def _can_change_to_extra(self):
+        solve_set = SolveModel.objects.filter(
+            contest=self.contest,
+            discipline=self.discipline,
+            user=self.user,
+            submission_state='changed_to_extra'
+        )
+        if len(solve_set) >= 2:
+            return False
+        else:
+            return True
+
+    def _retrieve_current_solve(self):
+        try:
+            current_solve = SolveModel.objects.get(
+                user=self.user,
+                contest=self.contest,
+                discipline=self.discipline,
+                submission_state='pending'
+            )
+        except ObjectDoesNotExist:
+            current_solve = None
+        return current_solve
+
+    def _list_submitted_solve_set(self):
+        solve_set = self.contest.solve_set.filter(
+            user=self.user,
+            discipline=self.discipline,
+            submission_state='submitted',
+        )
+        return solve_set
+
+    def _round_session_is_finished(self):
+        try:
+            round_session = RoundSessionModel.objects.get(
+                user=self.user,
+                contest=self.contest,
+                discipline=self.discipline
+            )
+            if round_session.is_finished:
+                return True
+            else:
+                return False
+        except ObjectDoesNotExist:
+            return False
+
+    def retrieve_data(self):
+        if self._round_session_is_finished():
+            raise PermissionDenied()
+        current_solve = self._retrieve_current_solve()
+        current_scramble = self._retrieve_current_scramble()
+        can_change_to_extra = self._can_change_to_extra()
+        solve_set = self._list_submitted_solve_set()
+
+        data = {'current_solve': {'solve': current_solve,
+                                        'scramble': current_scramble,
+                                        'can_change_to_extra': can_change_to_extra},
+                'submitted_solve_set': ({'solve': solve} for solve in solve_set)}
+
+        return data
+
+
 class ContestSelector:
     def current_retrieve(self):
         current_contest = ContestModel.objects.filter(is_ongoing=True).last()
@@ -151,11 +228,11 @@ class ContestSelector:
 
 
 class ScrambleSelector:
-    def retrieve_current(self, contest_slug, discipline_slug, user_id):
-        scrambles = ContestModel.objects.get(slug=contest_slug).scramble_set.all()
+    def retrieve_current(self, contest, user):
+        scrambles = contest.scramble_set.all()
         previous_solve = None
         for scramble in scrambles:
-            solve = scramble.solve_set.filter(user=user_id).first()
+            solve = scramble.solve_set.filter(user=user).first()
             if not solve:
                 if not previous_solve:
                     return scramble
@@ -164,7 +241,7 @@ class ScrambleSelector:
                 elif previous_solve.state == SOLVE_CHANGED_TO_EXTRA_STATE:
                     while True:
                         extra_scramble = ScrambleModel.objects.get(id=previous_solve.extra_id)
-                        extra_solve = extra_scramble.solve_set.filter(user=user_id).first()
+                        extra_solve = extra_scramble.solve_set.filter(user=user).first()
                         if not extra_solve:
                             return extra_scramble
                         elif extra_solve.state == SOLVE_PENDING_STATE:

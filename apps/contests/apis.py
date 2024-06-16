@@ -17,7 +17,8 @@ from .selectors import (
     SolveSelector,
     ScrambleSelector,
     SingleResultLeaderboardSelector,
-    ContestLeaderboardSelector
+    ContestLeaderboardSelector,
+    CurrentSolveSelector,
 )
 from .services import (
     SolveService,
@@ -96,6 +97,7 @@ class SolveListBestInEveryDiscipline(APIView, SolveSelector):
         solve_set = self.list_best_in_every_discipline()
         data = self.OutputSerializer(solve_set, many=True).data
         return Response(data=data)
+
 
 class SolveCreateApi(APIView, SolveService):
     # Api to create solve when user finished solving cube
@@ -407,9 +409,7 @@ class CurrentSolveApi(APIView, SolveSelector):
                 'position': serializers.CharField(),
                 'moves': serializers.CharField()
             }),
-            'info': inline_serializer(fields={
-                'can_change_to_extra': serializers.BooleanField(),
-            }),
+            'can_change_to_extra': serializers.BooleanField(),
             'solve': inline_serializer(fields={
                 'id': serializers.IntegerField(),
                 'is_dnf': serializers.BooleanField(),
@@ -449,40 +449,12 @@ class CurrentSolveApi(APIView, SolveSelector):
         ]
     )
     def get(self, request):
-
-        solve_selector = SolveSelector()
-        scramble_selector = ScrambleSelector()
-
-        current_solve = solve_selector.retrieve_current(
+        selector = CurrentSolveSelector(
             user_id=request.user.id,
-            contest_slug=request.query_params['contest_slug'],
-            discipline_slug=request.query_params['discipline_slug'],
+            discipline_slug=request.query_params.get('discipline_slug')
         )
-
-        current_scramble = scramble_selector.retrieve_current(
-            user_id=request.user.id,
-            contest_slug=request.query_params['contest_slug'],
-            discipline_slug=request.query_params['discipline_slug'],
-        )
-        can_change_to_extra = solve_selector.can_change_current_to_extra(
-            user_id=request.user.id,
-            contest_slug=request.query_params['contest_slug'],
-            discipline_slug=request.query_params['discipline_slug'],
-        )
-
-        solve_set = solve_selector.onging_contest_submitted(
-            user_id=request.user.id,
-            contest_slug=request.query_params['contest_slug'],
-            discipline_slug=request.query_params['discipline_slug']
-        )
-
-        info = {'can_change_to_extra': can_change_to_extra}
-        data_bunch = {'current_solve': {'solve': current_solve, 'scramble': current_scramble, 'info': info},
-                      'submitted_solve_set': ({'solve': solve} for solve in solve_set)}
-
-
-
-        data = self.OutputSerializer(data_bunch).data
+        data = selector.retrieve_data()
+        data = self.OutputSerializer(data).data
         return Response(data)
 
 
