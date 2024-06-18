@@ -81,8 +81,7 @@ class SolveCreateService:
                 user=self.user,
             )
             return round_session.is_finished
-        except ObjectDoe
-            sNotExist:
+        except ObjectDoesNotExist:
             return False
 
     def retrieve_current_scramble(self):
