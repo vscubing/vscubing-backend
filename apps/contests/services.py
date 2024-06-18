@@ -17,7 +17,7 @@ from .models import (
 User = get_user_model()
 
 
-class SolveCreateService:
+class CreateSolveService:
     def __init__(self, user_id, discipline_slug):
         self.user = User.objects.get(id=user_id)
         try:
@@ -32,7 +32,7 @@ class SolveCreateService:
         self.current_scramble = self.retrieve_current_scramble()
         self.round_session = self.retrieve_current_round_session()
 
-    def create_solve(self, scramble, moves, is_dnf, time_ms):
+    def create_solve(self, scramble_id, reconstruction, is_dnf, time_ms):
         """
         - check for authorization details (or raise 401) +
         - check if user can solve contest (or raise 403) +
@@ -44,13 +44,13 @@ class SolveCreateService:
         - return solve
         """
         # validate scramble
-        if self.scramble_is_correct(scramble=scramble):
+        if self.scramble_is_correct(scramble_id=scramble_id):
             pass
         else:
             raise DjangoValidationError
         # validate solve moves
         solve_is_valid = self.solve_is_valid(
-            moves=moves,
+            reconstruction=reconstruction,
             time_ms=time_ms
         )
         if solve_is_valid:
@@ -61,8 +61,8 @@ class SolveCreateService:
         solve = SolveModel.objects.create(
             time_ms=time_ms,
             is_dnf=is_dnf,
-            moves=moves,
-            submission_state='submitted',
+            reconstruction=reconstruction,
+            submission_state='pending',
 
             user=self.user,
             contest=self.contest,
@@ -91,13 +91,17 @@ class SolveCreateService:
         )
         return current_scramble
 
-    def scramble_is_correct(self, scramble):
+    def scramble_is_correct(self, scramble_id):
+        try:
+            scramble = ScrambleModel.objects.get(id=scramble_id)
+        except ObjectDoesNotExist:
+            raise DjangoValidationError
         if scramble == self.current_scramble:
             return True
         else:
             return False
 
-    def solve_is_valid(self, moves, time_ms):
+    def solve_is_valid(self, reconstruction, time_ms):
         return True
 
     def create_round_session(self):

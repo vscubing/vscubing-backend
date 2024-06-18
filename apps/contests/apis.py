@@ -18,11 +18,11 @@ from .selectors import (
     ScrambleSelector,
     SingleResultLeaderboardSelector,
     ContestLeaderboardSelector,
-    CurrentRoundSessionProgressApi,
+    CurrentRoundSessionProgressSelector,
 )
 from .services import (
-    SolveService,
-    RoundSessionService
+    RoundSessionService,
+    CreateSolveService,
 )
 
 
@@ -99,16 +99,17 @@ class SolveListBestInEveryDiscipline(APIView, SolveSelector):
         return Response(data=data)
 
 
-class SolveCreateApi(APIView):
+class CreateSolveApi(APIView):
     # Api to create solve when user finished solving cube
+    permission_classes = [IsAuthenticated]
+
     class InputSerializer(serializers.Serializer):
-        moves = serializers.CharField()
+        reconstruction = serializers.CharField()
         is_dnf = serializers.BooleanField()
         time_ms = serializers.IntegerField()
-        scramble = serializers.CharField()
 
         class Meta:
-            ref_name = 'contests.SolveCreateInputSerializer'
+            ref_name = 'contests.CreateSolveInputSerializer'
 
     class OutputSerializer(serializers.Serializer):
         id = serializers.IntegerField()
@@ -120,23 +121,23 @@ class SolveCreateApi(APIView):
         })
 
         class Meta:
-            ref_name = 'contests.SolveCreateOutputSerializer'
+            ref_name = 'contests.CreateSolveOutputSerializer'
 
     @extend_schema(
         responses={200: OutputSerializer()},
-        request={InputSerializer()},
+        request=InputSerializer(),
         parameters=[
             OpenApiParameter(
-                name='contest_id',
+                name='discipline_slug',
                 location=OpenApiParameter.QUERY,
-                description='contest id',
+                description='discipline slug',
                 required=True,
-                type=int,
+                type=str,
             ),
             OpenApiParameter(
-                name='discipline_id',
+                name='scramble_id',
                 location=OpenApiParameter.QUERY,
-                description='discipline id',
+                description='scramble_id',
                 required=True,
                 type=int,
             ),
@@ -146,7 +147,14 @@ class SolveCreateApi(APIView):
         serializer = self.InputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        solve = self.solve_create(request.query_params, **serializer.validated_data, user_id=request.uesr)
+        selector = CreateSolveService(
+            user_id=request.user.id,
+            discipline_slug=request.query_params.get('discipline_slug', None)
+        )
+        solve = selector.create_solve(
+            scramble_id=request.query_params.get('scramble_id', None),
+            **serializer.validated_data
+        )
         data = self.OutputSerializer(solve).data
         return Response(data=data)
 
@@ -443,7 +451,7 @@ class CurrentRoundSessionProgressApi(APIView, SolveSelector):
         ]
     )
     def get(self, request):
-        selector = CurrentRoundSessionProgressApi(
+        selector = CurrentRoundSessionProgressSelector(
             user_id=request.user.id,
             discipline_slug=request.query_params.get('discipline_slug')
         )

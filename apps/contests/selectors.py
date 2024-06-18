@@ -141,7 +141,7 @@ class SolveSelector:
 
 
 # class that shows info about current solve and submitted solves
-class CurrentRoundSessionProgressApi:
+class CurrentRoundSessionProgressSelector:
     def __init__(self, user_id, discipline_slug):
         self.user = User.objects.get(id=user_id)
         self.discipline = DisciplineModel.objects.get(slug=discipline_slug)

@@ -2,7 +2,7 @@ from django.urls import include, path
 
 from .apis import (
     SolveRetrieveApi,
-    SolveCreateApi,
+    CreateSolveApi,
     SolveSubmitApi,
     SolveListBestInEveryDiscipline,
     SingleResultLeaderboardApi,
@@ -23,7 +23,7 @@ solves_urlpatterns = [
 ongoing_contest_urlpatterns = [
     path('current-round-session-progress/', CurrentRoundSessionProgressApi.as_view(), name='retrieve-current'),
     path('retrieve/', OngoingContestRetrieveApi.as_view(), name='retrieve'),
-    path('solve/create/', SolveCreateApi.as_view(), name='solve-create'),
+    path('solve/create/', CreateSolveApi.as_view(), name='solve-create'),
     # path('submit/<int:pk>/', SolveSubmitApi.as_view(), name='submit'),
 ]
 
