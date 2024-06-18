@@ -18,7 +18,7 @@ from .selectors import (
     ScrambleSelector,
     SingleResultLeaderboardSelector,
     ContestLeaderboardSelector,
-    CurrentSolveSelector,
+    CurrentRoundSessionProgressApi,
 )
 from .services import (
     SolveService,
@@ -99,12 +99,13 @@ class SolveListBestInEveryDiscipline(APIView, SolveSelector):
         return Response(data=data)
 
 
-class SolveCreateApi(APIView, SolveService):
+class SolveCreateApi(APIView):
     # Api to create solve when user finished solving cube
     class InputSerializer(serializers.Serializer):
-        reconstruction = serializers.CharField()
+        moves = serializers.CharField()
         is_dnf = serializers.BooleanField()
         time_ms = serializers.IntegerField()
+        scramble = serializers.CharField()
 
         class Meta:
             ref_name = 'contests.SolveCreateInputSerializer'
@@ -136,13 +137,6 @@ class SolveCreateApi(APIView, SolveService):
                 name='discipline_id',
                 location=OpenApiParameter.QUERY,
                 description='discipline id',
-                required=True,
-                type=int,
-            ),
-            OpenApiParameter(
-                name='scramble_id',
-                location=OpenApiParameter.QUERY,
-                description='scramble id',
                 required=True,
                 type=int,
             ),
@@ -397,7 +391,7 @@ class OngoingContestRetrieveApi(APIView):
         return Response(data)
 
 
-class CurrentSolveApi(APIView, SolveSelector):
+class CurrentRoundSessionProgressApi(APIView, SolveSelector):
     # Sends current scramble, all needed for solving information and solve if exists
     permission_classes = [IsAuthenticated]
 
@@ -449,7 +443,7 @@ class CurrentSolveApi(APIView, SolveSelector):
         ]
     )
     def get(self, request):
-        selector = CurrentSolveSelector(
+        selector = CurrentRoundSessionProgressApi(
             user_id=request.user.id,
             discipline_slug=request.query_params.get('discipline_slug')
         )

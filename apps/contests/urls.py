@@ -10,21 +10,21 @@ from .apis import (
     # RoundSessionCurrentWithSolvesRetrieveApi,
     # RoundSessionRetrieveApi,
     ContestListApi,
-    CurrentSolveApi,
+    CurrentRoundSessionProgressApi,
     OngoingContestRetrieveApi,
 )
 
 solves_urlpatterns = [
     path('<int:pk>/retrieve/', SolveRetrieveApi.as_view(), name='retrieve'),
     path('single-result-leaderboard', SingleResultLeaderboardApi.as_view(), name='list'),
-    # path('create/', SolveCreateApi.as_view(), name='create'),
-    # path('submit/<int:pk>/', SolveSubmitApi.as_view(), name='submit'),
     path('best-in-every-discipline/', SolveListBestInEveryDiscipline.as_view(), name='list-best-in-every-discipline'),
 ]
 
 ongoing_contest_urlpatterns = [
-    path('current-solve/', CurrentSolveApi.as_view(), name='retrieve-current'),
-    path('retrieve/', OngoingContestRetrieveApi.as_view(), name='retrieve')
+    path('current-round-session-progress/', CurrentRoundSessionProgressApi.as_view(), name='retrieve-current'),
+    path('retrieve/', OngoingContestRetrieveApi.as_view(), name='retrieve'),
+    path('solve/create/', SolveCreateApi.as_view(), name='solve-create'),
+    # path('submit/<int:pk>/', SolveSubmitApi.as_view(), name='submit'),
 ]
 
 contests_urlpatterns = [
