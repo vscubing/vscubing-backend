@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from config import SOLVE_PENDING_STATE, SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from .models import ScrambleModel, SolveModel, ContestModel, DisciplineModel, RoundSessionModel
 from apps.accounts.models import User
-from scripts.cube import SolveValidator
+from scripts.cube import ReconstructionValidator
 
 SOLVES_IN_CONTEST = 5
 
@@ -85,7 +85,7 @@ class SolveManager:
             except ObjectDoesNotExist:
                 round_session = RoundSessionModel(contest=contest, discipline=discipline, user=user)
                 round_session.save()
-            v = SolveValidator(scramble=current_scramble.moves, reconstruction=self.reconstruction)
+            v = ReconstructionValidator(scramble=current_scramble.moves, reconstruction=self.reconstruction)
             print(self.dnf)
             if self.dnf is True:
                 solve = SolveModel(contest=contest, scramble=current_scramble,

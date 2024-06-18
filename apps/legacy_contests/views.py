@@ -13,7 +13,7 @@ from .permissions import ContestPermission, SolveContestPermission
 from .managers import SolveManager
 from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE
 from scripts.scramble import generate_scramble
-from scripts.cube import SolveValidator
+from scripts.cube import ReconstructionValidator
 from .serializers import SolveSerializer, ScrambleSerializer, RoundSessionSerializer, ContestSerializer, DisciplineSerializer
 
 

@@ -3,11 +3,10 @@ import time
 import re
 
 
-class SolveValidator:
+class ReconstructionValidator:
     def __init__(self, scramble, reconstruction):
         self.start_time = time.time()
         self.cube = Cube("WWWWWWWWWOOOGGGRRRBBBOOOGGGRRRBBBOOOGGGRRRBBBYYYYYYYYY")
-        print(self.cube)
 
         self.scramble = scramble
         self.reconstruction = reconstruction
@@ -55,8 +54,6 @@ class SolveValidator:
     def is_valid(self):
         self._scramble_cube()
         self._solve_cube()
-        print(self.cube.is_solved())
-        print(time.time() - self.start_time)
         return self.cube.is_solved()
 
     def _scramble_cube(self):
@@ -93,4 +90,4 @@ if __name__ == '__main__':
     scramble = "U R2 D2"
     reconstruction = "D/*0*/ D/*232*/ R'/*773*/ R'/*1051*/ x'/*1744*/ x'/*2021*/ D'/*2936*/"
 
-    v = SolveValidator(scramble=scramble, reconstruction=reconstruction)
+    v = ReconstructionValidator(scramble=scramble, reconstruction=reconstruction)

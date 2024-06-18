@@ -113,6 +113,7 @@ class CreateSolveApi(APIView):
 
     class OutputSerializer(serializers.Serializer):
         id = serializers.IntegerField()
+        is_dnf = serializers.BooleanField()
         time_ms = serializers.IntegerField()
         created_at = serializers.DateTimeField()
         scramble = inline_serializer(fields={

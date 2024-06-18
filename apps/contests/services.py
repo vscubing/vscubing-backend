@@ -13,6 +13,7 @@ from .models import (
     DisciplineModel,
     ScrambleModel,
 )
+from scripts.cube import ReconstructionValidator
 
 User = get_user_model()
 
@@ -48,7 +49,12 @@ class CreateSolveService:
             pass
         else:
             raise DjangoValidationError
-        # validate solve moves
+        # validate that scramble wasn't solved yes
+        if self.solve_does_not_exists():
+            pass
+        else:
+            raise PermissionDenied('solve already exists')
+        # validate solve reconstruction
         solve_is_valid = self.solve_is_valid(
             reconstruction=reconstruction,
             time_ms=time_ms
@@ -102,7 +108,25 @@ class CreateSolveService:
             return False
 
     def solve_is_valid(self, reconstruction, time_ms):
-        return True
+        reconstruction_validator = ReconstructionValidator(
+            scramble=self.current_scramble.moves,
+            reconstruction=reconstruction,
+        )
+        if reconstruction_validator.is_valid():
+            return True
+        else:
+            return False
+
+    def solve_does_not_exists(self):
+        try:
+            solve = self.contest.solve_set.get(
+                discipline=self.discipline,
+                user=self.user,
+                scramble=self.current_scramble,
+            )
+            return False
+        except ObjectDoesNotExist:
+            return True
 
     def create_round_session(self):
         round_session = RoundSessionModel.objects.create(
