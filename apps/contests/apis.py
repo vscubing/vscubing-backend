@@ -23,6 +23,7 @@ from .selectors import (
 from .services import (
     RoundSessionService,
     CreateSolveService,
+    SubmitSolveService,
 )
 
 
@@ -160,13 +161,43 @@ class CreateSolveApi(APIView):
         return Response(data=data)
 
 
-class SolveSubmitApi(APIView):
+class SubmitSolveApi(APIView):
     # Api for submitting or rejecting solve
+    permission_classes = [IsAuthenticated]
+
+    class InputSerializer(serializers.Serializer):
+        id_dnf = serializers.BooleanField()
+
+        ref_name = 'contests.SubmitSolveInputSerializer'
+
     @extend_schema(
-        responses={200: {'json': 'data'}}
+        responses=200,
+        parameters=[
+            OpenApiParameter(
+                name='discipline_slug',
+                location=OpenApiParameter.QUERY,
+                description='discipline slug',
+                required=True,
+                type=str,
+            ),
+            OpenApiParameter(
+                name='action',
+                location=OpenApiParameter.QUERY,
+                description='action',
+                required=True,
+                type=str,
+                enum=['submit', 'change_to_extra']
+            )
+        ]
     )
-    def patch(self, request):
-        return Response(data={'json': 'data'})
+    def post(self, request, id):
+        service = SubmitSolveService(
+            discipline_slug=request.query_params.get('discipline_slug', None),
+            solve_id=id,
+            user_id=request.user.id
+        )
+        service.submit_solve(action=request.query_params.get('action'))
+        return Response(200)
 
 
 class ContestLeaderboardApi(APIView, RoundSessionSelector):

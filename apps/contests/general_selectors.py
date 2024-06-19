@@ -4,6 +4,7 @@ from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE, SOLVE_PE
 from .models import (
     ContestModel,
     ScrambleModel,
+    SolveModel,
 )
 
 
@@ -40,3 +41,15 @@ def retrieve_current_scramble(contest, user):
 
         elif solve.submission_state == SOLVE_PENDING_STATE:
             return scramble
+
+def can_change_solve_to_extra(contest, discipline, user):
+    solve_set = SolveModel.objects.filter(
+        contest=contest,
+        discipline=discipline,
+        user=user,
+        submission_state='changed_to_extra'
+    )
+    if len(solve_set) >= 2:
+        return False
+    else:
+        return True

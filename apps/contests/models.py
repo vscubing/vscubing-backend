@@ -72,7 +72,7 @@ class SolveModel(BaseModel):
 
 
 class SingleResultLeaderboardModel(models.Model):
-    solve = models.OneToOneField(SolveModel, on_delete=models.CASCADE, unique=True)
+    solve = models.OneToOneField(SolveModel, on_delete=models.DO_NOTHING, unique=True)
     time_ms = models.IntegerField(db_index=True)
 
     def __str__(self):

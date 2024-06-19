@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError as DjangoValidationError
 from django.http.response import HttpResponseServerError
+from django.db.transaction import atomic
 
 from .general_selectors import (
     current_contest_retrieve,
-    retrieve_current_scramble
+    retrieve_current_scramble,
+    can_change_solve_to_extra
 )
 from .models import (
     RoundSessionModel,
@@ -12,6 +14,7 @@ from .models import (
     ContestModel,
     DisciplineModel,
     ScrambleModel,
+    SingleResultLeaderboardModel
 )
 from scripts.cube import ReconstructionValidator
 
@@ -147,6 +150,109 @@ class CreateSolveService:
         except ObjectDoesNotExist:
             round_session = self.create_round_session()
             return round_session
+
+
+class SubmitSolveService:
+
+    def __init__(self, discipline_slug, solve_id, user_id):
+        try:
+            self.user = User.objects.get(id=user_id)
+        except ObjectDoesNotExist:
+            raise ObjectDoesNotExist()
+
+        self.current_contest = current_contest_retrieve()
+
+        try:
+            self.solve = SolveModel.objects.get(id=solve_id)
+        except ObjectDoesNotExist:
+            raise ObjectDoesNotExist()
+
+    @atomic()
+    def submit_solve(self, action):
+        if self.solve.user == self.user:
+            pass
+        else:
+            raise PermissionDenied()
+
+        if self.solve.contest.is_ongoing:
+            pass
+        elif not self.solve.contest.is_ongoing:
+            return DjangoValidationError('this contest has finished')
+        else:
+            return HttpResponseServerError
+
+        if self.solve.submission_state == 'pending':
+            pass
+        else:
+            raise DjangoValidationError('solve is already submitted')
+
+        if action == 'submit':
+            self.solve.submission_state = 'submitted'
+        elif action == 'change_to_extra':
+            if can_change_solve_to_extra(self.solve.contest, self.solve.discipline, self.user):
+                self.solve.submission_state = 'changed_to_extra'
+            else:
+                raise PermissionDenied('cannot change to extra: all extra attempts were used')
+        else:
+            raise DjangoValidationError('wrong action chosen')
+
+        self.solve.save()
+        self.add_solve_to_round_session()
+
+        self.add_solve_to_leaderboard()
+
+    def add_solve_to_round_session(self):
+        try:
+            round_session = self.solve.contest.round_session_set.get(user=self.user)
+        except ObjectDoesNotExist:
+            round_session = self.create_round_session()
+
+        self.solve.round_session = round_session
+        self.solve.save()
+
+    def create_round_session(self):
+        contest = self.solve.contest
+        discipline = self.solve.discipline
+        user = self.user
+
+        round_session = RoundSessionModel.objects.create(contest=contest, discipline=discipline, user=user)
+        return round_session
+
+    def round_session_is_finished(self):
+        round_session = self.solve.round_sessoin
+        solve_set = round_session.solve_set.filter(
+            contest=self.solve.contest,
+            discipline=self.solve.discipline,
+            user=self.user,
+            submission_state='submitted'
+        )
+        if len(solve_set) == 5:
+            return True
+        else:
+            return False
+
+    def finish_round_session(self):
+        self.solve.round_session.is_finished = True
+        self.solve.round_session.save()
+
+    def add_solve_to_leaderboard(self):
+        try:
+            best_user_solve = SingleResultLeaderboardModel.objects.get(
+                solve__user=self.user
+            )
+            if best_user_solve.solve.time_ms > self.solve:
+                best_user_solve.delete()
+                SingleResultLeaderboardModel.objects.create(
+                    solve=self.solve,
+                    time_ms=self.solve.time_ms
+                )
+            else:
+                pass
+        except ObjectDoesNotExist:
+            SingleResultLeaderboardModel.objects.create(
+                solve=self.solve,
+                time_ms=self.solve.time_ms
+            )
 
 
 class RoundSessionService:
