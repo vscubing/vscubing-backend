@@ -356,8 +356,9 @@ class ContestListApi(APIView, ContestSelector):
         order_by = serializers.CharField(required=False)
 
     class OutputSerializer(serializers.Serializer):
-        limit = serializers.IntegerField()
+        page_size = serializers.IntegerField()
         page = serializers.IntegerField()
+        pages = serializers.IntegerField()
         count = serializers.IntegerField()
         next = serializers.CharField()
         previous = serializers.CharField()
@@ -378,23 +379,16 @@ class ContestListApi(APIView, ContestSelector):
             OpenApiParameter(
                 name='page',
                 location=OpenApiParameter.QUERY,
-                description='count of contest to be returned',
+                description='what page you will get',
                 required=False,
                 type=int,
             ),
             OpenApiParameter(
-                name='limit',
+                name='page_size',
                 location=OpenApiParameter.QUERY,
-                description='offset',
+                description='page_size',
                 required=False,
                 type=int,
-            ),
-            OpenApiParameter(
-                name='order_by',
-                location=OpenApiParameter.QUERY,
-                description='order by something',
-                type=str,
-                enum=('created_at', '-created_at')
             )
         ]
     )
@@ -572,3 +566,13 @@ class SingleResultLeaderboardApi(APIView):
         data = self.OutputSerializer(data).data
 
         return Response(data, status=200)
+
+
+class UserCapabilities(APIView):
+    authentication_classes = [IsAuthenticated]
+
+    class OutputSerializer(serializers.Serializer):
+        can_solve_ongoing_contest = serializers.BooleanField()
+
+    def get(self):
+        pass
