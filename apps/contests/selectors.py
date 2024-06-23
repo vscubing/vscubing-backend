@@ -279,9 +279,9 @@ class SingleResultLeaderboardSelector:
 
         return solve_set_with_places
 
-    def get_page(self, limit, solve):
+    def get_page(self, page_size, solve):
         place = self.get_place(solve)
-        page = math.ceil(place / limit)
+        page = math.ceil(place / page_size)
         return page
 
     def is_displayed_separately(self, own_solve, solve_set):
@@ -292,13 +292,13 @@ class SingleResultLeaderboardSelector:
         elif own_solve not in solve_set:
             return True
 
-    def cut_last_solve(self, limit, own_solve, solve_set):
+    def cut_last_solve(self, page_size, own_solve, solve_set):
         if own_solve in solve_set:
             return solve_set
         else:
-            return solve_set[:limit-1]
+            return solve_set[:page_size-1]
 
-    def leaderboard_retrieve(self, limit, page, user_id=None):
+    def leaderboard_retrieve(self, page_size, page, user_id=None):
         data = {}
 
         results = {}
@@ -309,24 +309,24 @@ class SingleResultLeaderboardSelector:
         own_solve_data = self.own_solve_retrieve(user_id=user_id)
         if own_solve_data:
             own_solve['solve'] = own_solve_data.solve
-            own_solve['page'] = self.get_page(limit=limit, solve=own_solve_data)
+            own_solve['page'] = self.get_page(page_size=page_size, solve=own_solve_data)
             own_solve['place'] = self.get_place(solve=own_solve_data)
 
         pagination_info = self._get_pagination_info(
             queryset=solve_set,
-            limit=limit,
+            page_size=page_size,
             page=page
         )
         paginated_solve_set = self._get_paginated_data(
             queryset=solve_set,
-            limit=limit,
+            page_size=page_size,
             page=page
         )
         own_solve['is_displayed_separately'] = self.is_displayed_separately(
             own_solve=own_solve_data,
             solve_set=paginated_solve_set
         )
-        paginated_solve_set = self.cut_last_solve(limit, own_solve_data, paginated_solve_set)
+        paginated_solve_set = self.cut_last_solve(page_size, own_solve_data, paginated_solve_set)
         data.update(pagination_info)  # adding pagination fields to response
         paginated_solve_set_with_solves = self.add_places(paginated_solve_set)
 
@@ -336,21 +336,21 @@ class SingleResultLeaderboardSelector:
 
         return data
 
-    def _get_pagination_info(self, queryset, limit, page):
+    def _get_pagination_info(self, queryset, page_size, page):
         total_items = queryset.count()
-        total_pages = math.ceil(total_items / limit)
+        total_pages = math.ceil(total_items / page_size)
 
         info = {
-            'limit': limit,
+            'page_size': page_size,
             'page': page,
             'pages': total_pages,
         }
 
         return info
 
-    def _get_paginated_data(self, queryset, limit, page):
-        start = (page - 1) * limit
-        end = page * limit
+    def _get_paginated_data(self, queryset, page_size, page):
+        start = (page - 1) * page_size
+        end = page * page_size
 
         return queryset[start:end]
 

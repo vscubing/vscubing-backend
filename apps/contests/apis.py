@@ -376,14 +376,14 @@ class ContestListApi(APIView, ContestSelector):
             OpenApiParameter(
                 name='page',
                 location=OpenApiParameter.QUERY,
-                description='what page you will get',
+                description='page',
                 required=False,
                 type=int,
             ),
             OpenApiParameter(
                 name='page_size',
                 location=OpenApiParameter.QUERY,
-                description='page_size',
+                description='page size',
                 required=False,
                 type=int,
             )
@@ -488,7 +488,7 @@ class SingleResultLeaderboardApi(APIView):
         default_limit = 10
 
     class OutputSerializer(serializers.Serializer):
-        limit = serializers.IntegerField()
+        page_size = serializers.IntegerField()
         page = serializers.IntegerField()
         pages = serializers.IntegerField()
         results = inline_serializer(fields={
@@ -538,25 +538,32 @@ class SingleResultLeaderboardApi(APIView):
         responses={200: OutputSerializer()},
         parameters=[
             OpenApiParameter(
-                name='limit',
+                name='page_size',
                 location=OpenApiParameter.QUERY,
-                description='how many solves will be on the page',
+                description='page size',
                 required=False,
                 type=int,
             ),
             OpenApiParameter(
                 name='page',
                 location=OpenApiParameter.QUERY,
-                description='page number',
+                description='page',
                 required=False,
                 type=int,
-            )
+            ),
+            OpenApiParameter(
+                name='discipline_slug',
+                location=OpenApiParameter.QUERY,
+                description='discipline slug',
+                required=False,
+                type=str,
+            ),
         ]
     )
     def get(self, request):
         leaderboard_selector = SingleResultLeaderboardSelector()
         data = leaderboard_selector.leaderboard_retrieve(
-            limit=int(request.query_params.get('limit', 10)),
+            page_size=int(request.query_params.get('page_size', 10)),
             page=int(request.query_params.get('page', 1)),
             user_id=request.user.id
         )
