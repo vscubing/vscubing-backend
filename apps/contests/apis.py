@@ -214,7 +214,7 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
         page = serializers.IntegerField()
         pages = serializers.IntegerField()
         results = inline_serializer(fields={
-            'own_round_session': inline_serializer(fields={
+            'own_result': inline_serializer(fields={
                 'round_session': inline_serializer(required=False, fields={
                     'id': serializers.IntegerField(),
                     'avg_ms': serializers.IntegerField(),
@@ -325,15 +325,6 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
     )
     def get(self, request):
         selector = ContestLeaderboardSelector()
-        # filters_serializer = self.FilterSerializer(data=request.query_params)
-        # filters_serializer.is_valid(raise_exception=True)
-        # round_session_set = self.contest_leaderboard(contest_slug, filters=filters_serializer.validated_data)
-        # data = get_paginated_data(
-        #     pagination_class=self.Pagination,
-        #     queryset=round_session_set,
-        #     request=request,
-        #     view=self
-        # )
 
         data = selector.leaderboard_retrieve(
             contest_slug=str(request.query_params.get('contest_slug', '1')),
@@ -492,7 +483,7 @@ class SingleResultLeaderboardApi(APIView):
         page = serializers.IntegerField()
         pages = serializers.IntegerField()
         results = inline_serializer(fields={
-            'own_solve': inline_serializer(fields={
+            'own_result': inline_serializer(fields={
                 'solve': inline_serializer(required=False, fields={
                     'id': serializers.IntegerField(),
                     'time_ms': serializers.IntegerField(),

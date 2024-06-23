@@ -330,7 +330,7 @@ class SingleResultLeaderboardSelector:
         data.update(pagination_info)  # adding pagination fields to response
         paginated_solve_set_with_solves = self.add_places(paginated_solve_set)
 
-        results['own_solve'] = own_solve
+        results['own_result'] = own_solve
         results['solve_set'] = paginated_solve_set_with_solves
         data['results'] = results
 
@@ -480,7 +480,7 @@ class ContestLeaderboardSelector:
             raise Http404
         data = {'results': {}}
         data.update(self.get_pagination_info(discipline, contest, page_size, page))
-        data['results']['own_round_session'] = self.own_round_session_retrieve(discipline, contest, page_size, page,
+        data['results']['own_result'] = self.own_round_session_retrieve(discipline, contest, page_size, page,
                                                                                user_id)
         data['results']['round_session_set'] = self.round_session_set_retrieve(discipline, contest, page_size, page, user_id)
         return data
