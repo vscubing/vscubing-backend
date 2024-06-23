@@ -295,9 +295,10 @@ class SingleResultLeaderboardSelector:
     def cut_last_solve(self, page_size, own_solve, solve_set):
         if own_solve in solve_set:
             return solve_set
+        elif own_solve is None:
+            return solve_set
         else:
             return solve_set[:page_size-1]
-
     def leaderboard_retrieve(self, page_size, page, user_id=None):
         data = {}
 
@@ -413,7 +414,10 @@ class ContestLeaderboardSelector:
                 discipline=discipline,
                 user_id=user_id
             )
-            round_session_set = round_session_set[:page_size-1]
+            if own_round_session in round_session_set:
+                return round_session_set
+            else:
+                round_session_set = round_session_set[:page_size-1]
         except ObjectDoesNotExist:
             own_round_session = None
         return round_session_set
