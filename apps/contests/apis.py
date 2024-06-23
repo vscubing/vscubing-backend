@@ -202,7 +202,7 @@ class SubmitSolveApi(APIView):
 
 class ContestLeaderboardApi(APIView, RoundSessionSelector):
     # Api for contest dashboard to display finished round_sessions
-    class Pagination(LimitOffsetPagination):
+    class Pagination(LimitPagePagination):
         default_limit = 10
 
     class FilterSerializer(serializers.Serializer):
@@ -210,7 +210,7 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
         order_by = serializers.CharField(required=False)
 
     class OutputSerializer(serializers.Serializer):
-        limit = serializers.IntegerField()
+        page_size = serializers.IntegerField()
         page = serializers.IntegerField()
         pages = serializers.IntegerField()
         results = inline_serializer(fields={
@@ -289,14 +289,14 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
             OpenApiParameter(
                 name='page',
                 location=OpenApiParameter.QUERY,
-                description='count of contest to be returned',
+                description='page',
                 required=False,
                 type=int,
             ),
             OpenApiParameter(
-                name='limit',
+                name='page_size',
                 location=OpenApiParameter.QUERY,
-                description='offset',
+                description='page size',
                 required=False,
                 type=int,
             ),
@@ -338,7 +338,7 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
         data = selector.leaderboard_retrieve(
             contest_slug=str(request.query_params.get('contest_slug', '1')),
             discipline_slug=str(request.query_params.get('discipline_slug', '3by3')),
-            limit=int(request.query_params.get('limit', 10)),
+            page_size=int(request.query_params.get('page_size', 10)),
             page=int(request.query_params.get('page', 1)),
             user_id=request.user.id
         )
@@ -359,9 +359,6 @@ class ContestListApi(APIView, ContestSelector):
         page_size = serializers.IntegerField()
         page = serializers.IntegerField()
         pages = serializers.IntegerField()
-        count = serializers.IntegerField()
-        next = serializers.CharField()
-        previous = serializers.CharField()
         results = inline_serializer(many=True, fields={
             'id': serializers.IntegerField(),
             'name': serializers.CharField(),
