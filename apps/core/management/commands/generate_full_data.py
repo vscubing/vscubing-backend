@@ -71,12 +71,13 @@ class Command(BaseCommand):
 
     @atomic
     def google_client(self):
-        social_app = SocialApp.objects.create(
+        social_app, created = SocialApp.objects.get_or_create(
             provider='google',
             name='google_client',
             client_id=os.getenv('GOOGLE_CLIENT_ID'),
             secret=os.getenv('GOOGLE_SECRET_KEY'),
         )
+        print(social_app, created)
         social_app.sites.set([1])
         social_app.save()
 
