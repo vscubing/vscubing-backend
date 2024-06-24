@@ -224,7 +224,7 @@ class ContestSelector:
     def list(self, filters=None):
         filters = filters or {}
 
-        contest_set = ContestModel.objects.all()
+        contest_set = ContestModel.objects.filter(is_ongoing=False)
         return ContestFilter(filters, contest_set).qs
 
 
