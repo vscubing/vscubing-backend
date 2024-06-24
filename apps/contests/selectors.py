@@ -422,7 +422,7 @@ class ContestLeaderboardSelector:
             discipline=discipline,
             contest=contest,
         ).order_by('avg_ms')
-        paginated_round_session_set = self._get_paginated_data(round_session_set, page_size, page)
+        paginated_round_session_set = page_size_page_paginator(round_session_set, page_size, page)
         paginated_round_session_set = self.cut_last_round_session(paginated_round_session_set, contest,
                                                                   discipline, page_size, user_id)
         paginated_round_session_set_with_places = self.add_places(
