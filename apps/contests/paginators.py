@@ -1,6 +1,7 @@
 import math
 from collections import OrderedDict
 
+from django.http import Http404
 from rest_framework.pagination import LimitOffsetPagination as _LimitOffsetPagination
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -81,3 +82,14 @@ def get_paginated_data(*, pagination_class, queryset, request, view):
 
     return page
 
+
+def page_size_page_paginator(queryset, page_size, page):
+    total_items = queryset.count()
+    total_pages = math.ceil(total_items / page_size)
+    if total_pages < page:
+        raise Http404
+
+    start = (page - 1) * page_size
+    end = page * page_size
+
+    return queryset[start:end]

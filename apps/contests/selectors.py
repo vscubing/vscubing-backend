@@ -19,6 +19,8 @@ from .filters import (
     ContestFilter,
 )
 
+from .paginators import page_size_page_paginator
+
 
 class RoundSessionSelector:
 
@@ -318,7 +320,7 @@ class SingleResultLeaderboardSelector:
             page_size=page_size,
             page=page
         )
-        paginated_solve_set = self._get_paginated_data(
+        paginated_solve_set = page_size_page_paginator(
             queryset=solve_set,
             page_size=page_size,
             page=page
@@ -334,7 +336,6 @@ class SingleResultLeaderboardSelector:
         results['own_result'] = own_solve
         results['solve_set'] = paginated_solve_set_with_solves
         data['results'] = results
-
         return data
 
     def _get_pagination_info(self, queryset, page_size, page):
@@ -348,12 +349,6 @@ class SingleResultLeaderboardSelector:
         }
 
         return info
-
-    def _get_paginated_data(self, queryset, page_size, page):
-        start = (page - 1) * page_size
-        end = page * page_size
-
-        return queryset[start:end]
 
 
 class ContestLeaderboardSelector:
@@ -450,7 +445,7 @@ class ContestLeaderboardSelector:
             discipline=discipline,
             contest=contest,
         ).order_by('avg_ms')
-        paginated_round_session_set = self._get_paginated_data(round_session_set, page_size, page)
+        paginated_round_session_set = page_size_page_paginator(round_session_set, page_size, page)
         is_displayed_separately = self.is_displayed_separately(round_session, paginated_round_session_set)
         own_round_session = {
             'round_session': round_session,
@@ -488,9 +483,3 @@ class ContestLeaderboardSelector:
                                                                                user_id)
         data['results']['round_session_set'] = self.round_session_set_retrieve(discipline, contest, page_size, page, user_id)
         return data
-
-    def _get_paginated_data(self, queryset, page_size, page):
-        start = (page - 1) * page_size
-        end = page * page_size
-
-        return queryset[start:end]
