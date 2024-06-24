@@ -23,9 +23,9 @@ from scripts.scramble import generate_scramble
 
 load_dotenv()
 
-USERS_QTY = 10
+USERS_QTY = 25
 DISCIPLINE_NAMES = ['3by3']
-CONTEST_QTY = 5
+CONTEST_QTY = 25
 
 
 class Command(BaseCommand):
