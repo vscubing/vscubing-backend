@@ -37,11 +37,11 @@ class LimitOffsetPagination(_LimitOffsetPagination):
 
 
 class LimitPagePagination(PageNumberPagination):
-    page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 50
 
     def get_paginated_data(self, data):
+        self.page_size = int(self.request.query_params.get('page_size'))
         """
         We redefine this method in order to return `limit` and `page`.
         This is used by the frontend to construct the pagination itself.
