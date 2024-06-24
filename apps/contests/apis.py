@@ -399,6 +399,8 @@ class OngoingContestRetrieveApi(APIView):
     class OutputSerializer(serializers.Serializer):
         id = serializers.IntegerField()
         slug = serializers.CharField()
+        start_date = serializers.DateTimeField()
+        end_date = serializers.DateTimeField()
 
         class Meta:
             ref_name = 'OngoingContestRetrieveSerializer'
