@@ -493,8 +493,9 @@ class SingleResultLeaderboardApi(APIView):
                     'submission_state': serializers.CharField(),
                     'reconstruction': serializers.CharField(),
                     'contest': inline_serializer(fields={
-                            'id': serializers.IntegerField()
-                        }),
+                        'id': serializers.IntegerField(),
+                        'slug': serializers.CharField()
+                    }),
                 }),
                 'place': serializers.IntegerField(required=False),
                 'is_displayed_separately': serializers.BooleanField(required=False),
@@ -517,8 +518,9 @@ class SingleResultLeaderboardApi(APIView):
                                                   'username': serializers.CharField(),
                                               }),
                     'contest': inline_serializer(fields={
-                            'id': serializers.IntegerField()
-                        }),
+                        'id': serializers.IntegerField(),
+                        'slug': serializers.CharField()
+                    }),
                 }),
                 'place': serializers.IntegerField(default=None)
             })
