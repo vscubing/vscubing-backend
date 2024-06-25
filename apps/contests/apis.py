@@ -524,7 +524,7 @@ class SingleResultLeaderboardApi(APIView):
                         'slug': serializers.CharField()
                     }),
                 }),
-                'place': serializers.IntegerField(default=None)
+                'place': serializers.IntegerField()
             })
         })
 
