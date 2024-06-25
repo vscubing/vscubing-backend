@@ -496,6 +496,7 @@ class SingleResultLeaderboardApi(APIView):
                         'id': serializers.IntegerField(),
                         'slug': serializers.CharField()
                     }),
+                    'created_at': serializers.DateTimeField(),
                 }),
                 'place': serializers.IntegerField(required=False),
                 'is_displayed_separately': serializers.BooleanField(required=False),
@@ -509,6 +510,7 @@ class SingleResultLeaderboardApi(APIView):
                     'is_dnf': serializers.BooleanField(),
                     'submission_state': serializers.CharField(),
                     'reconstruction': serializers.CharField(),
+                    'created_at': serializers.DateTimeField(),
 
                     'scramble': inline_serializer(fields={
                             'id': serializers.IntegerField()
