@@ -67,8 +67,9 @@ class CurrentUserApi(APIView):
     permission_classes = [IsAuthenticated]
 
     class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
         username = serializers.CharField()
-        auth_completed = serializers.BooleanField()
+        is_verified = serializers.BooleanField()
 
         class Meta:
             ref_name = 'accounts.CurrentUserOutputSerializer'
@@ -77,7 +78,7 @@ class CurrentUserApi(APIView):
         responses={200: OutputSerializer()},
     )
     def get(self, request):
-        data = {'username': request.user.username, 'auth_completed': request.user.is_verified}
+        data = request.user
         data = self.OutputSerializer(data).data
         return Response(data)
 
