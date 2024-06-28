@@ -145,9 +145,12 @@ class SolveSelector:
 # class that shows info about current solve and submitted solves
 class CurrentRoundSessionProgressSelector:
     def __init__(self, user_id, discipline_slug):
-        self.user = User.objects.get(id=user_id)
-        self.discipline = DisciplineModel.objects.get(slug=discipline_slug)
-        self.contest = ContestModel.objects.filter(is_ongoing=True).last()
+        try:
+            self.user = User.objects.get(id=user_id)
+            self.discipline = DisciplineModel.objects.get(slug=discipline_slug)
+            self.contest = ContestModel.objects.filter(is_ongoing=True).last()
+        except ObjectDoesNotExist:
+            raise Http404
 
     def _retrieve_current_scramble(self):
         current_scramble = ScrambleSelector().retrieve_current(
@@ -357,7 +360,8 @@ class ContestLeaderboardSelector:
             position = RoundSessionModel.objects.filter(
                 avg_ms__lt=round_session.avg_ms,
                 contest=contest,
-                discipline=discipline
+                discipline=discipline,
+                is_finished=True
             ).count() + 1
         elif round_session is None:
             position = None
@@ -386,19 +390,17 @@ class ContestLeaderboardSelector:
 
     def is_displayed_separately(self, own_round_session, round_session_set):
         if own_round_session in round_session_set:
-            print('False')
             return False
         elif own_round_session is None:
-            print('False')
             return False
         elif own_round_session not in round_session_set:
-            print('True')
             return True
 
     def round_session_list(self, discipline, contest):
         round_session_set = RoundSessionModel.objects.filter(
             discipline=discipline,
-            contest=contest
+            contest=contest,
+            is_finished=True,
         ).order_by('avg_ms')
         return round_session_set
 
@@ -421,6 +423,7 @@ class ContestLeaderboardSelector:
         round_session_set = RoundSessionModel.objects.filter(
             discipline=discipline,
             contest=contest,
+            is_finished=True
         ).order_by('avg_ms')
         paginated_round_session_set = page_size_page_paginator(round_session_set, page_size, page)
         paginated_round_session_set = self.cut_last_round_session(paginated_round_session_set, contest,
@@ -437,7 +440,8 @@ class ContestLeaderboardSelector:
             round_session = RoundSessionModel.objects.get(
                 contest=contest,
                 discipline=discipline,
-                user_id=user_id
+                user_id=user_id,
+                is_finished=True,
             )
         except ObjectDoesNotExist:
             round_session = None
@@ -447,6 +451,7 @@ class ContestLeaderboardSelector:
         ).order_by('avg_ms')
         paginated_round_session_set = page_size_page_paginator(round_session_set, page_size, page)
         is_displayed_separately = self.is_displayed_separately(round_session, paginated_round_session_set)
+
         own_round_session = {
             'round_session': round_session,
             'place': self.get_place(round_session, contest, discipline),

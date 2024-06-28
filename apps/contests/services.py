@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError as DjangoValidationError
 from django.http.response import HttpResponseServerError
+from django.http import Http404
 from django.db.transaction import atomic
 from rest_framework import status
 
@@ -29,7 +30,7 @@ class CreateSolveService:
         try:
             self.discipline = DisciplineModel.objects.get(slug=discipline_slug)
         except ObjectDoesNotExist:
-            raise ObjectDoesNotExist
+            raise Http404
         self.contest = current_contest_retrieve()
         if not self.round_session_is_finished():
             pass
@@ -53,12 +54,12 @@ class CreateSolveService:
         if self.scramble_is_correct(scramble_id=scramble_id):
             pass
         else:
-            raise DjangoValidationError
+            raise ConflictException('scramble is incorrect')
         # validate that scramble wasn't solved yes
         if self.solve_does_not_exists():
             pass
         else:
-            raise PermissionDenied('solve already exists')
+            raise ConflictException('solve already exists')
         # validate solve reconstruction
         solve_is_valid = self.solve_is_valid(
             reconstruction=reconstruction,
@@ -167,7 +168,7 @@ class SubmitSolveService:
         try:
             self.solve = SolveModel.objects.get(id=solve_id)
         except ObjectDoesNotExist:
-            raise ObjectDoesNotExist()
+            raise Http404('solve is not found')
 
     @atomic()
     def submit_solve(self, action):
@@ -201,6 +202,11 @@ class SubmitSolveService:
         self.solve.save()
         self.add_solve_to_round_session()
 
+        if self.round_session_is_finished():
+            self.finish_round_session()
+        else:
+            pass
+
         self.add_solve_to_leaderboard()
 
     def add_solve_to_round_session(self):
@@ -221,7 +227,7 @@ class SubmitSolveService:
         return round_session
 
     def round_session_is_finished(self):
-        round_session = self.solve.round_sessoin
+        round_session = self.solve.round_session
         solve_set = round_session.solve_set.filter(
             contest=self.solve.contest,
             discipline=self.solve.discipline,
@@ -234,8 +240,39 @@ class SubmitSolveService:
             return False
 
     def finish_round_session(self):
+        avg_ms, is_dnf = self.get_round_session_avg_ms_and_is_dnf()
         self.solve.round_session.is_finished = True
+        self.solve.round_session.avg_ms = avg_ms
+        self.solve.round_session.is_dnf = is_dnf
         self.solve.round_session.save()
+
+    def get_round_session_avg_ms_and_is_dnf(self):
+        round_session = self.solve.round_session
+        solve_set = round_session.solve_set.filter(submission_state='submitted', is_dnf=False).order_by('time_ms')
+        sum_ms = 0
+        dnf_count = 0
+        lowest_solve = solve_set.first()
+        highest_solve = solve_set.last()
+        if len(solve_set) <= 3:
+            round_session.dnf = True
+            round_session.submitted = True
+            round_session.save()
+            return True
+        elif len(solve_set) > 3:
+            solve_set_modified = solve_set.exclude(pk__in=[lowest_solve.pk, highest_solve.pk])
+            for solve in solve_set_modified:
+                sum_ms += solve.time_ms
+            if len(solve_set) == 4:
+                sum_ms += highest_solve.time_ms
+            elif len(solve_set) == 5:
+                pass
+            avg_ms = sum_ms / 3
+            if dnf_count >= 2:
+                is_dnf = True
+            else:
+                is_dnf = False
+
+            return avg_ms, is_dnf
 
     def add_solve_to_leaderboard(self):
         try:

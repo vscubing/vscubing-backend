@@ -44,8 +44,8 @@ class RoundSessionModel(BaseModel):
     contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='round_session_set')
     discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE, related_name='round_session_set')
 
-    def __int__(self):
-        return self.id
+    def __str__(self):
+        return f"{self.user.username}, avg_ms {self.avg_ms}, id {self.pk}"
 
 
 class SolveModel(BaseModel):
