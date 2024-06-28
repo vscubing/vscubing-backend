@@ -24,7 +24,7 @@ ongoing_contest_urlpatterns = [
     path('current-round-session-progress/', CurrentRoundSessionProgressApi.as_view(), name='retrieve-current'),
     path('retrieve/', OngoingContestRetrieveApi.as_view(), name='retrieve'),
     path('solve/create/', CreateSolveApi.as_view(), name='solve-create'),
-    path('<int:id>/submit/', SubmitSolveApi.as_view(), name='submit'),
+    path('<int:solve_id>/submit/', SubmitSolveApi.as_view(), name='submit'),
 ]
 
 contests_urlpatterns = [

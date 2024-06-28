@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError as DjangoValidationError
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.http.response import HttpResponseServerError
 from django.db.transaction import atomic
+from rest_framework import status
 
+from apps.core.exceptions import ConflictException
 from .general_selectors import (
     current_contest_retrieve,
     retrieve_current_scramble,
@@ -177,14 +179,14 @@ class SubmitSolveService:
         if self.solve.contest.is_ongoing:
             pass
         elif not self.solve.contest.is_ongoing:
-            return DjangoValidationError('this contest has finished')
+            raise ConflictException('this contest has finished')
         else:
-            return HttpResponseServerError
+            raise ConflictException()
 
         if self.solve.submission_state == 'pending':
             pass
         else:
-            raise DjangoValidationError('solve is already submitted')
+            raise ConflictException('solve is already submitted')
 
         if action == 'submit':
             self.solve.submission_state = 'submitted'
@@ -192,9 +194,9 @@ class SubmitSolveService:
             if can_change_solve_to_extra(self.solve.contest, self.solve.discipline, self.user):
                 self.solve.submission_state = 'changed_to_extra'
             else:
-                raise PermissionDenied('cannot change to extra: all extra attempts were used')
+                raise ConflictException('cannot change to extra: all extra attempts were used')
         else:
-            raise DjangoValidationError('wrong action chosen')
+            raise ConflictException('wrong action chosen')
 
         self.solve.save()
         self.add_solve_to_round_session()
@@ -240,7 +242,7 @@ class SubmitSolveService:
             best_user_solve = SingleResultLeaderboardModel.objects.get(
                 solve__user=self.user
             )
-            if best_user_solve.solve.time_ms > self.solve:
+            if best_user_solve.solve.time_ms > self.solve.time_ms:
                 best_user_solve.delete()
                 SingleResultLeaderboardModel.objects.create(
                     solve=self.solve,

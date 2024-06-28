@@ -68,11 +68,11 @@ class SolveModel(BaseModel):
     contest = models.ForeignKey(ContestModel, on_delete=models.CASCADE, related_name='solve_set')
 
     def __str__(self):
-        return f"{self.user.username} {self.time_ms}"
+        return f"{self.user.username}, time_ms {self.time_ms}, id {self.pk}"
 
 
 class SingleResultLeaderboardModel(models.Model):
-    solve = models.OneToOneField(SolveModel, on_delete=models.DO_NOTHING, unique=True)
+    solve = models.OneToOneField(SolveModel, on_delete=models.CASCADE, unique=True)
     time_ms = models.IntegerField(db_index=True)
 
     def __str__(self):

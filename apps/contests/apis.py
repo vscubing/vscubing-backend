@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView, Response
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
@@ -171,7 +172,8 @@ class SubmitSolveApi(APIView):
         ref_name = 'contests.SubmitSolveInputSerializer'
 
     @extend_schema(
-        responses=200,
+        responses={200: None},
+        request=InputSerializer(),
         parameters=[
             OpenApiParameter(
                 name='discipline_slug',
@@ -190,14 +192,14 @@ class SubmitSolveApi(APIView):
             )
         ]
     )
-    def post(self, request, id):
+    def post(self, request, solve_id):
         service = SubmitSolveService(
             discipline_slug=request.query_params.get('discipline_slug', None),
-            solve_id=id,
+            solve_id=solve_id,
             user_id=request.user.id
         )
         service.submit_solve(action=request.query_params.get('action'))
-        return Response(200)
+        return Response(status=status.HTTP_200_OK)
 
 
 class ContestLeaderboardApi(APIView, RoundSessionSelector):
