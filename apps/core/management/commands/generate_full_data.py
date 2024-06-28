@@ -112,7 +112,7 @@ class Command(BaseCommand):
 
         discipline = DisciplineModel.objects.get(name='3by3')
         for scramble_position in range(1, 6):
-            generated_scramble = generate_scramble()
+            generated_scramble = 'R2 L2'
             scramble = ScrambleModel(position=scramble_position, moves=generated_scramble,
                                      is_extra=False, contest=contest, discipline=discipline)
             scramble.save()

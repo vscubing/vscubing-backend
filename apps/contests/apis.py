@@ -241,6 +241,11 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
                         'is_dnf': serializers.BooleanField(),
                         'submission_state': serializers.CharField(),
                         'extra_id': serializers.IntegerField(),
+                        'time_ms': serializers.IntegerField(),
+                        'scramble': inline_serializer(fields={
+                            'id': serializers.IntegerField(),
+                            'position': serializers.CharField(),
+                        })
                     })
                 }),
                 'place': serializers.IntegerField(required=False),
@@ -274,6 +279,11 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
                         'is_dnf': serializers.BooleanField(),
                         'submission_state': serializers.CharField(),
                         'extra_id': serializers.IntegerField(),
+                        'time_ms': serializers.IntegerField(),
+                        'scramble': inline_serializer(fields={
+                            'id': serializers.IntegerField(),
+                            'position': serializers.CharField(),
+                        })
                     })
                 }),
                 'place': serializers.IntegerField(required=False)
