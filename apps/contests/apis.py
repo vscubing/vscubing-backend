@@ -440,7 +440,7 @@ class CurrentRoundSessionProgressApi(APIView, SolveSelector):
                 'scramble': serializers.CharField()
             })
         })
-        submitted_solve_set = inline_serializer(required=False, many=True, fields={
+        submitted_solve_set = inline_serializer(many=True, fields={
             'solve': inline_serializer(fields={
                 'id': serializers.IntegerField(),
                 'is_dnf': serializers.BooleanField(),
