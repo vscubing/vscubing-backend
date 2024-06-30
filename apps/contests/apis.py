@@ -465,13 +465,6 @@ class CurrentRoundSessionProgressApi(APIView, SolveSelector):
                 required=True,
                 type=str
             ),
-            OpenApiParameter(
-                name='contest_slug',
-                location=OpenApiParameter.QUERY,
-                description='contest slug',
-                required=True,
-                type=str
-            ),
         ]
     )
     def get(self, request):
