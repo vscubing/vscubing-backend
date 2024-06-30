@@ -552,14 +552,7 @@ class SingleResultLeaderboardApi(APIView):
                 description='page',
                 required=False,
                 type=int,
-            ),
-            OpenApiParameter(
-                name='discipline_slug',
-                location=OpenApiParameter.QUERY,
-                description='discipline slug',
-                required=False,
-                type=str,
-            ),
+            )
         ]
     )
     def get(self, request):
