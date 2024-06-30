@@ -445,7 +445,10 @@ class CurrentRoundSessionProgressApi(APIView, SolveSelector):
                 'id': serializers.IntegerField(),
                 'is_dnf': serializers.BooleanField(),
                 'time_ms': serializers.IntegerField(),
-                'scramble': serializers.CharField(),
+                'scramble': inline_serializer(fields={
+                    'moves': serializers.CharField(),
+                    'position': serializers.CharField()
+                })
             })
         })
 
