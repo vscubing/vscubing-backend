@@ -473,9 +473,20 @@ class ContestLeaderboardSelector:
 
         return info
 
+    def check_permission(self, contest, user_id):
+        if not contest.is_ongoing:
+            return True
+        elif contest.is_ongoing:
+            try:
+                contest.round_session_set.get(user_id=user_id)
+                return True
+            except ObjectDoesNotExist:
+                raise PermissionDenied()
+
     def leaderboard_retrieve(self, discipline_slug, contest_slug, page_size, page, user_id):
         try:
             contest = ContestModel.objects.get(slug=contest_slug)
+            self.check_permission(contest=contest, user_id=user_id)
         except ObjectDoesNotExist:
             raise Http404
         try:

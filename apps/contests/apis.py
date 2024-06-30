@@ -325,13 +325,6 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
                 description='discipline slug',
                 required=True,
                 type=str,
-            ),
-            OpenApiParameter(
-                name='order_by',
-                location=OpenApiParameter.QUERY,
-                description='order by something',
-                type=str,
-                enum=('avg_ms', '-avg_ms')
             )
         ]
     )
