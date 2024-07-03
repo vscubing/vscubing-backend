@@ -437,19 +437,25 @@ class CurrentRoundSessionProgressApi(APIView, SolveSelector):
                 'id': serializers.IntegerField(),
                 'is_dnf': serializers.BooleanField(),
                 'time_ms': serializers.IntegerField(),
+                'scramble': inline_serializer(fields={
+                    'id': serializers.IntegerField(),
+                    'is_extra': serializers.BooleanField(),
+                    'position': serializers.CharField(),
+                    'moves': serializers.CharField()
+                }),
             })
         })
-        submitted_solve_set = inline_serializer(many=True, fields={
-            'scramble': inline_serializer(fields={
-                'id': serializers.IntegerField(),
-                'is_extra': serializers.BooleanField(),
-                'position': serializers.CharField(),
-                'moves': serializers.CharField()
-            }),
+        submitted_solve_set = inline_serializer(required=False, many=True, fields={
             'solve': inline_serializer(fields={
                 'id': serializers.IntegerField(),
                 'is_dnf': serializers.BooleanField(),
                 'time_ms': serializers.IntegerField(),
+                'scramble': inline_serializer(fields={
+                    'id': serializers.IntegerField(),
+                    'is_extra': serializers.BooleanField(),
+                    'position': serializers.CharField(),
+                    'moves': serializers.CharField()
+                }),
             })
         })
 
