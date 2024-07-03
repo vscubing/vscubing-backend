@@ -216,7 +216,7 @@ class CurrentRoundSessionProgressSelector:
         data = {'current_solve': {'solve': current_solve,
                                         'scramble': current_scramble,
                                         'can_change_to_extra': can_change_to_extra},
-                'submitted_solve_set': ({'solve': solve} for solve in solve_set)}
+                'submitted_solve_set': ({'solve': solve, 'scramble': current_scramble} for solve in solve_set)}
 
         return data
 
