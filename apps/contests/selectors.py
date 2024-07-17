@@ -313,10 +313,6 @@ class SingleResultLeaderboardSelector:
         solve_set = self.list()
 
         own_solve_data = self.own_solve_retrieve(user_id=user_id)
-        if own_solve_data:
-            own_solve['solve'] = own_solve_data.solve
-            own_solve['page'] = self.get_page(page_size=page_size, solve=own_solve_data)
-            own_solve['place'] = self.get_place(solve=own_solve_data)
 
         pagination_info = self._get_pagination_info(
             queryset=solve_set,
@@ -328,15 +324,22 @@ class SingleResultLeaderboardSelector:
             page_size=page_size,
             page=page
         )
-        own_solve['is_displayed_separately'] = self.is_displayed_separately(
-            own_solve=own_solve_data,
-            solve_set=paginated_solve_set
-        )
+        if own_solve_data:
+            own_solve['solve'] = own_solve_data.solve
+            own_solve['page'] = self.get_page(page_size=page_size, solve=own_solve_data)
+            own_solve['place'] = self.get_place(solve=own_solve_data)
+            own_solve['is_displayed_separately'] = self.is_displayed_separately(
+                own_solve=own_solve_data,
+                solve_set=paginated_solve_set
+            )
         paginated_solve_set = self.cut_last_solve(page_size, own_solve_data, paginated_solve_set)
         data.update(pagination_info)  # adding pagination fields to response
         paginated_solve_set_with_solves = self.add_places(paginated_solve_set)
 
-        results['own_result'] = own_solve
+        if own_solve:
+            results['own_result'] = own_solve
+        else:
+            results['own_result'] = None
         results['solve_set'] = paginated_solve_set_with_solves
         data['results'] = results
         return data
