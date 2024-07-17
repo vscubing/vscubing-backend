@@ -498,8 +498,6 @@ class SingleResultLeaderboardApi(APIView):
                     'id': serializers.IntegerField(),
                     'time_ms': serializers.IntegerField(),
                     'is_dnf': serializers.BooleanField(),
-                    'submission_state': serializers.CharField(),
-                    'reconstruction': serializers.CharField(),
                     'contest': inline_serializer(fields={
                         'id': serializers.IntegerField(),
                         'slug': serializers.CharField()
@@ -516,13 +514,7 @@ class SingleResultLeaderboardApi(APIView):
                     'id': serializers.IntegerField(),
                     'time_ms': serializers.IntegerField(),
                     'is_dnf': serializers.BooleanField(),
-                    'submission_state': serializers.CharField(),
-                    'reconstruction': serializers.CharField(),
                     'created_at': serializers.DateTimeField(),
-
-                    'scramble': inline_serializer(fields={
-                            'id': serializers.IntegerField()
-                        }),
                     'user': inline_serializer(fields={
                                                   'id': serializers.IntegerField(),
                                                   'username': serializers.CharField(),
