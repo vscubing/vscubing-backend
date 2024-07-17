@@ -433,7 +433,7 @@ class CurrentRoundSessionProgressApi(APIView, SolveSelector):
                 'moves': serializers.CharField()
             }),
             'can_change_to_extra': serializers.BooleanField(),
-            'solve': inline_serializer(fields={
+            'solve': inline_serializer(required=False, fields={
                 'id': serializers.IntegerField(),
                 'is_dnf': serializers.BooleanField(),
                 'time_ms': serializers.IntegerField(),
