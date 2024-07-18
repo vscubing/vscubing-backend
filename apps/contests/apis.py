@@ -106,9 +106,9 @@ class CreateSolveApi(APIView):
     permission_classes = [IsAuthenticated]
 
     class InputSerializer(serializers.Serializer):
-        reconstruction = serializers.CharField()
+        reconstruction = serializers.CharField(required=False)
         is_dnf = serializers.BooleanField()
-        time_ms = serializers.IntegerField()
+        time_ms = serializers.IntegerField(required=False)
 
         class Meta:
             ref_name = 'contests.CreateSolveInputSerializer'
