@@ -38,19 +38,21 @@ class SolveRetrieveApi(APIView, SolveSelector):
         reconstruction = serializers.CharField()
 
         scramble = inline_serializer(fields={
-            'id': serializers.IntegerField()
+            'id': serializers.IntegerField(),
+            'moves': serializers.CharField(),
+            'position': serializers.IntegerField()
         })
         user = inline_serializer(fields={
-            'id': serializers.IntegerField()
+            'id': serializers.IntegerField(),
+            'username': serializers.CharField()
         })
         discipline = inline_serializer(fields={
-            'id': serializers.IntegerField()
-        })
-        round_session = inline_serializer(fields={
-            'id': serializers.IntegerField()
+            'id': serializers.IntegerField(),
+            'slug': serializers.CharField()
         })
         contest = inline_serializer(fields={
-            'id': serializers.IntegerField()
+            'id': serializers.IntegerField(),
+            'slug': serializers.CharField()
         })
 
         class Meta:
