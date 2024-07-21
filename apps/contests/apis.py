@@ -290,7 +290,7 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
                         })
                     })
                 }),
-                'place': serializers.IntegerField(required=False)
+                'place': serializers.IntegerField()
             })
         })
 
