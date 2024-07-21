@@ -448,6 +448,7 @@ class ContestLeaderboardSelector:
             )
         except ObjectDoesNotExist:
             round_session = None
+            return round_session
         round_session_set = RoundSessionModel.objects.filter(
             discipline=discipline,
             contest=contest,

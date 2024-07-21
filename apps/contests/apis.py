@@ -218,8 +218,8 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
         page = serializers.IntegerField()
         pages = serializers.IntegerField()
         results = inline_serializer(fields={
-            'own_result': inline_serializer(fields={
-                'round_session': inline_serializer(required=False, fields={
+            'own_result': inline_serializer(required=False, fields={
+                'round_session': inline_serializer(fields={
                     'id': serializers.IntegerField(),
                     'avg_ms': serializers.IntegerField(),
                     'is_dnf': serializers.BooleanField(),
@@ -252,9 +252,9 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
                         })
                     })
                 }),
-                'place': serializers.IntegerField(required=False),
-                'is_displayed_separately': serializers.BooleanField(required=False),
-                'page': serializers.IntegerField(required=False)
+                'place': serializers.IntegerField(),
+                'is_displayed_separately': serializers.BooleanField(),
+                'page': serializers.IntegerField()
             }),
             'round_session_set': inline_serializer(many=True, fields={
                 'round_session': inline_serializer(fields={
@@ -495,8 +495,8 @@ class SingleResultLeaderboardApi(APIView):
         page = serializers.IntegerField()
         pages = serializers.IntegerField()
         results = inline_serializer(fields={
-            'own_result': inline_serializer(default=None, fields={
-                'solve': inline_serializer(required=True, fields={
+            'own_result': inline_serializer(required=False, fields={
+                'solve': inline_serializer(fields={
                     'id': serializers.IntegerField(),
                     'time_ms': serializers.IntegerField(),
                     'is_dnf': serializers.BooleanField(),
@@ -506,9 +506,9 @@ class SingleResultLeaderboardApi(APIView):
                     }),
                     'created_at': serializers.DateTimeField(),
                 }),
-                'place': serializers.IntegerField(required=True),
-                'is_displayed_separately': serializers.BooleanField(required=True),
-                'page': serializers.IntegerField(required=True)
+                'place': serializers.IntegerField(),
+                'is_displayed_separately': serializers.BooleanField(),
+                'page': serializers.IntegerField()
             }),
 
             'solve_set': inline_serializer(many=True, fields={
