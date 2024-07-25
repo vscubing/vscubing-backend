@@ -87,7 +87,10 @@ class SolveSelector:
 
     def retrieve(self, pk):
         # TODO add select_related and prefetch_related
-        solve = SolveModel.objects.get(id=pk)
+        try:
+            solve = SolveModel.objects.get(id=pk)
+        except ObjectDoesNotExist:
+            raise Http404
         return solve
 
     def list_best_in_every_discipline(self):
