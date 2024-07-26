@@ -5,7 +5,7 @@ from django.http import Http404
 from django.db.transaction import atomic
 from rest_framework import status
 
-from apps.core.exceptions import ConflictException
+from apps.core.exceptions import ConflictException, BadRequestException
 from .general_selectors import (
     current_contest_retrieve,
     retrieve_current_scramble,
@@ -118,10 +118,13 @@ class CreateSolveService:
             scramble=self.current_scramble.moves,
             reconstruction=reconstruction,
         )
-        if reconstruction_validator.is_valid():
-            return True
-        else:
-            return False
+        try:
+            if reconstruction_validator.is_valid():
+                return True
+            else:
+                return False
+        except KeyError:
+            raise BadRequestException
 
     def solve_does_not_exists(self):
         try:
