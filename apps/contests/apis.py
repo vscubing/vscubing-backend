@@ -40,7 +40,7 @@ class SolveRetrieveApi(APIView, SolveSelector):
         scramble = inline_serializer(fields={
             'id': serializers.IntegerField(),
             'moves': serializers.CharField(),
-            'position': serializers.IntegerField()
+            'position': serializers.CharField()
         })
         user = inline_serializer(fields={
             'id': serializers.IntegerField(),
