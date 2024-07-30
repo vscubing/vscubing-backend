@@ -6,6 +6,8 @@ from rest_framework.pagination import LimitOffsetPagination as _LimitOffsetPagin
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
+from apps.core.exceptions import NotFoundException
+
 
 class LimitOffsetPagination(_LimitOffsetPagination):
     default_limit = 10
@@ -87,9 +89,10 @@ def page_size_page_paginator(queryset, page_size, page):
     total_items = queryset.count()
     total_pages = math.ceil(total_items / page_size)
     if total_pages < page:
-        raise Http404
+        raise NotFoundException('Invalid Page')
 
     start = (page - 1) * page_size
     end = page * page_size
+    paginated_queryset = queryset[start:end]
 
-    return queryset[start:end]
+    return paginated_queryset

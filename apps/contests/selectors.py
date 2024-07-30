@@ -3,6 +3,7 @@ import math
 from django.db.models import Avg, Min, Max
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.http import Http404
+from django.forms.models import model_to_dict
 
 from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE, SOLVE_PENDING_STATE
 from .models import (
@@ -411,6 +412,7 @@ class ContestLeaderboardSelector:
         return round_session_set
 
     def cut_last_round_session(self, round_session_set, contest, discipline, page_size, user_id):
+        # TODO there is a bug somewhere here
         try:
             own_round_session = RoundSessionModel.objects.get(
                 contest=contest,
@@ -449,6 +451,8 @@ class ContestLeaderboardSelector:
                 user_id=user_id,
                 is_finished=True,
             )
+            solve_set = round_session.solve_set.filter(submission_state='submitted')
+
         except ObjectDoesNotExist:
             round_session = None
             return round_session
@@ -465,6 +469,7 @@ class ContestLeaderboardSelector:
             'is_displayed_separately': is_displayed_separately,
             'page': self.get_page(page_size, round_session, contest, discipline)
         }
+
         return own_round_session
 
     def get_pagination_info(self, discipline, contest, page_size, page):
