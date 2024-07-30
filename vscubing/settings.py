@@ -76,6 +76,7 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
+    'SERVE_PUBLIC': False,
     'TITLE': 'Vscubing Api',
     'DESCRIPTION': 'vscubing Api',
     'VERSION': '0.0.0',
