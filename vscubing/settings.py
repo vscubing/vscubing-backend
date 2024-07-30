@@ -76,7 +76,6 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'SERVE_PUBLIC': False,
     'TITLE': 'Vscubing Api',
     'DESCRIPTION': 'vscubing Api',
     'VERSION': '0.0.0',
@@ -87,6 +86,13 @@ SPECTACULAR_SETTINGS = {
         'drf_spectacular.hooks.postprocess_schema_enums'
     ],
 }
+
+if DEBUG is False:
+    SPECTACULAR_SETTINGS.update({
+        'SERVE_PUBLIC': False,
+        'SERVE_PERMISSIONS': ['rest_framework.permissions.IsAuthenticated'],
+        'SERVE_AUTHENTICATION': ['rest_framework.authentication.SessionAuthentication'],
+    })
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=2),
