@@ -221,6 +221,8 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
             'contest': inline_serializer(fields={
                 'id': serializers.IntegerField(),
                 'slug': serializers.CharField(),
+                'start_date': serializers.DateTimeField(),
+                'end_date': serializers.DateTimeField()
             }),
             'own_result': inline_serializer(required=False, fields={
                 'round_session': inline_serializer(fields={
