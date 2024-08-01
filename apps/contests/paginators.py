@@ -89,7 +89,7 @@ def page_size_page_paginator(queryset, page_size, page):
     total_items = queryset.count()
     total_pages = math.ceil(total_items / page_size)
     if total_pages < page:
-        raise NotFoundException('Invalid Page')
+        raise NotFoundException('Invalid page.')
 
     start = (page - 1) * page_size
     end = page * page_size
