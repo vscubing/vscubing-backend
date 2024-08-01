@@ -218,6 +218,10 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
         page = serializers.IntegerField()
         pages = serializers.IntegerField()
         results = inline_serializer(fields={
+            'contest': inline_serializer(fields={
+                'id': serializers.IntegerField(),
+                'slug': serializers.CharField(),
+            }),
             'own_result': inline_serializer(required=False, fields={
                 'round_session': inline_serializer(fields={
                     'id': serializers.IntegerField(),
