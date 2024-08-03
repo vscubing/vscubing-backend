@@ -5,6 +5,7 @@ from .models import (
     ContestModel,
     ScrambleModel,
     SolveModel,
+    TnoodleScramblesModel
 )
 
 
@@ -41,6 +42,20 @@ def retrieve_current_scramble(contest, user):
 
         elif solve.submission_state == SOLVE_PENDING_STATE:
             return scramble
+        else:
+            pass
+
+def retrieve_current_scramble_by_round_session(contest, user):
+    try:
+        round_session = contest.objects.round_session_set.get(user=user)
+    except ObjectDoesNotExist:
+        round_session = None
+        # send first scramble back
+
+    # check if round_session is completed
+
+    # check if round_session
+
 
 def can_change_solve_to_extra(contest, discipline, user):
     solve_set = SolveModel.objects.filter(

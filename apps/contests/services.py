@@ -83,6 +83,7 @@ class CreateSolveService:
             scramble=self.current_scramble,
         )
         # TODO add solve to current_round_session
+
         return solve
 
     def round_session_is_finished(self):
@@ -174,7 +175,7 @@ class SubmitSolveService:
             raise Http404('solve is not found')
 
     @atomic()
-    def submit_solve(self, action):
+    def submit_solve(self, action, user_id):
         if self.solve.user == self.user:
             pass
         else:
@@ -308,4 +309,3 @@ class RoundSessionService:
 
     def round_session_finish(self):
         pass
-

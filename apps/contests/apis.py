@@ -200,7 +200,7 @@ class SubmitSolveApi(APIView):
             solve_id=solve_id,
             user_id=request.user.id
         )
-        service.submit_solve(action=request.query_params.get('action'))
+        service.submit_solve(action=request.query_params.get('action'), user_id=request.user.id)
         return Response(status=status.HTTP_200_OK)
 
 
