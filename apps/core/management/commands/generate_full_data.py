@@ -15,7 +15,8 @@ from apps.contests.models import (
     DisciplineModel,
     ScrambleModel,
     RoundSessionModel,
-    SingleResultLeaderboardModel
+    SingleResultLeaderboardModel,
+    TnoodleScramblesModel
 )
 from apps.accounts.models import User
 from config import SOLVE_SUBMITTED_STATE
@@ -40,6 +41,7 @@ class Command(BaseCommand):
         for i in range(CONTEST_QTY):
             self.contest_scrambles_sessions_solves()
         self.single_solve_leaderboard()
+        self.tnoodle_scrambles()
 
     def users(self):
         for user in range(USERS_QTY):
@@ -180,3 +182,9 @@ class Command(BaseCommand):
                 SingleResultLeaderboardModel.objects.get_or_create(solve=best_solve, time_ms=best_solve.time_ms)
             else:
                 pass
+
+    def tnoodle_scrambles(self):
+        for i in range(0, 10000):
+            scramble_moves = generate_scramble(moves_count=20)
+            print(scramble_moves)
+            TnoodleScramblesModel.objects.create(moves=scramble_moves)
