@@ -247,6 +247,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CELERY_BEAT_SCHEDULE = {
     'add': {
         'task': 'apps.contests.tasks.create_contest',
-        'schedule': timedelta(seconds=60)
+        'schedule': crontab(minute=0),
     },
 }
