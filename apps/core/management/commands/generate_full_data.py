@@ -120,7 +120,7 @@ class Command(BaseCommand):
             scramble.save()
         for scramble_position in range(1, 3):
             scramble_position = f"E{scramble_position}"
-            generated_scramble = generate_scramble()
+            generated_scramble = 'R2 L2'
             scramble = ScrambleModel(position=scramble_position, moves=generated_scramble,
                                      is_extra=True, contest=contest, discipline=discipline)
             scramble.save()
@@ -184,7 +184,7 @@ class Command(BaseCommand):
                 pass
 
     def tnoodle_scrambles(self):
-        for i in range(0, 10000):
-            scramble_moves = generate_scramble(moves_count=20)
+        for i in range(0, 100):
+            scramble_moves = generate_scramble(moves_count=5)
             print(scramble_moves)
             TnoodleScramblesModel.objects.create(moves=scramble_moves)

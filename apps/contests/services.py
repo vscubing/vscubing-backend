@@ -8,7 +8,7 @@ from rest_framework import status
 from apps.core.exceptions import ConflictException, BadRequestException
 from .general_selectors import (
     current_contest_retrieve,
-    retrieve_current_scramble,
+    retrieve_current_scramble_3by3_avg5,
     can_change_solve_to_extra
 )
 from .models import (
@@ -98,7 +98,7 @@ class CreateSolveService:
             return False
 
     def retrieve_current_scramble(self):
-        current_scramble = retrieve_current_scramble(
+        current_scramble = retrieve_current_scramble_3by3_avg5(
             user=self.user,
             contest=self.contest
         )

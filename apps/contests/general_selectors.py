@@ -45,16 +45,44 @@ def retrieve_current_scramble(contest, user):
         else:
             pass
 
-def retrieve_current_scramble_by_round_session(contest, user):
+
+def retrieve_current_scramble_3by3_avg5(contest, user):
+    # check if round_session exists
     try:
-        round_session = contest.objects.round_session_set.get(user=user)
+        round_session = contest.round_session_set.get(user=user)
     except ObjectDoesNotExist:
-        round_session = None
-        # send first scramble back
+        current_scramble_position = '1'
+        current_scramble = contest.scramble_set.get(position=current_scramble_position)
+        return current_scramble
 
-    # check if round_session is completed
+    # check if round_session is not finished
+    if round_session.is_finished:
+        return None
 
-    # check if round_session
+    # case if solve is pending
+    last_solve = round_session.solve_set.last()
+    if last_solve.submission_state == 'pending':
+        current_scramble = last_solve.scramble
+        return current_scramble
+
+    # find all available scramble positions
+    available_scramble_positions = ['1', '2', '3', '4', '5',]
+    available_extra_scramble_positions = ['E1', 'E2']
+    for solve in round_session.solve_set.all():
+        if solve.scramble.position in available_scramble_positions:
+            available_scramble_positions.remove(solve.scramble.position)
+        if solve.scramble.position in available_extra_scramble_positions:
+            available_extra_scramble_positions.remove(solve.scramble.position)
+
+    # case if solve is submitted
+    if last_solve.submission_state == 'submitted':
+        current_scramble = contest.scramble_set.get(position=available_scramble_positions[0])
+        return current_scramble
+
+    # case if solve is changed_to_extra
+    if last_solve.submission_state == 'changed_to_extra':
+        current_scramble = contest.scramble_set.get(position=available_extra_scramble_positions[0])
+        return current_scramble
 
 
 def can_change_solve_to_extra(contest, discipline, user):

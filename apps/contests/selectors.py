@@ -20,7 +20,7 @@ from .filters import (
     ContestFilter,
 )
 from .paginators import page_size_page_paginator
-from .general_selectors import retrieve_current_scramble
+from .general_selectors import retrieve_current_scramble_3by3_avg5
 
 
 class RoundSessionSelector:
@@ -213,7 +213,7 @@ class CurrentRoundSessionProgressSelector:
         if self._round_session_is_finished():
             raise PermissionDenied()
         current_solve = self._retrieve_current_solve()
-        current_scramble = retrieve_current_scramble(contest=self.contest, user=self.user)
+        current_scramble = retrieve_current_scramble_3by3_avg5(contest=self.contest, user=self.user)
         can_change_to_extra = self._can_change_to_extra()
         solve_set = self._list_submitted_solve_set()
 
