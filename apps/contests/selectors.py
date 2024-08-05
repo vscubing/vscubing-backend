@@ -490,7 +490,7 @@ class ContestLeaderboardSelector:
             return True
         elif contest.is_ongoing:
             try:
-                contest.round_session_set.get(user_id=user_id)
+                contest.round_session_set.get(user_id=user_id, is_finished=True)
                 return True
             except ObjectDoesNotExist:
                 raise PermissionDenied()
