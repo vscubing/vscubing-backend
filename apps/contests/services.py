@@ -39,7 +39,7 @@ class CreateSolveService:
         self.current_scramble = self.retrieve_current_scramble()
         self.round_session = self.retrieve_current_round_session()
 
-    def create_solve(self, scramble_id, reconstruction, is_dnf, time_ms):
+    def create_solve(self, scramble_id=None, reconstruction=None, is_dnf=False, time_ms=None):
         """
         - check for authorization details (or raise 401) +
         - check if user can solve contest (or raise 403) +
@@ -54,34 +54,61 @@ class CreateSolveService:
         if self.scramble_is_correct(scramble_id=scramble_id):
             pass
         else:
-            raise ConflictException('scramble is incorrect')
+            raise BadRequestException
         # validate that scramble wasn't solved yes
         if self.solve_does_not_exists():
             pass
         else:
             raise ConflictException('solve already exists')
         # validate solve reconstruction
+        if is_dnf:
+            solve = SolveModel.objects.create(
+                time_ms=None,
+                is_dnf=is_dnf,
+                reconstruction=None,
+                submission_state='pending',
+
+                user=self.user,
+                contest=self.contest,
+                discipline=self.discipline,
+                round_session=self.round_session,
+                scramble=self.current_scramble,
+            )
+            return solve
+
         solve_is_valid = self.solve_is_valid(
             reconstruction=reconstruction,
             time_ms=time_ms
         )
         if solve_is_valid:
-            pass
+            solve = SolveModel.objects.create(
+                time_ms=time_ms,
+                is_dnf=is_dnf,
+                reconstruction=reconstruction,
+                submission_state='pending',
+
+                user=self.user,
+                contest=self.contest,
+                discipline=self.discipline,
+                round_session=self.round_session,
+                scramble=self.current_scramble,
+            )
         else:
             is_dnf = True
+            solve = SolveModel.objects.create(
+                time_ms=time_ms,
+                is_dnf=is_dnf,
+                reconstruction=reconstruction,
+                submission_state='pending',
 
-        solve = SolveModel.objects.create(
-            time_ms=time_ms,
-            is_dnf=is_dnf,
-            reconstruction=reconstruction,
-            submission_state='pending',
+                user=self.user,
+                contest=self.contest,
+                discipline=self.discipline,
+                round_session=self.round_session,
+                scramble=self.current_scramble,
+            )
+            raise BadRequestException
 
-            user=self.user,
-            contest=self.contest,
-            discipline=self.discipline,
-            round_session=self.round_session,
-            scramble=self.current_scramble,
-        )
         # TODO add solve to current_round_session
 
         return solve
@@ -104,7 +131,7 @@ class CreateSolveService:
         )
         return current_scramble
 
-    def scramble_is_correct(self, scramble_id):
+    def scramble_is_correct(self, scramble_id=None):
         try:
             scramble = ScrambleModel.objects.get(id=scramble_id)
         except ObjectDoesNotExist:
@@ -124,8 +151,8 @@ class CreateSolveService:
                 return True
             else:
                 return False
-        except KeyError:
-            raise BadRequestException
+        except KeyError and TypeError:
+            return False
 
     def solve_does_not_exists(self):
         try:
@@ -283,7 +310,7 @@ class SubmitSolveService:
             best_user_solve = SingleResultLeaderboardModel.objects.get(
                 solve__user=self.user
             )
-            if best_user_solve.solve.time_ms > self.solve.time_ms:
+            if self.solve.time_ms and best_user_solve.solve.time_ms > self.solve.time_ms:
                 best_user_solve.delete()
                 SingleResultLeaderboardModel.objects.create(
                     solve=self.solve,

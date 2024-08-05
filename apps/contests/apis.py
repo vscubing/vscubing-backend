@@ -152,16 +152,15 @@ class CreateSolveApi(APIView):
         serializer = self.InputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        selector = CreateSolveService(
+        service = CreateSolveService(
             user_id=request.user.id,
             discipline_slug=request.query_params.get('discipline_slug', None)
         )
-        solve = selector.create_solve(
+        service.create_solve(
             scramble_id=request.query_params.get('scramble_id', None),
             **serializer.validated_data
         )
-        data = self.OutputSerializer(solve).data
-        return Response(data=data)
+        return Response(status=status.HTTP_201_CREATED)
 
 
 class SubmitSolveApi(APIView):
