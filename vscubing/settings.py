@@ -248,6 +248,6 @@ CELERY_TIMEZONE = 'Europe/Rome'
 CELERY_BEAT_SCHEDULE = {
     'add': {
         'task': 'apps.contests.tasks.create_contest',
-        'schedule': crontab(hour=15, minute=0),
+        'schedule': crontab(hour=20, minute=0),
     },
 }
