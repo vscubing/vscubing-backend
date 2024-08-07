@@ -14,7 +14,10 @@ from .models import (
 @atomic()
 def generate_contest_service(days_lasts=7):
     current_contest = current_contest_retrieve()
-    name_and_slug = str(int(current_contest.slug) + 1)
+    if current_contest:
+        name_and_slug = str(int(current_contest.slug) + 1)
+    elif not current_contest:
+        name_and_slug = 1
     if current_contest:
         name_and_slug = str(int(current_contest.name) + 1)
         current_contest.is_ongoing = False
