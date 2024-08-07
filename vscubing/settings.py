@@ -243,10 +243,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+CELERY_TIMEZONE = 'Europe/Rome'
 
 CELERY_BEAT_SCHEDULE = {
     'add': {
         'task': 'apps.contests.tasks.create_contest',
-        'schedule': crontab(minute=0),
+        'schedule': crontab(hour=15, minute=0),
     },
 }
