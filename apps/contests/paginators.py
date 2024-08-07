@@ -85,14 +85,14 @@ def get_paginated_data(*, pagination_class, queryset, request, view):
     return page
 
 
-def page_size_page_paginator(queryset, page_size, page):
+def page_size_page_paginator(queryset, page_size, page, extra=0):
     total_items = queryset.count()
     total_pages = math.ceil(total_items / page_size)
     if total_pages < page:
         raise NotFoundException('Invalid page.')
 
     start = (page - 1) * page_size
-    end = page * page_size
+    end = page * page_size + extra
     paginated_queryset = queryset[start:end]
 
     return paginated_queryset

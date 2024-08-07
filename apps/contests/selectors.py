@@ -3,7 +3,8 @@ import math
 from django.db.models import Avg, Min, Max
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.http import Http404
-from django.forms.models import model_to_dict
+from django.db.models import Q
+
 
 from config import SOLVE_SUBMITTED_STATE, SOLVE_CHANGED_TO_EXTRA_STATE, SOLVE_PENDING_STATE
 from .models import (
@@ -266,8 +267,9 @@ class ScrambleSelector:
 
 
 class SingleResultLeaderboardSelector:
-    def list(self):
-        solve_set = SingleResultLeaderboardModel.objects.order_by('time_ms')
+    def list(self, own_solve_id=3253):
+        solve_set = SingleResultLeaderboardModel.objects.exclude(id=own_solve_id).order_by('time_ms')
+        print(solve_set)
         return solve_set
 
     def own_solve_retrieve(self, user_id):
@@ -293,7 +295,11 @@ class SingleResultLeaderboardSelector:
         page = math.ceil(place / page_size)
         return page
 
-    def is_displayed_separately(self, own_solve, solve_set):
+    def is_displayed_separately(self, own_solve, page, page_size):
+        start = (page - 1) * page_size
+        end = page * page_size
+        solve_set = self.list()[start:end]
+
         if own_solve in solve_set:
             return False
         elif own_solve is None:
@@ -301,22 +307,29 @@ class SingleResultLeaderboardSelector:
         elif own_solve not in solve_set:
             return True
 
-    def cut_last_solve(self, page_size, own_solve, solve_set):
-        if own_solve in solve_set:
-            return solve_set
-        elif own_solve is None:
-            return solve_set
-        else:
-            return solve_set[:page_size-1]
     def leaderboard_retrieve(self, page_size, page, user_id=None):
+        page_size = page_size - 1
         data = {}
 
         results = {}
         own_solve = {}
 
-        solve_set = self.list()
-
         own_solve_data = self.own_solve_retrieve(user_id=user_id)
+        solve_set = self.list(own_solve_id=own_solve_data.id)
+
+        extra_page_result = 0
+        if own_solve_data:
+            if self.is_displayed_separately(
+                own_solve=own_solve_data,
+                page_size=page_size,
+                page=page
+            ):
+                pass
+            else:
+                # extra_page_result = 1
+                pass
+        elif not own_solve_data:
+            pass
 
         pagination_info = self._get_pagination_info(
             queryset=solve_set,
@@ -326,18 +339,28 @@ class SingleResultLeaderboardSelector:
         paginated_solve_set = page_size_page_paginator(
             queryset=solve_set,
             page_size=page_size,
-            page=page
+            page=page,
+            extra=extra_page_result
         )
+
         if own_solve_data:
             own_solve['solve'] = own_solve_data.solve
             own_solve['page'] = self.get_page(page_size=page_size, solve=own_solve_data)
             own_solve['place'] = self.get_place(solve=own_solve_data)
             own_solve['is_displayed_separately'] = self.is_displayed_separately(
                 own_solve=own_solve_data,
-                solve_set=paginated_solve_set
+                page_size=page_size,
+                page=page
             )
-        paginated_solve_set = self.cut_last_solve(page_size, own_solve_data, paginated_solve_set)
         data.update(pagination_info)  # adding pagination fields to response
+
+        if not self.is_displayed_separately(own_solve=own_solve_data,
+                                        page_size=page_size,
+                                        page=page):
+            paginated_solve_set = SingleResultLeaderboardModel.objects.filter(
+                Q(id=own_solve_data.id) | Q(id__in=paginated_solve_set.values_list('id', flat=True))
+            ).order_by('time_ms')
+
         paginated_solve_set_with_solves = self.add_places(paginated_solve_set)
 
         if own_solve:
