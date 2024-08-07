@@ -7,6 +7,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiRespon
 from rest_framework import serializers
 
 from apps.core.utils import inline_serializer
+from apps.core.permissions import IsVerified
 from .paginators import (
     LimitOffsetPagination,
     LimitPagePagination,
@@ -105,7 +106,7 @@ class SolveListBestInEveryDiscipline(APIView, SolveSelector):
 
 class CreateSolveApi(APIView):
     # Api to create solve when user finished solving cube
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsVerified]
 
     class InputSerializer(serializers.Serializer):
         reconstruction = serializers.CharField(required=False)
@@ -165,7 +166,7 @@ class CreateSolveApi(APIView):
 
 class SubmitSolveApi(APIView):
     # Api for submitting or rejecting solve
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsVerified]
 
     class InputSerializer(serializers.Serializer):
         id_dnf = serializers.BooleanField()
@@ -429,7 +430,7 @@ class OngoingContestRetrieveApi(APIView):
 
 class CurrentRoundSessionProgressApi(APIView, SolveSelector):
     # Sends current scramble, all needed for solving information and solve if exists
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsVerified]
 
     class OutputSerializer(serializers.Serializer):
         current_solve = inline_serializer(fields={
