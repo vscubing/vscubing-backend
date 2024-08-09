@@ -1,4 +1,5 @@
 from django.urls import include, path
+from os import getenv
 
 from .apis import (
     SolveRetrieveApi,
@@ -13,6 +14,11 @@ from .apis import (
     CurrentRoundSessionProgressApi,
     OngoingContestRetrieveApi,
 )
+from .dev_apis import OwnRoundSessionDeleteApi
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 solves_urlpatterns = [
     path('<int:pk>/retrieve/', SolveRetrieveApi.as_view(), name='retrieve'),
@@ -49,9 +55,16 @@ round_session_urlpatterns = [
     # ),
 ]
 
+dev_urlpatterns = [
+    path('own-round-session/delete/', OwnRoundSessionDeleteApi.as_view(), name='own-round-session-delete')
+]
+
 urlpatterns = [
     path('solves/', include(solves_urlpatterns)),
     path('contests/', include(contests_urlpatterns)),
     path('round-sessions/', include(round_session_urlpatterns)),
     path('ongoing-contest/', include(ongoing_contest_urlpatterns)),
 ]
+
+if getenv('RUN_MODE') == 'dev':
+    urlpatterns.append(path('dev/', include(dev_urlpatterns)))
