@@ -14,7 +14,7 @@ from .apis import (
     CurrentRoundSessionProgressApi,
     OngoingContestRetrieveApi,
 )
-from .dev_apis import OwnRoundSessionDeleteApi
+from .dev_apis import OwnRoundSessionDeleteApi, NewContestCreateApi
 
 from dotenv import load_dotenv
 
@@ -56,7 +56,8 @@ round_session_urlpatterns = [
 ]
 
 dev_urlpatterns = [
-    path('own-round-session/delete/', OwnRoundSessionDeleteApi.as_view(), name='own-round-session-delete')
+    path('own-round-session/delete/', OwnRoundSessionDeleteApi.as_view(), name='own-round-session-delete'),
+    path('new-contest/create/', NewContestCreateApi.as_view(), name='new-contest-create')
 ]
 
 urlpatterns = [

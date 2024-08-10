@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
 
-from .general_services import current_contest_retrieve
+from .general_services import current_contest_retrieve, generate_contest_service
 
 
 class OwnRoundSessionDeleteApi(APIView):
@@ -39,3 +39,15 @@ class OwnRoundSessionDeleteApi(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class NewContestCreateApi(APIView):
+    @extend_schema(
+        responses={
+            201: None
+        }
+    )
+    def post(self, request):
+        generate_contest_service()
+        return Response(status=status.HTTP_201_CREATED)
+

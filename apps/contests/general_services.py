@@ -40,11 +40,13 @@ def generate_contest_service(days_lasts=7):
     scramble_position = '1'
     for tnoodle_scramble in tnoodle_scrambles:
         scramble = ScrambleModel(position=scramble_position, moves=tnoodle_scramble.moves,
-                                 is_extra=True, contest=contest, discipline=discipline)
+                                 contest=contest, discipline=discipline)
         inx += 1
         if inx < 6:
             scramble_position = str(inx)
+            scramble.is_extra = False
         elif inx >= 6:
+            scramble.is_extra = True
             if inx == 6:
                 scramble_position = 'E1'
             elif inx == 7:
