@@ -38,19 +38,22 @@ def generate_contest_service(days_lasts=7):
     tnoodle_scrambles = TnoodleScramblesModel.objects.filter(is_used=False)[0:7]
     inx = 1
     scramble_position = '1'
+    is_extra = False
     for tnoodle_scramble in tnoodle_scrambles:
-        scramble = ScrambleModel(position=scramble_position, moves=tnoodle_scramble.moves,
-                                 contest=contest, discipline=discipline)
-        inx += 1
         if inx < 6:
             scramble_position = str(inx)
-            scramble.is_extra = False
+            is_extra = False
+            print('no extra')
         elif inx >= 6:
-            scramble.is_extra = True
+            print('extra')
+            is_extra = True
             if inx == 6:
                 scramble_position = 'E1'
             elif inx == 7:
                 scramble_position = 'E2'
         tnoodle_scramble.is_used = True
         tnoodle_scramble.save()
+        scramble = ScrambleModel(position=scramble_position, moves=tnoodle_scramble.moves,
+                                 is_extra=is_extra, contest=contest, discipline=discipline)
         scramble.save()
+        inx += 1
