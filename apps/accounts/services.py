@@ -1,9 +1,13 @@
 from .models import User
 from rest_framework import exceptions
+from apps.core.exceptions import ConflictException
 
 
 class UserService:
     def change_username(self, username, user_id):
+        if User.objects.filter(username=username).exists():
+            raise ConflictException("Username is already taken.")
+
         user = User.objects.get(id=user_id)
         if user and not user.is_verified:
             user.username = username

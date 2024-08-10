@@ -11,7 +11,6 @@ from django.views.generic import RedirectView
 from rest_framework.exceptions import APIException
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from django.core.validators import RegexValidator
-from rest_framework.validators import UniqueValidator
 
 from .serializers import UserSerializer
 from .models import User
@@ -92,7 +91,7 @@ class ChangeUsernameApi(APIView):
                 regex='^[a-zA-Z0-9_]*$',
                 message='Username must be alphanumeric',
                 code='invalid_username'
-            ), UniqueValidator(queryset=User.objects.all())]
+            )]
         )
 
         class Meta:
