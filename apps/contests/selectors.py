@@ -268,12 +268,14 @@ class ScrambleSelector:
 
 class SingleResultLeaderboardSelector:
     def list(self, own_solve_id=3253):
-        solve_set = SingleResultLeaderboardModel.objects.exclude(id=own_solve_id).order_by('time_ms')
+        solve_set = (SingleResultLeaderboardModel.objects.filter(solve__contest__is_ongoing=False)
+                     .exclude(id=own_solve_id).order_by('time_ms'))
         return solve_set
 
     def own_solve_retrieve(self, user_id):
         try:
-            own_solve = SingleResultLeaderboardModel.objects.get(solve__user_id=user_id)
+            own_solve = SingleResultLeaderboardModel.objects.get(solve__user_id=user_id,
+                                                                 solve__contest__is_ongoing=False)
             return own_solve
         except ObjectDoesNotExist:
             return None

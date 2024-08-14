@@ -310,7 +310,7 @@ class SubmitSolveService:
             best_user_solve = SingleResultLeaderboardModel.objects.get(
                 solve__user=self.user
             )
-            if self.solve.time_ms and best_user_solve.solve.time_ms > self.solve.time_ms:
+            if self.solve.time_ms and best_user_solve.solve.time_ms > self.solve.time_ms and not self.solve.is_dnf:
                 best_user_solve.delete()
                 SingleResultLeaderboardModel.objects.create(
                     solve=self.solve,
