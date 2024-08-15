@@ -288,7 +288,7 @@ class SubmitSolveService:
             round_session.dnf = True
             round_session.submitted = True
             round_session.save()
-            return True
+            return None, True
         elif len(solve_set) > 3:
             solve_set_modified = solve_set.exclude(pk__in=[lowest_solve.pk, highest_solve.pk])
             for solve in solve_set_modified:

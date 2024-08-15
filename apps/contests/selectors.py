@@ -394,12 +394,19 @@ class SingleResultLeaderboardSelector:
 class ContestLeaderboardSelector:
     def get_place(self, round_session, contest, discipline):
         if round_session:
-            position = RoundSessionModel.objects.filter(
-                avg_ms__lt=round_session.avg_ms,
-                contest=contest,
-                discipline=discipline,
-                is_finished=True
-            ).count() + 1
+            if not round_session.is_dnf:
+                position = RoundSessionModel.objects.filter(
+                    avg_ms__lt=round_session.avg_ms,
+                    contest=contest,
+                    discipline=discipline,
+                    is_finished=True
+                ).count() + 1
+            elif round_session.is_dnf:
+                position = RoundSessionModel.objects.filter(
+                    contest=contest,
+                    discipline=discipline,
+                    is_finished=True
+                ).exclude(id=round_session.id).count() + 1
         elif round_session is None:
             position = None
         else:
