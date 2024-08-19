@@ -21,7 +21,7 @@ from .filters import (
     ContestFilter,
 )
 from .paginators import page_size_page_paginator
-from .general_selectors import retrieve_current_scramble_3by3_avg5
+from .general_selectors import retrieve_current_scramble_3by3_avg5, current_contest_retrieve
 
 
 class RoundSessionSelector:
@@ -267,15 +267,14 @@ class ScrambleSelector:
 
 
 class SingleResultLeaderboardSelector:
-    def list(self, own_solve_id=3253):
-        solve_set = (SingleResultLeaderboardModel.objects.filter(solve__contest__is_ongoing=False)
+    def list(self, own_solve_id=None):
+        solve_set = (SingleResultLeaderboardModel.objects.filter()
                      .exclude(id=own_solve_id).order_by('time_ms'))
         return solve_set
 
     def own_solve_retrieve(self, user_id):
         try:
-            own_solve = SingleResultLeaderboardModel.objects.get(solve__user_id=user_id,
-                                                                 solve__contest__is_ongoing=False)
+            own_solve = SingleResultLeaderboardModel.objects.get(solve__user_id=user_id)
             return own_solve
         except ObjectDoesNotExist:
             return None
