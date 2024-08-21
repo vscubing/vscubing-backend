@@ -235,10 +235,9 @@ class SubmitSolveService:
 
         if self.round_session_is_finished():
             self.finish_round_session()
+            self.update_single_solve_leaderboard()
         else:
             pass
-
-        self.add_solve_to_leaderboard()
 
     def add_solve_to_round_session(self):
         try:
@@ -305,23 +304,26 @@ class SubmitSolveService:
 
             return avg_ms, is_dnf
 
-    def add_solve_to_leaderboard(self):
+    def update_single_solve_leaderboard(self):
+        round_session = self.solve.round_session
+        new_best_solve = round_session.solve_set.filter(submission_state='submitted').order_by('time_ms').first()
         try:
             best_user_solve = SingleResultLeaderboardModel.objects.get(
                 solve__user=self.user
             )
-            if self.solve.time_ms and best_user_solve.solve.time_ms > self.solve.time_ms and not self.solve.is_dnf:
+            if (new_best_solve.time_ms and best_user_solve.solve.time_ms >
+                    new_best_solve.time_ms and not new_best_solve.is_dnf):
                 best_user_solve.delete()
                 SingleResultLeaderboardModel.objects.create(
-                    solve=self.solve,
-                    time_ms=self.solve.time_ms
+                    solve=new_best_solve,
+                    time_ms=new_best_solve.time_ms
                 )
             else:
                 pass
         except ObjectDoesNotExist:
             SingleResultLeaderboardModel.objects.create(
-                solve=self.solve,
-                time_ms=self.solve.time_ms
+                solve=new_best_solve,
+                time_ms=new_best_solve.time_ms
             )
 
 
