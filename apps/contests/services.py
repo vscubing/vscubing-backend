@@ -21,6 +21,8 @@ from .models import (
 )
 from scripts.cube import ReconstructionValidator
 
+MAX_INT = 2147483647
+
 User = get_user_model()
 
 
@@ -287,7 +289,8 @@ class SubmitSolveService:
             round_session.dnf = True
             round_session.submitted = True
             round_session.save()
-            return None, True
+            avg_ms = MAX_INT
+            return avg_ms, True
         elif len(solve_set) > 3:
             solve_set_modified = solve_set.exclude(pk__in=[lowest_solve.pk, highest_solve.pk])
             for solve in solve_set_modified:
@@ -306,7 +309,9 @@ class SubmitSolveService:
 
     def update_single_solve_leaderboard(self):
         round_session = self.solve.round_session
-        new_best_solve = round_session.solve_set.filter(submission_state='submitted').order_by('time_ms').first()
+        new_best_solve = (round_session.solve_set.
+                          filter(submission_state='submitted',
+                                 is_dnf=False).order_by('time_ms').first())
         try:
             best_user_solve = SingleResultLeaderboardModel.objects.get(
                 solve__user=self.user
