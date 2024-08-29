@@ -237,7 +237,6 @@ class SubmitSolveService:
 
         if self.round_session_is_finished():
             self.finish_round_session()
-            self.update_single_solve_leaderboard()
         else:
             pass
 
@@ -307,30 +306,6 @@ class SubmitSolveService:
 
             return avg_ms, is_dnf
 
-    def update_single_solve_leaderboard(self):
-        round_session = self.solve.round_session
-        new_best_solve = (round_session.solve_set.
-                          filter(submission_state='submitted',
-                                 is_dnf=False).order_by('time_ms').first())
-        try:
-            best_user_solve = SingleResultLeaderboardModel.objects.get(
-                solve__user=self.user
-            )
-            if (new_best_solve.time_ms and best_user_solve.solve.time_ms >
-                    new_best_solve.time_ms and not new_best_solve.is_dnf):
-                best_user_solve.delete()
-                SingleResultLeaderboardModel.objects.create(
-                    solve=new_best_solve,
-                    time_ms=new_best_solve.time_ms
-                )
-            else:
-                pass
-        except ObjectDoesNotExist:
-            SingleResultLeaderboardModel.objects.create(
-                solve=new_best_solve,
-                time_ms=new_best_solve.time_ms
-            )
-
 
 class RoundSessionService:
     def round_session_create(self, contest_id, discipline_id, user_id):
@@ -341,5 +316,36 @@ class RoundSessionService:
         round_session.save()
         return round_session
 
-    def round_session_finish(self):
-        pass
+
+class SingleResultLeaderboardService:
+    def update(self):
+        contest = current_contest_retrieve()
+        round_session_set = contest.round_session_set.filter(
+            is_dnf=False,
+            is_finished=True,
+        )
+        instances_to_create = []
+        for round_session in round_session_set:
+            new_best_solve = (round_session.solve_set.
+                              filter(submission_state='submitted',
+                                     is_dnf=False).order_by('time_ms').first())
+            try:
+                best_user_solve = SingleResultLeaderboardModel.objects.get(
+                    solve__user=round_session.user
+                )
+                if (new_best_solve.time_ms and best_user_solve.solve.time_ms >
+                        new_best_solve.time_ms and not new_best_solve.is_dnf):
+                    best_user_solve.delete()
+                    instances_to_create.append(SingleResultLeaderboardModel(
+                        solve=new_best_solve,
+                        time_ms=new_best_solve.time_ms
+                    ))
+                else:
+                    pass
+            except ObjectDoesNotExist:
+                instances_to_create.append(SingleResultLeaderboardModel(
+                    solve=new_best_solve,
+                    time_ms=new_best_solve.time_ms
+                ))
+
+        SingleResultLeaderboardModel.objects.bulk_create(instances_to_create)

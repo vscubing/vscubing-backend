@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.db.transaction import atomic
 
 from .general_selectors import current_contest_retrieve
+from .services import SingleResultLeaderboardService
 from .models import (
     TnoodleScramblesModel,
     ContestModel,
@@ -20,6 +21,8 @@ def generate_contest_service(days_lasts=7):
         name_and_slug = 1
     if current_contest:
         name_and_slug = str(int(current_contest.name) + 1)
+        single_result_leaderboard_servie = SingleResultLeaderboardService()
+        single_result_leaderboard_servie.update()
         current_contest.is_ongoing = False
         current_contest.save()
         start_date = current_contest.start_date
