@@ -26,6 +26,7 @@ load_dotenv()
 
 USERS_QTY = 25
 DISCIPLINE_NAMES = ['3by3']
+TNOODLE_SCRAMBLES = 50000
 CONTEST_QTY = 25
 
 
@@ -184,7 +185,7 @@ class Command(BaseCommand):
                 pass
 
     def tnoodle_scrambles(self):
-        for i in range(0, 100):
+        for i in range(0, TNOODLE_SCRAMBLES):
             scramble_moves = generate_scramble(moves_count=5)
             print(scramble_moves)
             TnoodleScramblesModel.objects.create(moves=scramble_moves)
