@@ -245,9 +245,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CELERY_TIMEZONE = 'Europe/Rome'
 
+from celery.schedules import crontab
+
 CELERY_BEAT_SCHEDULE = {
     'add': {
         'task': 'apps.contests.tasks.create_contest',
-        'schedule': crontab(hour=20, minute=0),
+        'schedule': crontab(minute=0, hour='*/3'),
     },
 }
