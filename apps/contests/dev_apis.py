@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
+from .tasks import create_contest
 
 from .general_services import current_contest_retrieve, generate_contest_service
 
@@ -48,6 +49,6 @@ class NewContestCreateApi(APIView):
         }
     )
     def post(self, request):
-        generate_contest_service()
+        create_contest()
         return Response(status=status.HTTP_201_CREATED)
 

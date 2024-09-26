@@ -193,7 +193,7 @@ class CurrentRoundSessionProgressSelector:
             user=self.user,
             discipline=self.discipline,
             submission_state='submitted',
-        )
+        ).order_by('id')
         return solve_set
 
     def _round_session_is_finished(self):
