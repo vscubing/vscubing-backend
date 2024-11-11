@@ -47,6 +47,8 @@ class RoundSessionModel(BaseModel):
     def __str__(self):
         return f"{self.user.username}, avg_ms {self.avg_ms}, id {self.pk}"
 
+    class Meta: ordering = ['id']
+
 
 class SolveModel(BaseModel):
     time_ms = models.IntegerField(null=True, blank=True)
@@ -69,6 +71,8 @@ class SolveModel(BaseModel):
 
     def __str__(self):
         return f"{self.user.username}, time_ms {self.time_ms}, id {self.pk}"
+
+    class Meta: ordering = ['id']
 
 
 class SingleResultLeaderboardModel(models.Model):
