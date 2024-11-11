@@ -25,11 +25,11 @@ def generate_contest_service(days_lasts=7):
         single_result_leaderboard_servie.update()
         current_contest.is_ongoing = False
         current_contest.save()
-        start_date = current_contest.start_date
+        start_date = timezone.now().replace(hour=19, minute=0, second=0, microsecond=0)
     else:
-        start_date = timezone.now()
+        start_date = timezone.now().replace(hour=19, minute=0, second=0, microsecond=0)
 
-    end_date = start_date + timedelta(days=days_lasts)
+    end_date = (start_date + timedelta(days=days_lasts)).replace(hour=19, minute=0, second=0, microsecond=0)
     contest = ContestModel.objects.create(
         name=name_and_slug,
         slug=name_and_slug,
