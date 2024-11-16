@@ -50,9 +50,10 @@ INSTALLED_APPS = [
     'dj_rest_auth.registration',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'drf_yasg',
+    'drf_spectacular',
 
     'apps.accounts',
+    'apps.core',
     'apps.contests',
 ]
 
@@ -60,7 +61,38 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
     ),
+
+    'DEFAULT_RENDERER_CLASSES': (
+        'djangorestframework_camel_case.render.CamelCaseJSONRenderer',
+        'djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer',
+    ),
+    'DEFAULT_PARSER_CLASSES': (
+        'djangorestframework_camel_case.parser.CamelCaseFormParser',
+        'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
+        'djangorestframework_camel_case.parser.CamelCaseJSONParser',
+    ),
+
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Vscubing Api',
+    'DESCRIPTION': 'vscubing Api',
+    'VERSION': '0.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'CAMELIZE_NAMES': True,
+    'POSTPROCESSING_HOOKS': [
+        'drf_spectacular.contrib.djangorestframework_camel_case.camelize_serializer_fields',
+        'drf_spectacular.hooks.postprocess_schema_enums'
+    ],
+}
+
+if DEBUG is False:
+    SPECTACULAR_SETTINGS.update({
+        'SERVE_PUBLIC': False,
+        'SERVE_PERMISSIONS': ['rest_framework.permissions.IsAuthenticated'],
+        'SERVE_AUTHENTICATION': ['rest_framework.authentication.SessionAuthentication'],
+    })
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=2),
@@ -124,6 +156,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'djangorestframework_camel_case.middleware.CamelCaseMiddleWare',
 ]
 
 
@@ -188,7 +221,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Rome'
 
 USE_I18N = True
 
@@ -210,10 +243,14 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+CELERY_TIMEZONE = 'Europe/Rome'
+
+from celery.schedules import crontab
 
 CELERY_BEAT_SCHEDULE = {
     'add': {
-        'task': 'apps.contests.tasks.add',
-        'schedule': timedelta(seconds=10)
+        'task': 'apps.contests.tasks.create_contest',
+        'schedule': crontab(hour=20, minute=0, day_of_week='saturday'),
     },
 }
+

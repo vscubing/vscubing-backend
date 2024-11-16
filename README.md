@@ -61,6 +61,15 @@ Start the server
   python manage.py runserver
 ```
 
+Start celery worker
+```bash
+celery -A vscubing.celery worker --loglevel=info
+```
+
+Start celery beat 
+```bash
+celery -A vscubing.celery beat --loglevel=info
+```
 
 ## Environment Variables
 

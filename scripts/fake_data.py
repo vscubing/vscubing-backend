@@ -42,7 +42,7 @@ def create_solves():
         for scramble in contest.scramble_set.all():
             if not scramble.extra:
                 time_ms = random.randrange(25000, 200000)
-                solve = SolveModel(time_ms=time_ms, dnf=False, state='submitted', reconstruction=scramble.scramble,
+                solve = SolveModel(time_ms=time_ms, dnf=False, state='submitted', reconstruction=scramble.moves,
                                    contest=contest, scramble=scramble, user=user, discipline=discipline)
                 solve.save()
                 print(solve)
