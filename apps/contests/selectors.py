@@ -103,6 +103,7 @@ class SolveSelector:
         # TODO add select related and prefetch related
         for discipline in disciplines:
             solve = discipline.solve_set.order_by('time_ms').filter(submission_state='submitted',
+                                                                    contest__is_ongoing=False,
                                                                     round_session__is_finished=True,
                                                                     is_dnf=False).first()
             if solve:
