@@ -68,6 +68,7 @@ class CurrentUserApi(APIView):
     class OutputSerializer(serializers.Serializer):
         id = serializers.IntegerField()
         username = serializers.CharField()
+        email = serializers.EmailField()
         is_verified = serializers.BooleanField()
 
         class Meta:
