@@ -46,13 +46,13 @@ def retrieve_current_scramble(contest, user):
             pass
 
 
-def retrieve_current_scramble_3by3_avg5(contest, user):
+def retrieve_current_scramble_avg5(contest, discipline, user):
     # check if round_session exists
     try:
         round_session = contest.round_session_set.get(user=user)
     except ObjectDoesNotExist:
         current_scramble_position = '1'
-        current_scramble = contest.scramble_set.get(position=current_scramble_position)
+        current_scramble = contest.scramble_set.get(position=current_scramble_position, discipline=discipline)
         return current_scramble
 
     # check if round_session is not finished
@@ -76,12 +76,12 @@ def retrieve_current_scramble_3by3_avg5(contest, user):
 
     # case if solve is submitted
     if last_solve.submission_state == 'submitted':
-        current_scramble = contest.scramble_set.get(position=available_scramble_positions[0])
+        current_scramble = contest.scramble_set.get(position=available_scramble_positions[0], discipline=discipline)
         return current_scramble
 
     # case if solve is changed_to_extra
     if last_solve.submission_state == 'changed_to_extra':
-        current_scramble = contest.scramble_set.get(position=available_extra_scramble_positions[0])
+        current_scramble = contest.scramble_set.get(position=available_extra_scramble_positions[0], discipline=discipline)
         return current_scramble
 
 

@@ -8,7 +8,7 @@ from rest_framework import status
 from apps.core.exceptions import ConflictException, BadRequestException
 from .general_selectors import (
     current_contest_retrieve,
-    retrieve_current_scramble_3by3_avg5,
+    retrieve_current_scramble_avg5,
     can_change_solve_to_extra
 )
 from .models import (
@@ -78,10 +78,12 @@ class CreateSolveService:
             )
             return solve
 
-        solve_is_valid = self.solve_is_valid(
-            reconstruction=reconstruction,
-            time_ms=time_ms
-        )
+        #TODO add solve validation
+        solve_is_valid = True
+        # solve_is_valid = self.solve_is_valid(
+        #     reconstruction=reconstruction,
+        #     time_ms=time_ms
+        # )
         if solve_is_valid:
             solve = SolveModel.objects.create(
                 time_ms=time_ms,
@@ -127,9 +129,10 @@ class CreateSolveService:
             return False
 
     def retrieve_current_scramble(self):
-        current_scramble = retrieve_current_scramble_3by3_avg5(
+        current_scramble = retrieve_current_scramble_avg5(
             user=self.user,
-            contest=self.contest
+            contest=self.contest,
+            discipline=self.discipline,
         )
         return current_scramble
 
@@ -190,7 +193,7 @@ class CreateSolveService:
 
 class SubmitSolveService:
 
-    def __init__(self, discipline_slug, solve_id, user_id):
+    def __init__(self, solve_id, user_id):
         try:
             self.user = User.objects.get(id=user_id)
         except ObjectDoesNotExist:
@@ -242,7 +245,7 @@ class SubmitSolveService:
 
     def add_solve_to_round_session(self):
         try:
-            round_session = self.solve.contest.round_session_set.get(user=self.user)
+            round_session = self.solve.contest.round_session_set.get(user=self.user, discipline=self.solve.discipline)
         except ObjectDoesNotExist:
             round_session = self.create_round_session()
 

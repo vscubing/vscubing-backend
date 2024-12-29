@@ -1,7 +1,16 @@
 from django.db import models
+from django.db.models import ManyToOneRel
 
 from apps.accounts.models import User
 from apps.core.models import BaseModel
+
+
+class DisciplineModel(BaseModel):
+    name = models.CharField(max_length=128, unique=True)
+    slug = models.SlugField(max_length=128, unique=True, db_index=True)
+
+    def __str__(self):
+        return self.name
 
 
 class ContestModel(BaseModel):
@@ -11,16 +20,10 @@ class ContestModel(BaseModel):
     end_date = models.DateTimeField(null=True)
     is_ongoing = models.BooleanField(default=True)
 
+    # discipline_set = models.ManyToManyRel(DisciplineModel, to=DisciplineModel)
+
     def __str__(self):
         return str(self.name)
-
-
-class DisciplineModel(BaseModel):
-    name = models.CharField(max_length=128, unique=True)
-    slug = models.SlugField(max_length=128, unique=True, db_index=True)
-
-    def __str__(self):
-        return self.name
 
 
 class ScrambleModel(BaseModel):
@@ -32,7 +35,7 @@ class ScrambleModel(BaseModel):
     discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE, related_name='scramble_set')
 
     def __str__(self):
-        return self.moves
+        return str(f'{self.moves} - {self.discipline}')
 
 
 class RoundSessionModel(BaseModel):
