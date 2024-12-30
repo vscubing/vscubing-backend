@@ -20,7 +20,7 @@ class ContestModel(BaseModel):
     end_date = models.DateTimeField(null=True)
     is_ongoing = models.BooleanField(default=True)
 
-    # discipline_set = models.ManyToManyRel(DisciplineModel, to=DisciplineModel)
+    discipline_set = models.ManyToManyField(DisciplineModel)
 
     def __str__(self):
         return str(self.name)

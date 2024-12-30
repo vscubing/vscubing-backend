@@ -271,25 +271,26 @@ class ScrambleSelector:
 class SingleResultLeaderboardSelector:
     def __init__(self, user_id, discipline_slug):
         try:
-            self.user = User.objects.get(id=user_id)
+            # self.user = User.objects.get(id=user_id)
             self.discipline = DisciplineModel.objects.get(slug=discipline_slug)
         except ObjectDoesNotExist:
             raise Http404
 
     def list(self, own_solve_id=None):
-        solve_set = (SingleResultLeaderboardModel.objects.filter()
+        solve_set = (SingleResultLeaderboardModel.objects.filter(solve__discipline=self.discipline)
                      .exclude(id=own_solve_id).order_by('time_ms'))
         return solve_set
 
-    def own_solve_retrieve(self):
+    def own_solve_retrieve(self, user_id):
         try:
-            own_solve = SingleResultLeaderboardModel.objects.get(solve__user_id=self.user)
+            own_solve = SingleResultLeaderboardModel.objects.get(solve__user_id=user_id, solve__discipline=self.discipline)
             return own_solve
         except ObjectDoesNotExist:
             return None
 
     def get_place(self, solve):
-        position = SingleResultLeaderboardModel.objects.filter(time_ms__lt=solve.time_ms).count() + 1
+        position = SingleResultLeaderboardModel.objects.filter(time_ms__lt=solve.time_ms,
+                                                               solve__discipline=self.discipline).count() + 1
         return position
 
     def add_places(self, solve_set):
@@ -316,7 +317,7 @@ class SingleResultLeaderboardSelector:
         elif own_solve not in solve_set:
             return True
 
-    def leaderboard_retrieve(self, discipline_slug, page_size, page, user_id=None):
+    def leaderboard_retrieve(self, page_size, page, user_id=None):
         data = {}
 
         results = {}

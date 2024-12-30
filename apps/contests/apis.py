@@ -210,7 +210,12 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
                 'id': serializers.IntegerField(),
                 'slug': serializers.CharField(),
                 'start_date': serializers.DateTimeField(),
-                'end_date': serializers.DateTimeField()
+                'end_date': serializers.DateTimeField(),
+                'discipline_set': inline_serializer(many=True, fields={
+                    'id': serializers.IntegerField(),
+                    'slug': serializers.CharField(),
+                    'name': serializers.CharField(),
+                })
             }),
             'own_result': inline_serializer(required=False, fields={
                 'round_session': inline_serializer(fields={
@@ -357,6 +362,11 @@ class ContestListApi(APIView, ContestSelector):
             'slug': serializers.CharField(),
             'start_date': serializers.DateTimeField(),
             'end_date': serializers.DateTimeField(),
+            'discipline_set': inline_serializer(many=True, fields={
+                'id': serializers.IntegerField(),
+                'slug': serializers.CharField(),
+                'name': serializers.CharField(),
+            })
         })
 
         class Meta:
@@ -402,6 +412,11 @@ class OngoingContestRetrieveApi(APIView):
         slug = serializers.CharField()
         start_date = serializers.DateTimeField()
         end_date = serializers.DateTimeField()
+        discipline_set = inline_serializer(many=True, fields={
+            'id': serializers.IntegerField(),
+            'slug': serializers.CharField(),
+            'name': serializers.CharField(),
+        })
 
         class Meta:
             ref_name = 'OngoingContestRetrieveSerializer'
@@ -555,7 +570,7 @@ class SingleResultLeaderboardApi(APIView):
     )
     def get(self, request):
         leaderboard_selector = SingleResultLeaderboardSelector(
-            discipline_slug=str(request.query_params.get('discipline_slug'), '3by3'),
+            discipline_slug=request.query_params.get('discipline_slug', '3by3'),
             user_id=request.user.id
         )
         data = leaderboard_selector.leaderboard_retrieve(
