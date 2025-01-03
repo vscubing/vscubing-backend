@@ -35,7 +35,7 @@ class ScrambleModel(BaseModel):
     discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE, related_name='scramble_set')
 
     def __str__(self):
-        return str(f'{self.moves} - {self.discipline}')
+        return str(self.moves)
 
 
 class RoundSessionModel(BaseModel):

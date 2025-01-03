@@ -114,13 +114,13 @@ class Command(BaseCommand):
         )
         for discipline in DisciplineModel.objects.all():
             for scramble_position in range(1, 6):
-                generated_scramble = 'R2 L2'
+                generated_scramble = 'R L'
                 scramble = ScrambleModel(position=scramble_position, moves=generated_scramble,
                                          is_extra=False, contest=contest, discipline=discipline)
                 scramble.save()
             for scramble_position in range(1, 3):
                 scramble_position = f"E{scramble_position}"
-                generated_scramble = 'R2 L2'
+                generated_scramble = 'R L'
                 scramble = ScrambleModel(position=scramble_position, moves=generated_scramble,
                                          is_extra=True, contest=contest, discipline=discipline)
                 scramble.save()

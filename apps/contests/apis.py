@@ -1,3 +1,5 @@
+from tarfile import TruncatedHeaderError
+
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView, Response
@@ -351,6 +353,7 @@ class ContestListApi(APIView, ContestSelector):
 
     class FilterSerializer(serializers.Serializer):
         order_by = serializers.CharField(required=False)
+        discipline_slug = serializers.CharField(required=False)
 
     class OutputSerializer(serializers.Serializer):
         page_size = serializers.IntegerField()
@@ -388,6 +391,13 @@ class ContestListApi(APIView, ContestSelector):
                 description='page size',
                 required=False,
                 type=int,
+            ),
+            OpenApiParameter(
+                name='discipline_slug',
+                location=OpenApiParameter.QUERY,
+                description='discipline slug',
+                required=True,
+                type=str
             )
         ]
     )
