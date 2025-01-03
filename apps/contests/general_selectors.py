@@ -49,8 +49,14 @@ def retrieve_current_scramble(contest, user):
 def retrieve_current_scramble_avg5(contest, discipline, user):
     # check if round_session exists
     try:
-        round_session = contest.round_session_set.get(user=user)
+        round_session = contest.round_session_set.get(user=user, discipline=discipline)
     except ObjectDoesNotExist:
+        current_scramble_position = '1'
+        current_scramble = contest.scramble_set.get(position=current_scramble_position, discipline=discipline)
+        return current_scramble
+
+    # check if round_session is empty
+    if not round_session.solve_set.exists():
         current_scramble_position = '1'
         current_scramble = contest.scramble_set.get(position=current_scramble_position, discipline=discipline)
         return current_scramble

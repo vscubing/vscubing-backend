@@ -159,13 +159,6 @@ class CurrentRoundSessionProgressSelector:
         except ObjectDoesNotExist:
             raise Http404
 
-    def _retrieve_current_scramble(self):
-        current_scramble = ScrambleSelector().retrieve_current(
-            contest=self.contest,
-            user=self.user
-        )
-        return current_scramble
-
     def _can_change_to_extra(self):
         solve_set = SolveModel.objects.filter(
             contest=self.contest,
@@ -242,7 +235,7 @@ class ContestSelector:
 
 
 class ScrambleSelector:
-    def retrieve_current(self, contest, user):
+    def retrieve_current(self, contest, discipline, user):
         scrambles = contest.scramble_set.all()
         previous_solve = None
         for scramble in scrambles:
