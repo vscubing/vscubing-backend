@@ -606,6 +606,9 @@ class AvailableDisciplinesListApi(APIView):
         name = serializers.CharField()
         slug = serializers.CharField()
 
+    @extend_schema(
+        responses={200: OutputSerializer(many=True)})
+
     def get(self, request):
         selector = AvailableDisciplinesListSelector()
         discipline_set = selector.discipline_set_retrieve()
