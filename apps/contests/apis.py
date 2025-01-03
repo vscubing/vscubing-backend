@@ -351,7 +351,7 @@ class ContestListApi(APIView, ContestSelector):
 
     class FilterSerializer(serializers.Serializer):
         order_by = serializers.CharField(required=False)
-        discipline_slug = serializers.CharField(required=False)
+        discipline_slug = serializers.CharField(required=True)
 
     class OutputSerializer(serializers.Serializer):
         page_size = serializers.IntegerField()
