@@ -1,0 +1,3 @@
+[submodule "vendor/twsearch"]
+	path = vendor/twsearch
+	url = https://github.com/cubing/twsearch.git
