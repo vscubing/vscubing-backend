@@ -11,11 +11,13 @@ from django.views.generic import RedirectView
 from rest_framework.exceptions import APIException
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from django.core.validators import RegexValidator
+from urllib3 import request
 
 from .serializers import UserSerializer
 from .models import User
 from apps.core.utils import inline_serializer
 from .services import UserService
+from .selectors import SettingsSelector
 
 GOOGLE_REDIRECT_URL = getenv('GOOGLE_REDIRECT_URL')
 
@@ -108,3 +110,33 @@ class ChangeUsernameApi(APIView):
 
         user = service.change_username(**serializer.validated_data, user_id=request.user.id)
         return Response(status=status.HTTP_200_OK)
+
+
+class SettingsRetrieveApi(APIView):
+    class OutputSerializer(serializers.Serializer):
+        cstimer_inspection_voice_alert = serializers.CharField()
+        cstimer_animation_duration = serializers.IntegerField()
+
+    @extend_schema(
+        responses={200: OutputSerializer()}
+    )
+    def get(self, request):
+        selector = SettingsSelector(user_id=request.user.id)
+        data = selector.retrieve()
+        data = self.OutputSerializer(data).data
+        return Response(data)
+
+
+class SettingsRetrieveApi(APIView):
+    class InputSerializer(serializers.Serializer):
+        cstimer_inspection_voice_alert = serializers.CharField()
+        cstimer_animation_duration = serializers.IntegerField()
+
+    @extend_schema(
+        request=InputSerializer()
+    )
+    def get(self, request):
+        selector = SettingsSelector(user_id=request.user.id)
+        data = selector.retrieve()
+        data = self.OutputSerializer(data).data
+        return Response(data)
