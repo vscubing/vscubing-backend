@@ -6,6 +6,7 @@ from django.db.transaction import atomic
 from rest_framework import status
 
 from apps.core.exceptions import ConflictException, BadRequestException
+from scripts.solution_validator.solution_validator import is_solution_valid
 from .general_selectors import (
     current_contest_retrieve,
     retrieve_current_scramble_avg5,
@@ -19,7 +20,6 @@ from .models import (
     ScrambleModel,
     SingleResultLeaderboardModel
 )
-from scripts.cube import ReconstructionValidator
 
 MAX_INT = 2147483647
 
@@ -78,12 +78,11 @@ class CreateSolveService:
             )
             return solve
 
-        #TODO add solve validation
-        solve_is_valid = True
-        # solve_is_valid = self.solve_is_valid(
-        #     reconstruction=reconstruction,
-        #     time_ms=time_ms
-        # )
+        solve_is_valid = is_solution_valid(
+            scramble=self.current_scramble.moves,
+            solution=reconstruction,
+            discipline=self.discipline.slug,
+        )
         if solve_is_valid:
             solve = SolveModel.objects.create(
                 time_ms=time_ms,
@@ -144,19 +143,6 @@ class CreateSolveService:
         if scramble == self.current_scramble:
             return True
         else:
-            return False
-
-    def solve_is_valid(self, reconstruction, time_ms):
-        reconstruction_validator = ReconstructionValidator(
-            scramble=self.current_scramble.moves,
-            reconstruction=reconstruction,
-        )
-        try:
-            if reconstruction_validator.is_valid():
-                return True
-            else:
-                return False
-        except KeyError and TypeError:
             return False
 
     def solve_does_not_exists(self):
