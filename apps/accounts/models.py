@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
@@ -16,6 +18,8 @@ try:
     from allauth.utils import get_username_max_length
 except ImportError:
     raise ImportError('allauth needs to be added to INSTALLED_APPS.')
+
+from apps.core.models import BaseModel
 
 
 class UserManager(BaseUserManager):
@@ -114,3 +118,32 @@ class RegisterSerializer(serializers.Serializer):
         self.custom_signup(request, user)
         setup_user_email(request, user, [])
         return user
+
+
+from django.db import models
+
+
+class SettingsModel(BaseModel):
+    VOICE_ALERT_CHOICES = [
+        ('None', 'None'),
+        ('Male', 'Male'),
+        ('Female', 'Female')
+    ]
+
+    cstimer_inspection_voice_alert = models.CharField(
+        max_length=10,
+        choices=VOICE_ALERT_CHOICES,
+        default='None',
+    )
+    cstimer_animation_duration = models.IntegerField(default=0)
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings')
+
+# Signal to create or save SettingsModel instance when a User is created or saved
+@receiver(post_save, sender=User)
+def create_or_save_user_settings(sender, instance, created, **kwargs):
+    if created:
+        SettingsModel.objects.create(user=instance)
+    else:
+        instance.settings.save()
+
