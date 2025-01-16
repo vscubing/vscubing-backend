@@ -31,6 +31,7 @@ class Command(BaseCommand):
         parser.add_argument('--discipline_names', type=str, nargs='+', default=['3by3', '2by2' ], help='List of discipline names')
         parser.add_argument('--tnoodle_scrambles_qty', type=int, default=30, help='Number of tnoodle scrambles')
         parser.add_argument('--tnoodle_scrambles_moves_qty', type=int, default=5, help='Number of moves in each tnoodle scramble')
+        parser.add_argument('--scrambles_moves_qty', type=int, default=3, help='Number of moves in scramble')
         parser.add_argument('--contest_qty', type=int, default=15, help='Number of contests')
 
     help = 'Generate fake data for accounts app'
@@ -125,18 +126,31 @@ class Command(BaseCommand):
 
         for discipline in discipline_set:
             for scramble_position in range(1, 6):
-                generated_scramble = 'R L'
+                generated_scramble = generate_scramble(moves_count=self.tnoodle_scrambles_moves_qty)
                 scramble = ScrambleModel(position=scramble_position, moves=generated_scramble,
                                          is_extra=False, contest=contest, discipline=discipline)
                 scramble.save()
             for scramble_position in range(1, 3):
                 scramble_position = f"E{scramble_position}"
-                generated_scramble = 'R L'
+                generated_scramble = generate_scramble(moves_count=self.tnoodle_scrambles_moves_qty)
                 scramble = ScrambleModel(position=scramble_position, moves=generated_scramble,
                                          is_extra=True, contest=contest, discipline=discipline)
                 scramble.save()
 
         users = User.objects.all()
+
+        def reverse_scramble(scramble):
+            moves = scramble.split()
+            inverse_moves = {
+                "R": "R'", "R'": "R", "R2": "R2",
+                "L": "L'", "L'": "L", "L2": "L2",
+                "U": "U'", "U'": "U", "U2": "U2",
+                "D": "D'", "D'": "D", "D2": "D2",
+                "F": "F'", "F'": "F", "F2": "F2",
+                "B": "B'", "B'": "B", "B2": "B2"
+            }
+            solving_algorithm = [inverse_moves[move] for move in reversed(moves)]
+            return ' '.join(solving_algorithm)
 
         for user in users:
             for discipline in DisciplineModel.objects.all():
@@ -159,7 +173,7 @@ class Command(BaseCommand):
                         discipline=discipline,
                         round_session=round_session,
                         contest=contest,
-                        reconstruction=scramble
+                        reconstruction=reverse_scramble(scramble.moves)
                     )
                     sum_ms = 0
                 solve_set = round_session.solve_set.filter(submission_state=SOLVE_SUBMITTED_STATE, is_dnf=False).order_by('time_ms')

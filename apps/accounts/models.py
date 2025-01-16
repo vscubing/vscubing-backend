@@ -126,7 +126,7 @@ from django.db import models
 class SettingsModel(BaseModel):
     cstimer_inspection_voice_alert = models.CharField(
         max_length=10,
-        default='no_alert',
+        default='None',
     )
     cstimer_animation_duration = models.IntegerField(default=0)
 
