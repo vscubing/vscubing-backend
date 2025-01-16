@@ -124,16 +124,9 @@ from django.db import models
 
 
 class SettingsModel(BaseModel):
-    VOICE_ALERT_CHOICES = [
-        ('None', 'None'),
-        ('Male', 'Male'),
-        ('Female', 'Female')
-    ]
-
     cstimer_inspection_voice_alert = models.CharField(
         max_length=10,
-        choices=VOICE_ALERT_CHOICES,
-        default='None',
+        default='no_alert',
     )
     cstimer_animation_duration = models.IntegerField(default=0)
 

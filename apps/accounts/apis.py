@@ -1,4 +1,5 @@
 from os import getenv
+from random import choices
 
 from rest_framework.views import APIView, Response, status
 from rest_framework import serializers
@@ -14,9 +15,9 @@ from django.core.validators import RegexValidator
 from urllib3 import request
 
 from .serializers import UserSerializer
-from .models import User
+from .models import User, SettingsModel
 from apps.core.utils import inline_serializer
-from .services import UserService
+from .services import UserService, SettingsService
 from .selectors import SettingsSelector
 
 GOOGLE_REDIRECT_URL = getenv('GOOGLE_REDIRECT_URL')
@@ -117,6 +118,9 @@ class SettingsRetrieveApi(APIView):
         cstimer_inspection_voice_alert = serializers.CharField()
         cstimer_animation_duration = serializers.IntegerField()
 
+        class Meta:
+            ref_name = 'accounts.SettingsUpdateOutputSerializer'
+
     @extend_schema(
         responses={200: OutputSerializer()}
     )
@@ -127,16 +131,22 @@ class SettingsRetrieveApi(APIView):
         return Response(data)
 
 
-class SettingsRetrieveApi(APIView):
+class SettingsUpdateApi(APIView):
     class InputSerializer(serializers.Serializer):
-        cstimer_inspection_voice_alert = serializers.CharField()
-        cstimer_animation_duration = serializers.IntegerField()
+        cstimer_inspection_voice_alert = serializers.CharField(required=False)
+        cstimer_animation_duration = serializers.IntegerField(required=False)
+
+        class Meta:
+            ref_name = 'accounts.SettingsUpdateInputSerializer'
 
     @extend_schema(
-        request=InputSerializer()
+        request=InputSerializer(),
     )
-    def get(self, request):
-        selector = SettingsSelector(user_id=request.user.id)
-        data = selector.retrieve()
-        data = self.OutputSerializer(data).data
-        return Response(data)
+    def post(self, request):
+        serializer = self.InputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        service = SettingsService(user_id=request.user.id)
+        service.update(**serializer.validated_data)
+
+        return Response(status=200)

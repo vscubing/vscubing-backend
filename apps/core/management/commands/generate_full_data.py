@@ -24,28 +24,35 @@ from scripts.scramble import generate_scramble
 
 load_dotenv()
 
-USERS_QTY = 25
-DISCIPLINE_NAMES = ['3by3', '2by2']
-TNOODLE_SCRAMBLES = 50
-CONTEST_QTY = 5
-
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument('--users_qty', type=int, default=25, help='Number of users')
+        parser.add_argument('--discipline_names', type=str, nargs='+', default=['3by3', '2by2' ], help='List of discipline names')
+        parser.add_argument('--tnoodle_scrambles_qty', type=int, default=30, help='Number of tnoodle scrambles')
+        parser.add_argument('--tnoodle_scrambles_moves_qty', type=int, default=5, help='Number of moves in each tnoodle scramble')
+        parser.add_argument('--contest_qty', type=int, default=15, help='Number of contests')
+
     help = 'Generate fake data for accounts app'
     @atomic()
     def handle(self, *args, **options):
+        self.users_qty = options['users_qty']
+        self.discipline_names = options['discipline_names']
+        self.tnoodle_scrambles_qty = options['tnoodle_scrambles_qty']
+        self.tnoodle_scrambles_moves_qty = options['tnoodle_scrambles_moves_qty']
+        self.contest_qty = options['contest_qty']
         self.fake = Faker()
         self.users()
         self.superuser()
         self.google_client()
         self.disciplines()
-        for i in range(CONTEST_QTY):
+        for i in range(self.contest_qty):
             self.contest_scrambles_sessions_solves()
         self.single_solve_leaderboard()
         self.tnoodle_scrambles()
 
     def users(self):
-        for user in range(USERS_QTY):
+        for user in range(self.users_qty):
             User.objects.create(
                 username=self.fake.unique.user_name(),
                 email=self.fake.unique.email(),
@@ -86,7 +93,7 @@ class Command(BaseCommand):
 
     def disciplines(self):
         if not DisciplineModel.objects.all():
-            for discipline in DISCIPLINE_NAMES:
+            for discipline in self.discipline_names:
                 DisciplineModel.objects.create(
                     name=discipline,
                     slug=discipline
@@ -95,6 +102,7 @@ class Command(BaseCommand):
             pass
 
     def contest_scrambles_sessions_solves(self):
+        discipline_set = DisciplineModel.objects.all()
         last_contest = ContestModel.objects.last()
         name = 1
         if last_contest:
@@ -112,7 +120,10 @@ class Command(BaseCommand):
             start_date=start_date,
             end_date=end_date
         )
-        for discipline in DisciplineModel.objects.all():
+        contest.discipline_set.add(*discipline_set)
+        contest.save()
+
+        for discipline in discipline_set:
             for scramble_position in range(1, 6):
                 generated_scramble = 'R L'
                 scramble = ScrambleModel(position=scramble_position, moves=generated_scramble,
@@ -184,7 +195,7 @@ class Command(BaseCommand):
                 pass
 
     def tnoodle_scrambles(self):
-        for i in range(0, TNOODLE_SCRAMBLES):
-            scramble_moves = generate_scramble(moves_count=5)
+        for i in range(0, self.tnoodle_scrambles_qty):
+            scramble_moves = generate_scramble(moves_count=self.tnoodle_scrambles_moves_qty)
             print(scramble_moves)
             TnoodleScramblesModel.objects.create(moves=scramble_moves)

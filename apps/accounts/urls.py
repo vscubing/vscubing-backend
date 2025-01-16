@@ -1,8 +1,14 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .apis import GoogleLoginApi, UserRedirectApi, CurrentUserApi, ChangeUsernameApi, SettingsRetrieveApi
-
+from .apis import (
+    GoogleLoginApi,
+    UserRedirectApi,
+    CurrentUserApi,
+    ChangeUsernameApi,
+    SettingsRetrieveApi,
+    SettingsUpdateApi,
+)
 
 urlpatterns = [
     path("~redirect/", view=UserRedirectApi.as_view(), name="redirect"),
@@ -11,4 +17,5 @@ urlpatterns = [
     path('current-user/', CurrentUserApi.as_view(), name='current-user'),
     path('change-username/', ChangeUsernameApi.as_view(), name='change-username'),
     path('settings/retrieve/', SettingsRetrieveApi.as_view(), name='settings/retrieve'),
+    path('settings/update/', SettingsUpdateApi.as_view(), name='settings/update'),
 ]
