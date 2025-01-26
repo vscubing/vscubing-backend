@@ -31,7 +31,7 @@ class SettingsService:
     def __init__(self, user_id):
         self.user = User.objects.get(id=user_id)
 
-    def update(self, cstimer_inspection_voice_alert, cstimer_animation_duration):
+    def update(self, cstimer_inspection_voice_alert=None, cstimer_animation_duration=None):
         settings = SettingsModel.objects.get(user=self.user)
 
         if cstimer_inspection_voice_alert is not None:

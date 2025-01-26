@@ -87,6 +87,8 @@ class CurrentUserApi(APIView):
 
 
 class ChangeUsernameApi(APIView):
+    permission_classes = [IsAuthenticated]
+
     class ChangeUsernameInputSerializer(serializers.Serializer):
         username = serializers.CharField(
             max_length=20,
@@ -114,6 +116,8 @@ class ChangeUsernameApi(APIView):
 
 
 class SettingsRetrieveApi(APIView):
+    permission_classes = [IsAuthenticated]
+
     class OutputSerializer(serializers.Serializer):
         cstimer_inspection_voice_alert = serializers.CharField()
         cstimer_animation_duration = serializers.IntegerField()
@@ -132,6 +136,8 @@ class SettingsRetrieveApi(APIView):
 
 
 class SettingsUpdateApi(APIView):
+    permission_classes = [IsAuthenticated]
+
     class InputSerializer(serializers.Serializer):
         cstimer_inspection_voice_alert = serializers.CharField(required=False)
         cstimer_animation_duration = serializers.IntegerField(required=False)

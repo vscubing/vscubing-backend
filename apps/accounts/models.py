@@ -126,9 +126,9 @@ from django.db import models
 class SettingsModel(BaseModel):
     cstimer_inspection_voice_alert = models.CharField(
         max_length=10,
-        default='None',
+        default='Male',
     )
-    cstimer_animation_duration = models.IntegerField(default=0)
+    cstimer_animation_duration = models.IntegerField(default=100)
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings')
 
