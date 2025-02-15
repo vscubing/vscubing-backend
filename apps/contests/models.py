@@ -89,6 +89,7 @@ class SingleResultLeaderboardModel(models.Model):
 class TnoodleScramblesModel(BaseModel):
     moves = models.CharField(max_length=150, unique=True)
     is_used = models.BooleanField(default=False)
+    discipline = models.ForeignKey(DisciplineModel, default="1", on_delete=models.CASCADE, related_name='tnoodle_scramble_set')
 
     def __str__(self):
         return self.moves

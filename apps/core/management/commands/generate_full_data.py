@@ -209,7 +209,9 @@ class Command(BaseCommand):
                 pass
 
     def tnoodle_scrambles(self):
-        for i in range(0, self.tnoodle_scrambles_qty):
-            scramble_moves = generate_scramble(moves_count=self.tnoodle_scrambles_moves_qty)
-            print(scramble_moves)
-            TnoodleScramblesModel.objects.create(moves=scramble_moves)
+        discipline_set = DisciplineModel.objects.all()
+        for discipline in discipline_set:
+            for i in range(0, self.tnoodle_scrambles_qty):
+                scramble_moves = generate_scramble(moves_count=self.tnoodle_scrambles_moves_qty)
+                print(scramble_moves)
+                TnoodleScramblesModel.objects.create(moves=scramble_moves, discipline=discipline)
