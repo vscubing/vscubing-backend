@@ -1,4 +1,5 @@
 from os import getenv
+from random import choices
 
 from rest_framework.views import APIView, Response, status
 from rest_framework import serializers
@@ -11,11 +12,13 @@ from django.views.generic import RedirectView
 from rest_framework.exceptions import APIException
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from django.core.validators import RegexValidator
+from urllib3 import request
 
 from .serializers import UserSerializer
-from .models import User
+from .models import User, SettingsModel
 from apps.core.utils import inline_serializer
-from .services import UserService
+from .services import UserService, SettingsService
+from .selectors import SettingsSelector
 
 GOOGLE_REDIRECT_URL = getenv('GOOGLE_REDIRECT_URL')
 
@@ -84,6 +87,8 @@ class CurrentUserApi(APIView):
 
 
 class ChangeUsernameApi(APIView):
+    permission_classes = [IsAuthenticated]
+
     class ChangeUsernameInputSerializer(serializers.Serializer):
         username = serializers.CharField(
             max_length=20,
@@ -108,3 +113,46 @@ class ChangeUsernameApi(APIView):
 
         user = service.change_username(**serializer.validated_data, user_id=request.user.id)
         return Response(status=status.HTTP_200_OK)
+
+
+class SettingsRetrieveApi(APIView):
+    permission_classes = [IsAuthenticated]
+
+    class OutputSerializer(serializers.Serializer):
+        cstimer_inspection_voice_alert = serializers.CharField()
+        cstimer_animation_duration = serializers.IntegerField()
+
+        class Meta:
+            ref_name = 'accounts.SettingsUpdateOutputSerializer'
+
+    @extend_schema(
+        responses={200: OutputSerializer()}
+    )
+    def get(self, request):
+        selector = SettingsSelector(user_id=request.user.id)
+        data = selector.retrieve()
+        data = self.OutputSerializer(data).data
+        return Response(data)
+
+
+class SettingsUpdateApi(APIView):
+    permission_classes = [IsAuthenticated]
+
+    class InputSerializer(serializers.Serializer):
+        cstimer_inspection_voice_alert = serializers.CharField(required=False)
+        cstimer_animation_duration = serializers.IntegerField(required=False)
+
+        class Meta:
+            ref_name = 'accounts.SettingsUpdateInputSerializer'
+
+    @extend_schema(
+        request=InputSerializer(),
+    )
+    def post(self, request):
+        serializer = self.InputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        service = SettingsService(user_id=request.user.id)
+        service.update(**serializer.validated_data)
+
+        return Response(status=200)

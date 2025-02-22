@@ -14,6 +14,7 @@ from .models import (
 
 @atomic()
 def generate_contest_service(days_lasts=7):
+    discipline_set = DisciplineModel.objects.all()
     current_contest = current_contest_retrieve()
     if current_contest:
         name_and_slug = str(int(current_contest.slug) + 1)
@@ -36,27 +37,29 @@ def generate_contest_service(days_lasts=7):
         start_date=start_date,
         end_date=end_date
     )
+    contest.discipline_set.add(*discipline_set)
+    contest.save()
 
-    discipline = DisciplineModel.objects.get(name='3by3')
-    tnoodle_scrambles = TnoodleScramblesModel.objects.filter(is_used=False)[0:7]
-    inx = 1
-    scramble_position = '1'
-    is_extra = False
-    for tnoodle_scramble in tnoodle_scrambles:
-        if inx < 6:
-            scramble_position = str(inx)
-            is_extra = False
-            print('no extra')
-        elif inx >= 6:
-            print('extra')
-            is_extra = True
-            if inx == 6:
-                scramble_position = 'E1'
-            elif inx == 7:
-                scramble_position = 'E2'
-        tnoodle_scramble.is_used = True
-        tnoodle_scramble.save()
-        scramble = ScrambleModel(position=scramble_position, moves=tnoodle_scramble.moves,
-                                 is_extra=is_extra, contest=contest, discipline=discipline)
-        scramble.save()
-        inx += 1
+    for discipline in discipline_set:
+        tnoodle_scrambles = TnoodleScramblesModel.objects.filter(is_used=False, discipline=discipline)[0:7]
+        inx = 1
+        scramble_position = '1'
+        is_extra = False
+        for tnoodle_scramble in tnoodle_scrambles:
+            if inx < 6:
+                scramble_position = str(inx)
+                is_extra = False
+                print('no extra')
+            elif inx >= 6:
+                print('extra')
+                is_extra = True
+                if inx == 6:
+                    scramble_position = 'E1'
+                elif inx == 7:
+                    scramble_position = 'E2'
+            tnoodle_scramble.is_used = True
+            tnoodle_scramble.save()
+            scramble = ScrambleModel(position=scramble_position, moves=tnoodle_scramble.moves,
+                                     is_extra=is_extra, contest=contest, discipline=discipline)
+            scramble.save()
+            inx += 1

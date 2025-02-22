@@ -1,0 +1,128 @@
+# /home/bohdancho/.bun/bin/bun /home/bohdancho/projects/vscubing/solve-checker-twsearch/cubing.js/src/bin/puzzle-geometry-bin.ts --ksolve --allmoves --rotations 2x2x2
+# PuzzleGeometry 0.1 Copyright 2018 Tomas Rokicki.
+# 
+Name PuzzleGeometryPuzzle
+
+Set CORNERS 8 3
+# 1 F U R
+# 2 B U R
+# 3 B U L
+# 4 F U L
+# 5 F D R
+# 6 F D L
+# 7 B D L
+# 8 B D R
+
+Solved
+CORNERS
+1 2 3 4 5 6 7 8
+End
+
+Move F
+CORNERS
+4 2 3 6 1 5 7 8
+2 0 0 1 1 2 0 0
+End
+
+Move B
+CORNERS
+1 8 2 4 5 6 3 7
+0 1 2 0 0 0 1 2
+End
+
+Move z
+CORNERS
+4 3 7 6 1 5 8 2
+2 1 2 1 1 2 1 2
+End
+
+Move D
+CORNERS
+1 2 3 4 6 7 8 5
+End
+
+Move U
+CORNERS
+2 3 4 1 5 6 7 8
+End
+
+Move y
+CORNERS
+2 3 4 1 8 5 6 7
+End
+
+Move L
+CORNERS
+1 2 7 3 5 4 6 8
+0 0 1 2 0 1 2 0
+End
+
+Move R
+CORNERS
+5 1 3 4 8 6 7 2
+1 2 0 0 2 0 0 1
+End
+
+Move x
+CORNERS
+5 1 4 6 8 7 3 2
+1 2 1 2 2 1 2 1
+End
+
+Move DRFv
+CORNERS
+6 4 3 7 5 8 2 1
+2 1 2 1 1 2 1 2
+End
+
+Move DFLv
+CORNERS
+3 2 8 7 4 6 5 1
+1 2 1 2 2 1 2 1
+End
+
+Move DBRv
+CORNERS
+6 5 1 4 7 3 2 8
+1 2 1 2 2 1 2 1
+End
+
+Move DLBv
+CORNERS
+1 5 8 2 4 3 7 6
+2 1 2 1 1 2 1 2
+End
+
+Move DFv
+CORNERS
+7 3 2 8 6 5 1 4
+1 2 1 2 2 1 2 1
+End
+
+Move FLv
+CORNERS
+7 8 5 6 3 4 1 2
+End
+
+Move DBv
+CORNERS
+4 6 5 1 3 2 8 7
+1 2 1 2 2 1 2 1
+End
+
+Move DLv
+CORNERS
+2 1 5 8 3 7 6 4
+2 1 2 1 1 2 1 2
+End
+
+Move BLv
+CORNERS
+5 6 7 8 1 2 3 4
+End
+
+Move ULv
+CORNERS
+7 6 4 3 8 2 1 5
+2 1 2 1 1 2 1 2
+End

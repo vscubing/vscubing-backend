@@ -1,7 +1,16 @@
 from django.db import models
+from django.db.models import ManyToOneRel
 
 from apps.accounts.models import User
 from apps.core.models import BaseModel
+
+
+class DisciplineModel(BaseModel):
+    name = models.CharField(max_length=128, unique=True)
+    slug = models.SlugField(max_length=128, unique=True, db_index=True)
+
+    def __str__(self):
+        return self.name
 
 
 class ContestModel(BaseModel):
@@ -11,16 +20,10 @@ class ContestModel(BaseModel):
     end_date = models.DateTimeField(null=True)
     is_ongoing = models.BooleanField(default=True)
 
+    discipline_set = models.ManyToManyField(DisciplineModel)
+
     def __str__(self):
         return str(self.name)
-
-
-class DisciplineModel(BaseModel):
-    name = models.CharField(max_length=128, unique=True)
-    slug = models.SlugField(max_length=128, unique=True, db_index=True)
-
-    def __str__(self):
-        return self.name
 
 
 class ScrambleModel(BaseModel):
@@ -32,7 +35,7 @@ class ScrambleModel(BaseModel):
     discipline = models.ForeignKey(DisciplineModel, on_delete=models.CASCADE, related_name='scramble_set')
 
     def __str__(self):
-        return self.moves
+        return str(self.moves)
 
 
 class RoundSessionModel(BaseModel):
@@ -86,6 +89,7 @@ class SingleResultLeaderboardModel(models.Model):
 class TnoodleScramblesModel(BaseModel):
     moves = models.CharField(max_length=150, unique=True)
     is_used = models.BooleanField(default=False)
+    discipline = models.ForeignKey(DisciplineModel, default="1", on_delete=models.CASCADE, related_name='tnoodle_scramble_set')
 
     def __str__(self):
         return self.moves

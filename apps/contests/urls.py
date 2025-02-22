@@ -8,11 +8,11 @@ from .apis import (
     SolveListBestInEveryDiscipline,
     SingleResultLeaderboardApi,
     ContestLeaderboardApi,
-    # RoundSessionCurrentWithSolvesRetrieveApi,
-    # RoundSessionRetrieveApi,
     ContestListApi,
     CurrentRoundSessionProgressApi,
     OngoingContestRetrieveApi,
+    AvailableDisciplinesListApi,
+
 )
 from .dev_apis import OwnRoundSessionDeleteApi, NewContestCreateApi
 
@@ -61,6 +61,8 @@ dev_urlpatterns = [
 ]
 
 urlpatterns = [
+    path('available_disciplines/', AvailableDisciplinesListApi.as_view(), name='available-disciplines-list'),
+
     path('solves/', include(solves_urlpatterns)),
     path('contests/', include(contests_urlpatterns)),
     path('round-sessions/', include(round_session_urlpatterns)),

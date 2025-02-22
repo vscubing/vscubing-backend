@@ -22,7 +22,7 @@ from .filters import (
     ContestFilter,
 )
 from .paginators import page_size_page_paginator
-from .general_selectors import retrieve_current_scramble_3by3_avg5, current_contest_retrieve
+from .general_selectors import retrieve_current_scramble_avg5, current_contest_retrieve
 
 
 class RoundSessionSelector:
@@ -159,13 +159,6 @@ class CurrentRoundSessionProgressSelector:
         except ObjectDoesNotExist:
             raise Http404
 
-    def _retrieve_current_scramble(self):
-        current_scramble = ScrambleSelector().retrieve_current(
-            contest=self.contest,
-            user=self.user
-        )
-        return current_scramble
-
     def _can_change_to_extra(self):
         solve_set = SolveModel.objects.filter(
             contest=self.contest,
@@ -216,7 +209,7 @@ class CurrentRoundSessionProgressSelector:
         if self._round_session_is_finished():
             raise PermissionDenied()
         current_solve = self._retrieve_current_solve()
-        current_scramble = retrieve_current_scramble_3by3_avg5(contest=self.contest, user=self.user)
+        current_scramble = retrieve_current_scramble_avg5(contest=self.contest, discipline=self.discipline, user=self.user)
         can_change_to_extra = self._can_change_to_extra()
         solve_set = self._list_submitted_solve_set()
 
@@ -236,12 +229,13 @@ class ContestSelector:
     def list(self, filters=None):
         filters = filters or {}
 
-        contest_set = ContestModel.objects.filter(is_ongoing=False).order_by('-id')
+        contest_set = ContestModel.objects.filter(is_ongoing=False,
+                                                  discipline_set__slug=filters.get('discipline_slug')).order_by('-id')
         return ContestFilter(filters, contest_set).qs
 
 
 class ScrambleSelector:
-    def retrieve_current(self, contest, user):
+    def retrieve_current(self, contest, discipline, user):
         scrambles = contest.scramble_set.all()
         previous_solve = None
         for scramble in scrambles:
@@ -269,20 +263,28 @@ class ScrambleSelector:
 
 
 class SingleResultLeaderboardSelector:
+    def __init__(self, user_id, discipline_slug):
+        try:
+            # self.user = User.objects.get(id=user_id)
+            self.discipline = DisciplineModel.objects.get(slug=discipline_slug)
+        except ObjectDoesNotExist:
+            raise Http404
+
     def list(self, own_solve_id=None):
-        solve_set = (SingleResultLeaderboardModel.objects.filter()
+        solve_set = (SingleResultLeaderboardModel.objects.filter(solve__discipline=self.discipline)
                      .exclude(id=own_solve_id).order_by('time_ms'))
         return solve_set
 
     def own_solve_retrieve(self, user_id):
         try:
-            own_solve = SingleResultLeaderboardModel.objects.get(solve__user_id=user_id)
+            own_solve = SingleResultLeaderboardModel.objects.get(solve__user_id=user_id, solve__discipline=self.discipline)
             return own_solve
         except ObjectDoesNotExist:
             return None
 
     def get_place(self, solve):
-        position = SingleResultLeaderboardModel.objects.filter(time_ms__lt=solve.time_ms).count() + 1
+        position = SingleResultLeaderboardModel.objects.filter(time_ms__lt=solve.time_ms,
+                                                               solve__discipline=self.discipline).count() + 1
         return position
 
     def add_places(self, solve_set):
@@ -456,7 +458,7 @@ class ContestLeaderboardSelector:
 
     def round_session_set_retrieve(self, discipline, contest, page_size, page, user_id):
         try:
-            own_round_session = contest.round_session_set.get(user_id=user_id)
+            own_round_session = contest.round_session_set.get(user_id=user_id, discipline=discipline)
             own_round_session_id = own_round_session.id
         except ObjectDoesNotExist:
             own_round_session = None
@@ -527,29 +529,29 @@ class ContestLeaderboardSelector:
 
         return info
 
-    def check_permission(self, contest, user_id):
+    def check_permission(self, contest, user_id, discipline):
         if not contest.is_ongoing:
             return True
         elif contest.is_ongoing:
             try:
-                contest.round_session_set.get(user_id=user_id, is_finished=True)
+                contest.round_session_set.get(user_id=user_id, is_finished=True, discipline=discipline)
                 return True
             except ObjectDoesNotExist:
                 raise PermissionDenied()
 
     def leaderboard_retrieve(self, discipline_slug, contest_slug, page_size, page, user_id):
         try:
-            contest = ContestModel.objects.get(slug=contest_slug)
-            self.check_permission(contest=contest, user_id=user_id)
+            discipline = DisciplineModel.objects.get(slug=discipline_slug)
         except ObjectDoesNotExist:
             raise Http404
         try:
-            discipline = DisciplineModel.objects.get(slug=discipline_slug)
+            contest = ContestModel.objects.get(slug=contest_slug)
+            self.check_permission(contest=contest, user_id=user_id, discipline=discipline)
         except ObjectDoesNotExist:
             raise Http404
 
         try:
-            own_round_session = contest.round_session_set.get(user_id=user_id)
+            own_round_session = contest.round_session_set.get(user_id=user_id, discipline=discipline)
             page_size = page_size - 1
         except ObjectDoesNotExist:
             pass
@@ -561,3 +563,9 @@ class ContestLeaderboardSelector:
         data['results']['round_session_set'] = self.round_session_set_retrieve(discipline, contest, page_size, page,
                                                                                user_id)
         return data
+
+class AvailableDisciplinesListSelector:
+    def discipline_set_retrieve(self):
+        discipline_set = DisciplineModel.objects.all()
+        return discipline_set
+

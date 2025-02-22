@@ -53,7 +53,40 @@ Install requirements
 ```bash
   pip install -r requirements.txt
 ```
-Before starting the server check the next section "Environment Variables" right below
+Before going forward the server check the next section "Environment Variables" right below
+
+To create fake data for test use, utilize this command
+```commandline
+python managenerate_full_data
+```
+**There are some parms that can be used**
+
+how many users to generate
+`--users_qty int`
+
+disciplines names to generate 
+`--discipline_names str str str`
+
+amount of scrumbles to create new contests (after initial generation)
+`--tnoodle_scrambles_qty int`
+
+how many moves each new contest scramble with have 
+`--tnoodle_scrambles_moves_qty int`
+
+how many moves past contests' scrambles and current contest's scramble have 
+`--scrambles_moves_qty int`
+
+how many past contests to generate 
+`--contest_qty int`
+
+
+Example
+```commandline
+python manage.py generate_full_data --users_qty 15 --discipline_names 3by3 2by2 --tnoodle_scrambles_qty 20 --contest_qty 5 --tnoodle_scrambles_moves_qty 8 --scrambles_moves_qty 10
+
+```
+
+
 
 Start the server
 

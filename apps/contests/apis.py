@@ -1,15 +1,12 @@
-from collections import OrderedDict
-
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView, Response
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import serializers
 
 from apps.core.utils import inline_serializer
 from apps.core.permissions import IsVerified
 from .paginators import (
-    LimitOffsetPagination,
     LimitPagePagination,
     get_paginated_data,
 )
@@ -17,13 +14,12 @@ from .selectors import (
     RoundSessionSelector,
     ContestSelector,
     SolveSelector,
-    ScrambleSelector,
     SingleResultLeaderboardSelector,
     ContestLeaderboardSelector,
     CurrentRoundSessionProgressSelector,
+    AvailableDisciplinesListSelector
 )
 from .services import (
-    RoundSessionService,
     CreateSolveService,
     SubmitSolveService,
 )
@@ -178,13 +174,6 @@ class SubmitSolveApi(APIView):
         request=InputSerializer(),
         parameters=[
             OpenApiParameter(
-                name='discipline_slug',
-                location=OpenApiParameter.QUERY,
-                description='discipline slug',
-                required=True,
-                type=str,
-            ),
-            OpenApiParameter(
                 name='action',
                 location=OpenApiParameter.QUERY,
                 description='action',
@@ -196,7 +185,6 @@ class SubmitSolveApi(APIView):
     )
     def post(self, request, solve_id):
         service = SubmitSolveService(
-            discipline_slug=request.query_params.get('discipline_slug', None),
             solve_id=solve_id,
             user_id=request.user.id
         )
@@ -222,7 +210,12 @@ class ContestLeaderboardApi(APIView, RoundSessionSelector):
                 'id': serializers.IntegerField(),
                 'slug': serializers.CharField(),
                 'start_date': serializers.DateTimeField(),
-                'end_date': serializers.DateTimeField()
+                'end_date': serializers.DateTimeField(),
+                'discipline_set': inline_serializer(many=True, fields={
+                    'id': serializers.IntegerField(),
+                    'slug': serializers.CharField(),
+                    'name': serializers.CharField(),
+                })
             }),
             'own_result': inline_serializer(required=False, fields={
                 'round_session': inline_serializer(fields={
@@ -358,6 +351,7 @@ class ContestListApi(APIView, ContestSelector):
 
     class FilterSerializer(serializers.Serializer):
         order_by = serializers.CharField(required=False)
+        discipline_slug = serializers.CharField(required=True)
 
     class OutputSerializer(serializers.Serializer):
         page_size = serializers.IntegerField()
@@ -369,6 +363,11 @@ class ContestListApi(APIView, ContestSelector):
             'slug': serializers.CharField(),
             'start_date': serializers.DateTimeField(),
             'end_date': serializers.DateTimeField(),
+            'discipline_set': inline_serializer(many=True, fields={
+                'id': serializers.IntegerField(),
+                'slug': serializers.CharField(),
+                'name': serializers.CharField(),
+            })
         })
 
         class Meta:
@@ -390,6 +389,13 @@ class ContestListApi(APIView, ContestSelector):
                 description='page size',
                 required=False,
                 type=int,
+            ),
+            OpenApiParameter(
+                name='discipline_slug',
+                location=OpenApiParameter.QUERY,
+                description='discipline slug',
+                required=True,
+                type=str
             )
         ]
     )
@@ -414,6 +420,11 @@ class OngoingContestRetrieveApi(APIView):
         slug = serializers.CharField()
         start_date = serializers.DateTimeField()
         end_date = serializers.DateTimeField()
+        discipline_set = inline_serializer(many=True, fields={
+            'id': serializers.IntegerField(),
+            'slug': serializers.CharField(),
+            'name': serializers.CharField(),
+        })
 
         class Meta:
             ref_name = 'OngoingContestRetrieveSerializer'
@@ -543,6 +554,13 @@ class SingleResultLeaderboardApi(APIView):
         responses={200: OutputSerializer()},
         parameters=[
             OpenApiParameter(
+                name='discipline_slug',
+                location=OpenApiParameter.QUERY,
+                description='discipline slug',
+                required=True,
+                type=str,
+            ),
+            OpenApiParameter(
                 name='page_size',
                 location=OpenApiParameter.QUERY,
                 description='page size',
@@ -559,11 +577,13 @@ class SingleResultLeaderboardApi(APIView):
         ]
     )
     def get(self, request):
-        leaderboard_selector = SingleResultLeaderboardSelector()
+        leaderboard_selector = SingleResultLeaderboardSelector(
+            discipline_slug=request.query_params.get('discipline_slug', '3by3'),
+            user_id=request.user.id
+        )
         data = leaderboard_selector.leaderboard_retrieve(
             page_size=int(request.query_params.get('page_size', 10)),
             page=int(request.query_params.get('page', 1)),
-            user_id=request.user.id
         )
         data = self.OutputSerializer(data).data
 
@@ -578,3 +598,19 @@ class UserCapabilities(APIView):
 
     def get(self):
         pass
+
+
+class AvailableDisciplinesListApi(APIView):
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        name = serializers.CharField()
+        slug = serializers.CharField()
+
+    @extend_schema(
+        responses={200: OutputSerializer(many=True)})
+
+    def get(self, request):
+        selector = AvailableDisciplinesListSelector()
+        discipline_set = selector.discipline_set_retrieve()
+        data = self.OutputSerializer(discipline_set, many=True).data
+        return Response(data)

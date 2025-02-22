@@ -2,6 +2,8 @@ from .models import User
 from rest_framework import exceptions
 from apps.core.exceptions import ConflictException
 
+from .models import SettingsModel
+
 
 class UserService:
     def change_username(self, username, user_id):
@@ -23,3 +25,19 @@ class UserService:
         #     APIException.default_detail = 'you dont have permission'
         #     APIException.status_code = 403
         #     raise APIException
+
+
+class SettingsService:
+    def __init__(self, user_id):
+        self.user = User.objects.get(id=user_id)
+
+    def update(self, cstimer_inspection_voice_alert=None, cstimer_animation_duration=None):
+        settings = SettingsModel.objects.get(user=self.user)
+
+        if cstimer_inspection_voice_alert is not None:
+            settings.cstimer_inspection_voice_alert = cstimer_inspection_voice_alert
+
+        if cstimer_animation_duration is not None:
+            settings.cstimer_animation_duration = cstimer_animation_duration
+
+        settings.save()

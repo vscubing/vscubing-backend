@@ -6,9 +6,10 @@ from django.db.transaction import atomic
 from rest_framework import status
 
 from apps.core.exceptions import ConflictException, BadRequestException
+from scripts.solution_validator.solution_validator import is_solution_valid
 from .general_selectors import (
     current_contest_retrieve,
-    retrieve_current_scramble_3by3_avg5,
+    retrieve_current_scramble_avg5,
     can_change_solve_to_extra
 )
 from .models import (
@@ -19,7 +20,6 @@ from .models import (
     ScrambleModel,
     SingleResultLeaderboardModel
 )
-from scripts.cube import ReconstructionValidator
 
 MAX_INT = 2147483647
 
@@ -78,9 +78,10 @@ class CreateSolveService:
             )
             return solve
 
-        solve_is_valid = self.solve_is_valid(
-            reconstruction=reconstruction,
-            time_ms=time_ms
+        solve_is_valid = is_solution_valid(
+            scramble=self.current_scramble.moves,
+            solution=reconstruction,
+            discipline=self.discipline.slug,
         )
         if solve_is_valid:
             solve = SolveModel.objects.create(
@@ -127,9 +128,10 @@ class CreateSolveService:
             return False
 
     def retrieve_current_scramble(self):
-        current_scramble = retrieve_current_scramble_3by3_avg5(
+        current_scramble = retrieve_current_scramble_avg5(
             user=self.user,
-            contest=self.contest
+            contest=self.contest,
+            discipline=self.discipline,
         )
         return current_scramble
 
@@ -141,19 +143,6 @@ class CreateSolveService:
         if scramble == self.current_scramble:
             return True
         else:
-            return False
-
-    def solve_is_valid(self, reconstruction, time_ms):
-        reconstruction_validator = ReconstructionValidator(
-            scramble=self.current_scramble.moves,
-            reconstruction=reconstruction,
-        )
-        try:
-            if reconstruction_validator.is_valid():
-                return True
-            else:
-                return False
-        except KeyError and TypeError:
             return False
 
     def solve_does_not_exists(self):
@@ -190,7 +179,7 @@ class CreateSolveService:
 
 class SubmitSolveService:
 
-    def __init__(self, discipline_slug, solve_id, user_id):
+    def __init__(self, solve_id, user_id):
         try:
             self.user = User.objects.get(id=user_id)
         except ObjectDoesNotExist:
@@ -242,7 +231,7 @@ class SubmitSolveService:
 
     def add_solve_to_round_session(self):
         try:
-            round_session = self.solve.contest.round_session_set.get(user=self.user)
+            round_session = self.solve.contest.round_session_set.get(user=self.user, discipline=self.solve.discipline)
         except ObjectDoesNotExist:
             round_session = self.create_round_session()
 
