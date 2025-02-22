@@ -250,7 +250,6 @@ from celery.schedules import crontab
 CELERY_BEAT_SCHEDULE = {
     'add': {
         'task': 'apps.contests.tasks.create_contest',
-        'schedule': crontab(hour=19, minute=13, day_of_week='wednesday'),
+        'schedule': crontab(hour=20, minute=0, day_of_week='saturday'),
     },
 }
-

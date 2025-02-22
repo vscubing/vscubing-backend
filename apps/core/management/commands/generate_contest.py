@@ -42,7 +42,7 @@ class Command(BaseCommand):
             end_date=end_date
         )
 
-        discipline = DisciplineModel.objects.get(name='3by3')
+        discipline = DisciplineModel.objects.get(name='3x3')
         new_scrambles_moves = 'R2 L2'
         inx = 1
         scramble_position = '1'
