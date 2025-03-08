@@ -320,7 +320,8 @@ class SingleResultLeaderboardService:
                                      is_dnf=False).order_by('time_ms').first())
             try:
                 best_user_solve = SingleResultLeaderboardModel.objects.get(
-                    solve__user=round_session.user
+                    solve__user=round_session.user,
+                    solve__discipline=round_session.discipline,
                 )
                 if (new_best_solve.time_ms and best_user_solve.solve.time_ms >
                         new_best_solve.time_ms and not new_best_solve.is_dnf):
