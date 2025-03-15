@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from django.db.transaction import atomic
 from django.core.management.base import BaseCommand
 
+
 from apps.contests.models import (
     TnoodleScramblesModel
 )
