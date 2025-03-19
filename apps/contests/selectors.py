@@ -516,8 +516,8 @@ class ContestLeaderboardSelector:
 
         return own_round_session
 
-    def get_pagination_info(self, discipline, contest, page_size, page):
-        queryset = self.round_session_list(discipline, contest)
+    def get_pagination_info(self, discipline, contest, page_size, page, user_id):
+        queryset = self.round_session_list(discipline, contest).exclude(user__id=user_id)
         total_items = queryset.count()
         total_pages = math.ceil(total_items / page_size)
 
@@ -557,7 +557,7 @@ class ContestLeaderboardSelector:
             pass
 
         data = {'results': {}}
-        data.update(self.get_pagination_info(discipline, contest, page_size, page))
+        data.update(self.get_pagination_info(discipline, contest, page_size, page, user_id))
         data['results']['own_result'] = self.own_round_session_retrieve(discipline, contest, page_size, page, user_id)
         data['results']['contest'] = contest
         data['results']['round_session_set'] = self.round_session_set_retrieve(discipline, contest, page_size, page,
