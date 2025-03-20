@@ -319,6 +319,7 @@ class SingleResultLeaderboardService:
                               filter(submission_state='submitted',
                                      is_dnf=False).order_by('time_ms').first())
             try:
+                print(round_session)
                 best_user_solve = SingleResultLeaderboardModel.objects.get(
                     solve__user=round_session.user,
                     solve__discipline=round_session.discipline,

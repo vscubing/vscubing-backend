@@ -265,7 +265,11 @@ class ScrambleSelector:
 class SingleResultLeaderboardSelector:
     def __init__(self, user_id, discipline_slug):
         try:
-            # self.user = User.objects.get(id=user_id)
+            self.user = User.objects.get(id=user_id)
+        except ObjectDoesNotExist:
+            self.user = None
+
+        try:
             self.discipline = DisciplineModel.objects.get(slug=discipline_slug)
         except ObjectDoesNotExist:
             raise Http404
@@ -277,9 +281,11 @@ class SingleResultLeaderboardSelector:
 
     def own_solve_retrieve(self, user_id):
         try:
-            own_solve = SingleResultLeaderboardModel.objects.get(solve__user_id=user_id, solve__discipline=self.discipline)
+            own_solve = SingleResultLeaderboardModel.objects.get(solve__user=self.user)
+            print(own_solve)
             return own_solve
         except ObjectDoesNotExist:
+            print('solve is not found')
             return None
 
     def get_place(self, solve):
