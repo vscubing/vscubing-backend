@@ -193,7 +193,7 @@ class SubmitSolveService:
             raise Http404('solve is not found')
 
     @atomic()
-    def submit_solve(self, action, user_id):
+    def submit_solve(self, action, user_id, reason_for_taking_extra=None):
         if self.solve.user == self.user:
             pass
         else:
@@ -216,6 +216,7 @@ class SubmitSolveService:
         elif action == 'change_to_extra':
             if can_change_solve_to_extra(self.solve.contest, self.solve.discipline, self.user):
                 self.solve.submission_state = 'changed_to_extra'
+                self.solve.reason_for_taking_extra = reason_for_taking_extra
             else:
                 raise ConflictException('cannot change to extra: all extra attempts were used')
         else:
