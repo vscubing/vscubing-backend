@@ -165,7 +165,7 @@ class SubmitSolveApi(APIView):
     permission_classes = [IsAuthenticated, IsVerified]
 
     class InputSerializer(serializers.Serializer):
-        id_dnf = serializers.BooleanField()
+        reason_for_taking_extra = serializers.CharField(max_length=1500, required=False)
 
         ref_name = 'contests.SubmitSolveInputSerializer'
 
@@ -184,11 +184,15 @@ class SubmitSolveApi(APIView):
         ]
     )
     def post(self, request, solve_id):
+        serializer = self.InputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         service = SubmitSolveService(
             solve_id=solve_id,
             user_id=request.user.id
         )
-        service.submit_solve(action=request.query_params.get('action'), user_id=request.user.id)
+        service.submit_solve(action=request.query_params.get('action'),
+                             user_id=request.user.id,
+                             **serializer.validated_data)
         return Response(status=status.HTTP_200_OK)
 
 

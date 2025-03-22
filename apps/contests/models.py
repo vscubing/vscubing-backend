@@ -65,6 +65,7 @@ class SolveModel(BaseModel):
     ]
     submission_state = models.CharField(max_length=96, default='pending', choices=SUBMITTED_STATE_CHOICES)
     reconstruction = models.TextField(max_length=15048, null=True, blank=True)
+    reason_for_taking_extra = models.TextField(max_length=1500, null=True, blank=True)
 
     scramble = models.ForeignKey(ScrambleModel, on_delete=models.CASCADE, related_name='solve_set')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='solve_set')
