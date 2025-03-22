@@ -281,7 +281,8 @@ class SingleResultLeaderboardSelector:
 
     def own_solve_retrieve(self, user_id):
         try:
-            own_solve = SingleResultLeaderboardModel.objects.get(solve__user=self.user)
+            own_solve = SingleResultLeaderboardModel.objects.get(solve__user=self.user,
+                                                                 solve__discipline=self.discipline)
             print(own_solve)
             return own_solve
         except ObjectDoesNotExist:
