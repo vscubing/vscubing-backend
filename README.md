@@ -1,7 +1,7 @@
 
 # vscubing api
 
-RESTful api for vscubing.com powerd with Django Rest Framework
+RESTful api for vscubing.com powered with Django Rest Framework
 
 
 ## Badges
@@ -14,50 +14,57 @@ RESTful api for vscubing.com powerd with Django Rest Framework
 Django, Django Rest Framework
 
 
-## api docs
-Check api documentation in [API Docs](docs/README.md) 
 ## Authors
 
 - [@HomaDev](https://github.com/HomaDev)
 
-
 ## Run Locally
 
-Clone the project
+- Clone the project **!!!WITH SUBMODULES!!!**
 
 ```bash
-  git clone git@github.com:vscubing/vscubing-backend.git -b dev
+git clone --recurse-submodules git@github.com:vscubing/vscubing-backend.git -b dev
+cd vscubing-backend
 ```
 
-Go to the project directory
+If you have already cloned the project without `--recurse-submodules`, run `git submodule update --init --recursive` to clone the submodules.
+
+- Build twsearch
+```bash
+cd vendor/twsearch
+make build
+cd ../../
+```
+
+- Create venv (on linux)
 
 ```bash
-  cd vscubing-backend
+python3 -m venv venv
 ```
 
-Create venv (on linux)
+- Activate venv (on linux)
 
 ```bash
-  python3 -m venv venv
+source venv/bin/activate
+# using fish shell: `source venv/bin/activate.fish`
 ```
 
-
-Activate venv (on linux)
+- Install requirements
 
 ```bash
-  source venv/bing/activate
+pip install -r requirements.txt
 ```
 
-Install requirements
+- Add and populate `.env` (refer to `.example-env`)
 
+- Run migrations
 ```bash
-  pip install -r requirements.txt
+python3 manage.py migrate
 ```
-Before going forward the server check the next section "Environment Variables" right below
 
-To create fake data for test use, utilize this command
-```commandline
-python managenerate_full_data
+- To create fake data for test use, utilize this command
+```bash
+python3 manage.py generate_full_data
 ```
 **There are some parms that can be used**
 
@@ -81,51 +88,25 @@ how many past contests to generate
 
 
 Example
-```commandline
-python manage.py generate_full_data --users_qty 15 --discipline_names 3by3 2by2 --tnoodle_scrambles_qty 20 --contest_qty 5 --tnoodle_scrambles_moves_qty 8 --scrambles_moves_qty 10
-
+```bash
+python3 manage.py generate_full_data --users_qty 15 --discipline_names 3by3 2by2 --tnoodle_scrambles_qty 20 --contest_qty 5 --tnoodle_scrambles_moves_qty 8 --scrambles_moves_qty 10
 ```
 
-
-
-Start the server
+- Start the server
 
 ```bash
-  python manage.py runserver
+python3 manage.py runserver
 ```
 
-Start celery worker
+- (Optional) Start celery worker and beat
 ```bash
 celery -A vscubing.celery worker --loglevel=info
-```
-
-Start celery beat 
-```bash
 celery -A vscubing.celery beat --loglevel=info
 ```
-
-## Environment Variables
-
-To run this project, you will need to add the following environment variables to your .env file 
-
-File direction /vscubing-backend/.env
-
-
-`SECRET_KEY` = 'django-key'
-
-`DEBUG` = 1 # 1 == True, 0 == False
-
-`GOOGLE_REDIRECT_URL` = 'http://127.0.0.1:3000'
-
-`ALLOWED_HOSTS` = '["127.0.0.1", "127.0.0.1:8000", "0.0.0.0:8000", "192.168.1.7"]'
-
 
 ## Contributing
 
 Contributions are always welcome!
-
-See [contributing.md](docs/contributing.md) for ways to get started.
-
 
 
 ## Support
