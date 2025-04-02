@@ -129,6 +129,8 @@ class SettingsModel(BaseModel):
         default='Male',
     )
     cstimer_animation_duration = models.IntegerField(default=100)
+    cstimer_camera_position_theta = models.IntegerField(default=0)
+    cstimer_camera_position_phi = models.IntegerField(default=6)
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings')
 
