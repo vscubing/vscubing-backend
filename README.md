@@ -23,45 +23,48 @@ Django, Django Rest Framework
 - Clone the project **!!!WITH SUBMODULES!!!**
 
 ```bash
-  git clone --recurse-submodules git@github.com:vscubing/vscubing-backend.git -b dev
+git clone --recurse-submodules git@github.com:vscubing/vscubing-backend.git -b dev
+cd vscubing-backend
 ```
 
 If you have already cloned the project without `--recurse-submodules`, run `git submodule update --init --recursive` to clone the submodules.
 
 - Build twsearch
 ```bash
-  cd vendor/twsearch && make build && cd ../../
+cd vendor/twsearch
+make build
+cd ../../
 ```
 
 - Create venv (on linux)
 
 ```bash
-  python3 -m venv venv
+python3 -m venv venv
 ```
 
 - Activate venv (on linux)
 
 ```bash
-  source venv/bin/activate
-  # using fish shell: `source venv/bin/activate.fish`
+source venv/bin/activate
+# using fish shell: `source venv/bin/activate.fish`
 ```
 
 - Install requirements
 
 ```bash
-  pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 - Add and populate `.env` (refer to `.example-env`)
 
 - Run migrations
 ```bash
-  python3 manage.py migrate
+python3 manage.py migrate
 ```
 
 - To create fake data for test use, utilize this command
 ```bash
-  python3 manage.py generate_full_data
+python3 manage.py generate_full_data
 ```
 **There are some parms that can be used**
 
@@ -86,14 +89,13 @@ how many past contests to generate
 
 Example
 ```bash
-python3 manage.py generate_full_data --users_qty 15 --discipline_names 3by3 2by2 --tnoodle_scrambles_qty 20 --contest_qty 5 --tnoodle_scrambles_moves_qty 8 --scrambles_moves_qty 10 ```
-
-
+python3 manage.py generate_full_data --users_qty 15 --discipline_names 3by3 2by2 --tnoodle_scrambles_qty 20 --contest_qty 5 --tnoodle_scrambles_moves_qty 8 --scrambles_moves_qty 10
+```
 
 - Start the server
 
 ```bash
-  python3 manage.py runserver
+python3 manage.py runserver
 ```
 
 - (Optional) Start celery worker and beat
