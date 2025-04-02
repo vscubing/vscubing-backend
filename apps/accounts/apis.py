@@ -121,6 +121,8 @@ class SettingsRetrieveApi(APIView):
     class OutputSerializer(serializers.Serializer):
         cstimer_inspection_voice_alert = serializers.CharField()
         cstimer_animation_duration = serializers.IntegerField()
+        cstimer_camera_position_theta = serializers.IntegerField()
+        cstimer_camera_position_phi = serializers.IntegerField()
 
         class Meta:
             ref_name = 'accounts.SettingsUpdateOutputSerializer'
@@ -141,6 +143,8 @@ class SettingsUpdateApi(APIView):
     class InputSerializer(serializers.Serializer):
         cstimer_inspection_voice_alert = serializers.CharField(required=False)
         cstimer_animation_duration = serializers.IntegerField(required=False)
+        cstimer_camera_position_theta = serializers.IntegerField(required=False)
+        cstimer_camera_position_phi = serializers.IntegerField(required=False)
 
         class Meta:
             ref_name = 'accounts.SettingsUpdateInputSerializer'
