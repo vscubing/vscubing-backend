@@ -1,5 +1,4 @@
-
-# vscubing api
+# LEGACY: vscubing api (replaced by [vscubing-next](https://github.com/vscubing/vscubing-next/))
 
 RESTful api for vscubing.com powered with Django Rest Framework
 
